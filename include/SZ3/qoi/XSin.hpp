@@ -27,7 +27,7 @@ namespace SZ {
         using Range = multi_dimensional_range<T, N>;
         using iterator = typename multi_dimensional_range<T, N>::iterator;
 
-        T interpret_eb(T data){
+        T interpret_eb(T data)  {
             
 
             double a = fabs(cos(data));//datatype may be T
@@ -45,7 +45,7 @@ namespace SZ {
             return std::min(eb, global_eb);
         }
 
-        T interpret_eb(const iterator &iter) const {
+        T interpret_eb(const iterator &iter) {
             return interpret_eb(*iter);
         }
 
