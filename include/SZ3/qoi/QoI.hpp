@@ -21,7 +21,7 @@ namespace SZ {
 
             virtual ~QoIInterface() = default;
 
-            virtual T interpret_eb(T data) const = 0;
+            virtual T interpret_eb(T data)= 0;
 
             // interpret eb with iterator (Lorenzo)
             virtual T interpret_eb(const iterator &iter) = 0;
