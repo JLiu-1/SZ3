@@ -27,13 +27,17 @@ namespace SZ {
         using iterator = typename multi_dimensional_range<T, N>::iterator;
 
         T interpret_eb(T data) const {
+            /*
             if (data == 0)
                 return global_eb;
+
             double b = fabs(6*data);
             double a = fabs(0.5*b*data);//datatype may be T
+
             
             T eb = (sqrt(a*a+2*b*tolerance)-a)/b;
-
+            */
+            T eb = data >= 0 ? std::cbrt(data*data*data+tolerance)-data : data - std::cbrt(data*data*data-tolerance)
             return std::min(eb, global_eb);
         }
 
