@@ -33,7 +33,7 @@ namespace SZ {
             double a = fabs(cos(data));//datatype may be T
             double b = fabs(sin(data));
             T eb;
-            if( b != 0)
+            if( b > 0.01)
                 eb = (sqrt(a*a+2*b*tolerance)-a)/b;
             else if (a!=0)
                 eb = tolerance/a;
