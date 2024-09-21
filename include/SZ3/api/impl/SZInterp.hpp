@@ -221,6 +221,10 @@ char *SZ_compress_Interp_lorenzo(SZ::Config &conf, T *data, size_t &outSize) {
             //rel is abs
             conf.qoiEB *= 1;
         }
+        else if(qoi == 11){
+            // x
+            conf.qoiEB *= (max-min);
+        }
         else if(qoi >= 5){
             // (x^2) + (log x) + (isoline)
             auto max_2 = max * max;
