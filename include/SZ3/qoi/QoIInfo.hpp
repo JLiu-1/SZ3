@@ -4,6 +4,7 @@
 #include "QoI.hpp"
 #include "XSquare.hpp"
 #include "XCubic.hpp"
+#include "XSin.hpp"
 #include "LogX.hpp"
 #include "RegionalAverage.hpp"
 #include "RegionalAverageOfSquare.hpp"
@@ -75,6 +76,8 @@ namespace SZ {
             }
             case 9:
                 return std::make_shared<SZ::QoI_X_Cubic<T, N>>(conf.qoiEB, conf.absErrorBound);
+            case 10:
+                return std::make_shared<SZ::QoI_X_Sin<T, N>>(conf.qoiEB, conf.absErrorBound);
         }
         return NULL;
     }
