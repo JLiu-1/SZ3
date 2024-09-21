@@ -26,7 +26,7 @@ namespace SZ {
         using Range = multi_dimensional_range<T, N>;
         using iterator = typename multi_dimensional_range<T, N>::iterator;
 
-        T interpret_eb(T data) const {
+        T interpret_eb(T data)  {
             
             if (data == 0)
                 return global_eb;
