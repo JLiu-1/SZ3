@@ -563,7 +563,7 @@ namespace SZ {
         Quantizer quantizer;
         std::shared_ptr<concepts::QoIInterface<T, N>> qoi;
         Encoder encoder;
-        Lossless lossless;i
+        Lossless lossless;
         size_t num_elements;
         std::array<size_t, N> global_dimensions;
         std::array<size_t, N> dimension_offsets;
