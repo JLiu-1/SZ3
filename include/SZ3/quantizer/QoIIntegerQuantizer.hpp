@@ -183,7 +183,7 @@ namespace SZ {
         }
 
         void clear() {
-            // std::cout << "unpred size = " << unpred.size() << std::endl;
+             std::cout << "unpred size = " << unpred.size() << std::endl;
             unpred.clear();
             index = 0;
         }
