@@ -33,7 +33,8 @@ char *SZ_compress_Interp(SZ::Config &conf, T *data, size_t &outSize) {
 
     // conf.print();
     // directly use abs when qoi is regional average
-    if(conf.qoi > 0){
+   //if(conf.qoi > 0){
+    if(0){
         //std::cout << conf.qoi << " " << conf.qoiEB << " " << conf.qoiEBBase << " " << conf.qoiEBLogBase << " " << conf.qoiQuantbinCnt << std::endl;
         auto quantizer = SZ::VariableEBLinearQuantizer<T, T>(conf.quantbinCnt / 2);
         auto quantizer_eb = SZ::EBLogQuantizer<T>(conf.qoiEBBase, conf.qoiEBLogBase, conf.qoiQuantbinCnt / 2);
