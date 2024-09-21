@@ -71,7 +71,7 @@ char *SZ_compress_Interp(SZ::Config &conf, T *data, size_t &outSize) {
             double best_abs_eb = conf.absErrorBound;
             double best_ratio = current_ratio;
             // check smaller bounds
-            /*
+            
             while(true){
                 auto prev_eb = conf.absErrorBound;
                 prev_ratio = current_ratio;
@@ -93,7 +93,7 @@ char *SZ_compress_Interp(SZ::Config &conf, T *data, size_t &outSize) {
                     }
                     break;
                 }
-            }*/
+            }
             // set error bound
             free(sampling_data);
             //std::cout << "Best abs eb / pre-set eb: " << best_abs_eb / tmp_abs_eb << std::endl; 
