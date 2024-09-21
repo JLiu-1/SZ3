@@ -72,7 +72,7 @@ char *SZ_compress_Interp(SZ::Config &conf, T *data, size_t &outSize) {
             double best_ratio = current_ratio;
             // check smaller bounds
             int countdown = 4;//added
-            while(count-->0){
+            while(countdown-->0){
                 auto prev_eb = conf.absErrorBound;
                 prev_ratio = current_ratio;
                 conf.absErrorBound /= 2;
