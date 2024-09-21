@@ -196,12 +196,12 @@ namespace SZ {
 
 
             // timer.start();
-            // std::cout << "save encoder, offset = " << buffer_pos - buffer << std::endl;
+             std::cout << "save encoder, offset = " << buffer_pos - buffer << std::endl;
             encoder.preprocess_encode(quant_inds, 0);
             encoder.save(buffer_pos);
             encoder.encode(quant_inds, buffer_pos);
             encoder.postprocess_encode();
-            // std::cout << "after encoder, offset = " << buffer_pos - buffer << std::endl;
+             std::cout << "after encoder, offset = " << buffer_pos - buffer << std::endl;
             // timer.stop("Encoding");
             // timer.start();
             assert(buffer_pos - buffer < bufferSize);
@@ -563,7 +563,7 @@ namespace SZ {
         Quantizer quantizer;
         std::shared_ptr<concepts::QoIInterface<T, N>> qoi;
         Encoder encoder;
-        Lossless lossless;
+        Lossless lossless;i
         size_t num_elements;
         std::array<size_t, N> global_dimensions;
         std::array<size_t, N> dimension_offsets;

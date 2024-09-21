@@ -165,10 +165,12 @@ namespace SZ {
 
 
             timer.start();
+            std::cout << "save encoder, offset = " << buffer_pos - buffer << std::endl;
             encoder.preprocess_encode(quant_inds, 0);
             encoder.save(buffer_pos);
             encoder.encode(quant_inds, buffer_pos);
             encoder.postprocess_encode();
+             std::cout << "after encoder, offset = " << buffer_pos - buffer << std::endl;
 //            timer.stop("Coding");
             assert(buffer_pos - buffer < bufferSize);
 
