@@ -39,6 +39,9 @@ namespace SZ {
                 eb = tolerance/a;
             else 
                 eb = global_eb;
+            if (eb < global_eb)
+                count +=1
+
             return std::min(eb, global_eb);
         }
 
@@ -60,7 +63,7 @@ namespace SZ {
 
         void postcompress_block(){}
 
-        void print(){}
+        void print(){std::cout<<"Count: "<<count<<std::endl;}
 
         T get_global_eb() const { return global_eb; }
 
@@ -73,6 +76,7 @@ namespace SZ {
     private:
         T tolerance;
         T global_eb;
+        int count =0;
     };
 }
 #endif 
