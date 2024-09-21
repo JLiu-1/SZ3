@@ -33,8 +33,7 @@ char *SZ_compress_Interp(SZ::Config &conf, T *data, size_t &outSize) {
 
     // conf.print();
     // directly use abs when qoi is regional average
-   //if(conf.qoi > 0){
-    if(0){
+    if(conf.qoi > 0){
         //std::cout << conf.qoi << " " << conf.qoiEB << " " << conf.qoiEBBase << " " << conf.qoiEBLogBase << " " << conf.qoiQuantbinCnt << std::endl;
         auto quantizer = SZ::VariableEBLinearQuantizer<T, T>(conf.quantbinCnt / 2);
         auto quantizer_eb = SZ::EBLogQuantizer<T>(conf.qoiEBBase, conf.qoiEBLogBase, conf.qoiQuantbinCnt / 2);
@@ -72,6 +71,7 @@ char *SZ_compress_Interp(SZ::Config &conf, T *data, size_t &outSize) {
             double best_abs_eb = conf.absErrorBound;
             double best_ratio = current_ratio;
             // check smaller bounds
+            /*
             while(true){
                 auto prev_eb = conf.absErrorBound;
                 prev_ratio = current_ratio;
@@ -93,7 +93,7 @@ char *SZ_compress_Interp(SZ::Config &conf, T *data, size_t &outSize) {
                     }
                     break;
                 }
-            }
+            }*/
             // set error bound
             free(sampling_data);
             //std::cout << "Best abs eb / pre-set eb: " << best_abs_eb / tmp_abs_eb << std::endl; 
