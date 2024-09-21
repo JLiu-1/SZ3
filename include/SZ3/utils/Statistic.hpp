@@ -341,7 +341,7 @@ namespace SZ {
 
         printf("QoI error info:\n");
         printf("Max x^2 error = %.6G, relative x^2 error = %.6G\n, Max x^3 error = %.6G, relative x^3 error = %.6G\n", max_x_square_diff, max_x_square_diff / max_abs_val_sq, max_x_cubic_diff, max_x_cubic_diff / max_abs_val_cu);
-        printf("Max log error = %.6G\n, max sin error = %.6G\n", max_log_diff, max_sin_diff);
+        printf("Max log error = %.6G, max sin error = %.6G\n", max_log_diff, max_sin_diff);
 
         for(int i=0; i<num_elements; i++){
             ori_data[i] = ori_data[i] * ori_data[i];
