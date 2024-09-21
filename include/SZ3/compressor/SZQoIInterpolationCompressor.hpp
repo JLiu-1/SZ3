@@ -220,8 +220,9 @@ namespace SZ {
         void clear() {
             quantizer.clear();
             quantizer_eb.clear();
-            count = 0;//debug;
             std::cout<<"Count: "<<count<<std::endl;
+            count = 0;//debug;
+
         }
 
     private:
