@@ -40,7 +40,7 @@ namespace SZ {
             else 
                 eb = global_eb;
             if (eb < global_eb)
-                count +=1;
+                count ++;
 
             return std::min(eb, global_eb);
         }

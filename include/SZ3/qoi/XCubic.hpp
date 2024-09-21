@@ -37,7 +37,7 @@ namespace SZ {
             
             T eb = (sqrt(a*a+2*b*tolerance)-a)/b;
             if (eb < global_eb)
-                count +=1;
+                count ++;
             //T eb = data >= 0 ? std::cbrt(data*data*data+tolerance)-data : data - std::cbrt(data*data*data-tolerance);
             return std::min(eb, global_eb);
         }

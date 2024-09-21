@@ -49,8 +49,6 @@ namespace SZ {
             virtual void set_dims(const std::vector<size_t>& new_dims) = 0;
 
             int id = 0;
-
-            int count = 0;
         };
 
     }
