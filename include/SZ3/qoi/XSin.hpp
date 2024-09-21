@@ -27,7 +27,7 @@ namespace SZ {
         using Range = multi_dimensional_range<T, N>;
         using iterator = typename multi_dimensional_range<T, N>::iterator;
 
-        T interpret_eb(T data)  {
+        T interpret_eb(T data) const {
             
 
             double a = fabs(cos(data));//datatype may be T
@@ -39,13 +39,11 @@ namespace SZ {
                 eb = tolerance/a;
             else 
                 eb = global_eb;
-            if (eb < global_eb)
-                count ++;
-
+           
             return std::min(eb, global_eb);
         }
 
-        T interpret_eb(const iterator &iter) {
+        T interpret_eb(const iterator &iter) const {
             return interpret_eb(*iter);
         }
 
@@ -63,7 +61,7 @@ namespace SZ {
 
         void postcompress_block(){}
 
-        void print(){std::cout<<"Count: "<<count<<std::endl;}
+        void print(){}
 
         T get_global_eb() const { return global_eb; }
 
@@ -76,7 +74,7 @@ namespace SZ {
     private:
         T tolerance;
         T global_eb;
-        int count =0;
+     
     };
 }
 #endif 

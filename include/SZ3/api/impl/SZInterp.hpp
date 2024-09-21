@@ -107,8 +107,8 @@ char *SZ_compress_Interp(SZ::Config &conf, T *data, size_t &outSize) {
             }
         }
         char *cmpData = (char *) sz.compress(conf, data, outSize);
-        qoi->print();//debugging
-        //sz.clear();//debugging
+        //qoi->print();//debugging
+        sz.clear();//debugging
         return cmpData;
     }
     auto sz = SZ::SZInterpolationCompressor<T, N, SZ::LinearQuantizer<T>, SZ::HuffmanEncoder<int>, SZ::Lossless_zstd>(

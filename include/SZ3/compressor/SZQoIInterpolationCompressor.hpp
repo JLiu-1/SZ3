@@ -129,6 +129,7 @@ namespace SZ {
             size_t interp_compressed_size = 0;
 
             double eb = qoi->get_global_eb();
+            global_eb = eb;//debug
 //            printf("Absolute error bound = %.5f\n", eb);
 
             // quant_inds.push_back(quantizer.quantize_and_overwrite(*data, 0));
@@ -141,9 +142,11 @@ namespace SZ {
                 if (level >= 3) {
                     // quantizer.set_eb(eb * eb_ratio);
                     qoi->set_global_eb(eb * eb_ratio);
+                    global_eb = eb * eb_ratio;//debug
                 } else {
                     // quantizer.set_eb(eb);
                     qoi->set_global_eb(eb);
+                    global_eb = eb;//debug
                 }
                 uint stride = 1U << (level - 1);
 //                std::cout << "Level = " << level << ", stride = " << stride << std::endl;
@@ -217,6 +220,8 @@ namespace SZ {
         void clear() {
             quantizer.clear();
             quantizer_eb.clear();
+            count = 0;//debug;
+            std::cout<<"Count: "<<count<<std::endl;
         }
 
     private:
@@ -224,6 +229,10 @@ namespace SZ {
         inline void quantize_data(size_t offset, T * data, T pred){
             auto ori_data = *data;
             auto eb = qoi->interpret_eb(data, offset);
+            //debug
+            if (eb <global_eb)
+                count++;
+            //debug end
             quant_inds[quant_index] = quantizer_eb.quantize_and_overwrite(eb);
             quant_inds[num_elements + quant_index] = quantizer.quantize_and_overwrite(
                     *data, pred, eb);
@@ -559,6 +568,8 @@ namespace SZ {
         std::array<size_t, N> dimension_offsets;
         std::vector<std::array<int, N>> dimension_sequences;
         int direction_sequence_id;
+        T global_eb;//debug
+        size_t count = 0 ;//debug
     };
 
 
