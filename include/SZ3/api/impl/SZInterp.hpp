@@ -95,8 +95,8 @@ char *SZ_compress_Interp(SZ::Config &conf, T *data, size_t &outSize) {
             }
             // set error bound
             free(sampling_data);
-            //std::cout << "Best abs eb / pre-set eb: " << best_abs_eb / tmp_abs_eb << std::endl; 
-            //std::cout << best_abs_eb << " " << tmp_abs_eb << std::endl;
+            std::cout << "Best abs eb / pre-set eb: " << best_abs_eb / tmp_abs_eb << std::endl; 
+            std::cout << best_abs_eb << " " << tmp_abs_eb << std::endl;
             conf.absErrorBound = best_abs_eb;
             qoi->set_global_eb(best_abs_eb);
             conf.setDims(dims.begin(), dims.end());
