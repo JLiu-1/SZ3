@@ -28,30 +28,7 @@ namespace SZ {
         using iterator = typename multi_dimensional_range<T, N>::iterator;
 
         T interpret_eb(T data) const {
-            // Implementation 1
-            // e^2 + 2ex - t < 0
-            // T x1 = - data + sqrt(data * data + tolerance);
-            // T x2 = data + sqrt(data * data + tolerance);
-            // T eb = std::min(x1, x2);
-            // e^2 + 2ex + t > 0
-            // if ((data < 0) && (data * data - tolerance >= 0)){
-            //     if (eb > - data - sqrt(data * data - tolerance))
-            //         eb = - data - sqrt(data * data - tolerance);
-            // }
-            // Implementation 2
-            // T eb;
-            // if(data >= 0){
-            //     eb = - data + sqrt(data * data + tolerance);
-            // }
-            // else{
-            //     eb = data + sqrt(data * data + tolerance);
-            //     if(data * data - tolerance >= 0){
-            //         T eb2 = - data - sqrt(data * data - tolerance);
-            //         eb = std::min(eb, eb2);
-            //     }
-            // }
-            // Implementation 3
-            if(data == 0) return 0;
+            
 
             double a = fabs(cos(data));//datatype may be T
             double b = fabs(sin(data));
