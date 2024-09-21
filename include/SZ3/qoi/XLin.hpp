@@ -2,8 +2,8 @@
 // Created by Xin Liang on 12/06/2021.
 //
 
-#ifndef SZ_QOI_X_SIN_HPP
-#define SZ_QOI_X_SIN_HPP
+#ifndef SZ_QOI_X_LIN_HPP
+#define SZ_QOI_X_LIN_HPP
 
 #include <algorithm>
 #include <cmath>
@@ -13,15 +13,15 @@
 
 namespace SZ {
     template<class T, uint N>
-    class QoI_X_Sin : public concepts::QoIInterface<T, N> {
+    class QoI_X_Lin : public concepts::QoIInterface<T, N> {
 
     public:
-        QoI_X_Sin(T tolerance, T global_eb) : 
+        QoI_X_Lin(T tolerance, T global_eb) : 
                 tolerance(tolerance),
                 global_eb(global_eb) {
             // TODO: adjust type for int data
             //printf("global_eb = %.4f\n", (double) global_eb);
-            concepts::QoIInterface<T, N>::id = 10;
+            concepts::QoIInterface<T, N>::id = 11;
         }
 
         using Range = multi_dimensional_range<T, N>;
@@ -30,17 +30,9 @@ namespace SZ {
         T interpret_eb(T data) const {
             
 
-            double a = fabs(cos(data));//datatype may be T
-            double b = fabs(sin(data));
-            T eb;
-            if( b !=0)
-                eb = (sqrt(a*a+2*b*tolerance)-a)/b;
-            else if (a!=0)
-                eb = tolerance/a;
-            else 
-                eb = global_eb;
            
-            return std::min(eb, global_eb);
+           
+            return global_eb;
         }
 
         T interpret_eb(const iterator &iter) const {
