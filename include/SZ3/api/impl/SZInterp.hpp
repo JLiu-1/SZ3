@@ -209,8 +209,8 @@ char *SZ_compress_Interp_lorenzo(SZ::Config &conf, T *data, size_t &outSize) {
         }
         else if(qoi == 9){
             // x^3
-            auto max_2 = max * max * max;
-            auto min_2 = min * min * min;
+            auto max_2 = fabs(max * max * max);
+            auto min_2 = fabs(min * min * min);
             auto max_abs_val = (max_2 > min_2) ? max_2 : min_2;
             conf.qoiEB *= max_abs_val;
         }
