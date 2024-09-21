@@ -308,10 +308,13 @@ namespace SZ {
         double max_abs_val = std::max(fabs(max), fabs(min));
         double max_abs_val_sq = max_abs_val * max_abs_val;
         double max_x_square_diff = 0;
+        double max_x_cubic_diff = 0;
         double max_log_diff = 0;
         for(int i=0; i<num_elements; i++){
             double x_square_diff = fabs(ori_data[i] * ori_data[i] - data[i] * data[i]);
             if(x_square_diff > max_x_square_diff) max_x_square_diff = x_square_diff;
+            double x_cubic_diff = fabs(ori_data[i] * ori_data[i] * ori_data[i] - data[i] * data[i] * data[i]);
+            if(x_cubic_diff > max_x_cubic_diff) max_x_cubic_diff = x_cubic_diff;
             // if(x_square_diff / max_abs_val_sq > 1e-5){
             //     std::cout << i << ": ori = " << ori_data[i] << ", dec = " << data[i] << ", err = " << x_square_diff / max_abs_val_sq << std::endl;
             // }
@@ -333,7 +336,7 @@ namespace SZ {
         }
 
         printf("QoI error info:\n");
-        printf("Max x^2 error = %.6G, relative x^2 error = %.6G\n", max_x_square_diff, max_x_square_diff / max_abs_val_sq);
+        printf("Max x^2 error = %.6G, relative x^2 error = %.6G\n, Max x^3 error = %.6G, relative x^3 error = %.6G\n", max_x_square_diff, max_x_square_diff / max_abs_val_sq, max_x_cubic_diff, max_x_cubic_diff / max_abs_val_sq);
         printf("Max log error = %.6G\n", max_log_diff);
 
         for(int i=0; i<num_elements; i++){

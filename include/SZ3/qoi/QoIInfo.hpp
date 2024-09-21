@@ -3,6 +3,7 @@
 
 #include "QoI.hpp"
 #include "XSquare.hpp"
+#include "XCubic.hpp"
 #include "LogX.hpp"
 #include "RegionalAverage.hpp"
 #include "RegionalAverageOfSquare.hpp"
@@ -72,6 +73,8 @@ namespace SZ {
                 qois.push_back(std::make_shared<SZ::QoI_Isoline<T, N>>(conf.dims, values, conf.absErrorBound));
                 return std::make_shared<SZ::QoI_MultiQoIs<T, N>>(qois);            	
             }
+            case 9:
+                return std::make_shared<SZ::QoI_X_Cubic<T, N>>(conf.qoiEB, conf.absErrorBound);
         }
         return NULL;
     }

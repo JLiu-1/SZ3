@@ -207,6 +207,13 @@ char *SZ_compress_Interp_lorenzo(SZ::Config &conf, T *data, size_t &outSize) {
                 conf.isovalues.push_back(min + (i + 1) * 1.0 / (isonum + 1) * range);
             }
         }
+        else if(qoi == 9){
+            // x^3
+            auto max_2 = max * max * max;
+            auto min_2 = min * min * min;
+            auto max_abs_val = (max_2 > min_2) ? max_2 : min_2;
+            conf.qoiEB *= max_abs_val;
+        }
         else if(qoi >= 5){
             // (x^2) + (log x) + (isoline)
             auto max_2 = max * max;
@@ -242,6 +249,7 @@ char *SZ_compress_Interp_lorenzo(SZ::Config &conf, T *data, size_t &outSize) {
                 conf.qoiEBs.push_back(eb_logx);
                 conf.qoiEBs.push_back(eb_isoline);                                
             }
+            
         }
         // set eb base and log base if not set by config
         if(conf.qoiEBBase == 0) 
