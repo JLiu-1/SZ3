@@ -37,9 +37,8 @@ namespace SZ {
             
             T eb = (sqrt(a*a+2*b*tolerance)-a)/b;
             */
-            //T eb = data >= 0 ? std::cbrt(data*data*data+tolerance)-data : data - std::cbrt(data*data*data-tolerance);
-            //return std::min(eb, global_eb);
-            return global_eb;
+            T eb = data >= 0 ? std::cbrt(data*data*data+tolerance)-data : data - std::cbrt(data*data*data-tolerance);
+            return std::min(eb, global_eb);
         }
 
         T interpret_eb(const iterator &iter) const {
