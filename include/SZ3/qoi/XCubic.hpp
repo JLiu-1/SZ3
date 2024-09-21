@@ -73,6 +73,7 @@ namespace SZ {
     private:
         T tolerance;
         T global_eb;
+        int count = 0;
     };
 }
 #endif 
