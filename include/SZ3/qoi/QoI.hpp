@@ -21,10 +21,10 @@ namespace SZ {
 
             virtual ~QoIInterface() = default;
 
-            virtual T interpret_eb(T data)= 0;
+            virtual T interpret_eb(T data) const = 0;
 
             // interpret eb with iterator (Lorenzo)
-            virtual T interpret_eb(const iterator &iter) = 0;
+            virtual T interpret_eb(const iterator &iter) const = 0;
 
             // interpret eb with data pointer (Interpolation)
             virtual T interpret_eb(const T * data, ptrdiff_t offset) = 0;
