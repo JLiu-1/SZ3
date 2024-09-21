@@ -20,7 +20,7 @@ namespace SZ {
                 global_eb(global_eb) {
             // TODO: adjust type for int data
             //printf("global_eb = %.4f\n", (double) global_eb);
-            concepts::QoIInterface<T, N>::id = 1;
+            concepts::QoIInterface<T, N>::id = 9;
         }
 
         using Range = multi_dimensional_range<T, N>;
