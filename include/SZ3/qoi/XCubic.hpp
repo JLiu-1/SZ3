@@ -29,8 +29,8 @@ namespace SZ {
         T interpret_eb(T data) const {
             if (data == 0)
                 return global_eb;
-            double b = 6*data;
-            double a = 0.5*b*data;//datatype may be T
+            double b = fabs(6*data);
+            double a = fabs(0.5*b*data);//datatype may be T
             
             T eb = (sqrt(a*a+2*b*tolerance)-a)/b;
 
