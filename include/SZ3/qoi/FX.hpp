@@ -39,27 +39,27 @@ namespace SZ {
             // TODO: adjust type for int data
             //printf("global_eb = %.4f\n", (double) global_eb);
             concepts::QoIInterface<T, N>::id = 14;
-            std::cout<<"init 1 "<< std::endl;
+            //std::cout<<"init 1 "<< std::endl;
             RCP<const Symbol>  x = symbol("x");
     
             f = Expression(ff);
-             std::cout<<"init 2"<< std::endl;
+            // std::cout<<"init 2"<< std::endl;
             //df = diff(f,x);
             df = f.diff(x);
-             std::cout<<"init 3 "<< std::endl;
+           //  std::cout<<"init 3 "<< std::endl;
             //ddf = diff(df,x);
             ddf = df.diff(x);
-             std::cout<<"init 4 "<< std::endl;
-              std::cout<<"f: "<< f<<std::endl;
-            std::cout<<"df: "<< df<<std::endl;
-            std::cout<<"ddf: "<< ddf<<std::endl;
+           //  std::cout<<"init 4 "<< std::endl;
+           //   std::cout<<"f: "<< f<<std::endl;
+          //  std::cout<<"df: "<< df<<std::endl;
+           // std::cout<<"ddf: "<< ddf<<std::endl;
            // RCP<const Basic> result = evalf(df.subs(map_basic_basic({{x,RealDouble(2).rcp_from_this()}})),53, SymEngine::EvalfDomain::Real);
            // RCP<const Symbol> value = symbol("2");
            // map_basic_basic mbb=  {{x,value}};
             //std::cout<<"init 5 "<< std::endl;
              double result = (double)df.subs({{x,real_double(2)}}); 
            
-            std::cout<<"Eval res: "<<result<<std::endl;
+           // std::cout<<"Eval res: "<<result<<std::endl;
             //SymEngine::RCP<const Basic> result = evalf(df,53, SymEngine::EvalfDomain::Real);
             //std::cout<< (down_cast<const RealDouble &>(*result)).as_double()<<std::endl;
         }
@@ -112,6 +112,12 @@ namespace SZ {
         void set_dims(const std::vector<size_t>& new_dims){}
 
     private:
+
+        inline double evaluate(const Expression & func, T val){
+            RCP<const Symbol>  x = symbol("x");
+            (double)func.subs({{x,real_double(val)}}); 
+
+        } 
         T tolerance;
         T global_eb;
         //Symbol x;
