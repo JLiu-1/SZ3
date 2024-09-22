@@ -135,12 +135,12 @@ namespace SZ {
             }
             // c
             else if (SymEngine::is_a<const SymEngine::Number>(expr)) {
-                double constant_value = SymEngine::evalf(expr).as_double();
+                double constant_value = (double)(expr);
                 return [constant_value](T) { return constant_value; };
             }
             // +
             else if (SymEngine::is_a<SymEngine::Add>(expr)) {
-                auto args = expr.get_args();
+                auto args = expr.expand();
                 auto left = convert_expression_to_function(Expression(args[0]), x);
                 auto right = convert_expression_to_function(Expression(args[1]), x);
                 return [left, right](T x_value) {
