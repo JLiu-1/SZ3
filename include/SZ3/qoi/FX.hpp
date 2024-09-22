@@ -49,7 +49,7 @@ namespace SZ {
             ddf = df.diff(x);
              std::cout<<"init 4 "<< std::endl;
            // RCP<const Basic> result = evalf(df.subs(map_basic_basic({{x,RealDouble(2).rcp_from_this()}})),53, SymEngine::EvalfDomain::Real);
-             double result = (double)df.subs( map_basic_basic({{x,RealDouble(2).rcp_from_this()}}),53, SymEngine::EvalfDomain::Real); 
+             double result = (double)df.subs( map_basic_basic({{x,RealDouble(2).rcp_from_this()}})); 
            // std::cout<<"f: "<< f<<std::endl;
            // std::cout<<"df: "<< df<<std::endl;
            // std::cout<<"ddf: "<< ddf<<std::endl;
