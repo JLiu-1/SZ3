@@ -240,6 +240,7 @@ namespace SZ {
         int qoiNum = 0;
         std::vector<double> qoiEBs;
         double quantile = 0.01;
+        bool qoi_tuned=false;
     };
 
 
