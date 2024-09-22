@@ -38,7 +38,7 @@ namespace SZ {
             //printf("global_eb = %.4f\n", (double) global_eb);
             concepts::QoIInterface<T, N>::id = 14;
             std::cout<<"init 1 "<< std::endl;
-            Symbol  x = Symbol("x");
+            RCP<const Symbol>  x = Symbol("x");
     
             f = Expression(ff);
              std::cout<<"init 2"<< std::endl;
@@ -52,7 +52,7 @@ namespace SZ {
             std::cout<<"df: "<< df<<std::endl;
             std::cout<<"ddf: "<< ddf<<std::endl;
            // RCP<const Basic> result = evalf(df.subs(map_basic_basic({{x,RealDouble(2).rcp_from_this()}})),53, SymEngine::EvalfDomain::Real);
-            RCP<const Basic> value = Symbol("2");
+            RCP<const Symbol> value = Symbol("2");
             map_basic_basic mbb=  {{x,value}};
             std::cout<<"init 5 "<< std::endl;
              double result = (double)df.subs(mbb); 
