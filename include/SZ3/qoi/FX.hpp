@@ -89,7 +89,7 @@ namespace SZ {
     private:
         T tolerance;
         T global_eb;
-        Expression x;
+        Symbol x;
         Expression f;
         Expression df;
         Expression ddf;
