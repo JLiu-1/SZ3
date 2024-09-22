@@ -361,9 +361,11 @@ int main(int argc, char *argv[]) {
 //                pwrErrorBound = argv[i];
 //                break;
             case 'u':
-                if (++i == argc||sscanf(argv[i], "%f", &quantile) != 1)
+                if (++i == argc)
                     usage();
+                quantile = atof (argv[i]);
                 break;
+
             case 'N':
                 if (++i == argc)
                     usage();
