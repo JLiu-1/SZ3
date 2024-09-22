@@ -87,7 +87,7 @@ namespace SZ {
            // 
             T eb;
             if( !std::isnan(b) and b !=0 )
-                eb = (sqrt(std::a*a+2*b*tolerance)-a)/b;
+                eb = (sqrt(a*a+2*b*tolerance)-a)/b;
             else if (!std::isnan(a) and a!=0 )
                 eb = tolerance/a;
             else 
