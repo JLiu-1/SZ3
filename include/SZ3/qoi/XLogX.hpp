@@ -59,12 +59,12 @@ namespace SZ {
         }
 
         bool check_compliance(T data, T dec_data, bool verbose=false) const {
-            if(data == 0) return (dec_data == 0);
+            if(data == 0) return (dec_data == 0 or fabs(dec_data * log_b_a( fabs(dec_data) ) ) < tolerance );
             if(verbose){
                 std::cout << data << " " << dec_data << std::endl;
                 std::cout << data*log_b_a(fabs(data)) << " " << dec_data*log_b_a(fabs(dec_data)) << std::endl;
             }
-            return (fabs(data*log_b_a(fabs(data)) - dec_data*log_b_a(fabs(dec_data))) < tolerance);
+            return ( fabs( data * log_b_a(fabs(data)) - dec_data * log_b_a( fabs(dec_data) ) ) < tolerance );
         }
 
         void update_tolerance(T data, T dec_data){}
