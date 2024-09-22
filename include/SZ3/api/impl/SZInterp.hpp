@@ -117,7 +117,7 @@ char *SZ_compress_Interp(SZ::Config &conf, T *data, size_t &outSize) {
                 ebs[i] = qoi->interpret_eb(data[i]);
             }
 
-            double quantile = 0.05;//quantile
+            double quantile = 0.01;//quantile
 
             size_t k = std::ceil(quantile * conf.num);
             k = std::max((size_t)1, std::min(conf.num, k)); 
