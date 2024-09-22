@@ -31,7 +31,7 @@ target_compile_features(${PROJECT_NAME}
     INTERFACE cxx_std_17
   )
 
-target_link_libraries(${PROJECT_NAME} INTERFACE symengine)
+target_link_libraries(${PROJECT_NAME} INTERFACE SymEngine)
 target_link_libraries(${PROJECT_NAME} INTERFACE OpenMP::OpenMP_CXX)
 
 option(SZ3_USE_BUNDLED_ZSTD "prefer the bundled version of Zstd" OFF)
