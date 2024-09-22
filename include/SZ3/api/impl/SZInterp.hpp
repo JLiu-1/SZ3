@@ -136,7 +136,7 @@ char *SZ_compress_Interp(SZ::Config &conf, T *data, size_t &outSize) {
                     maxHeap.push(eb);
                 }
             }
-            delete ebs[];
+            delete []ebs;
 
             double best_abs_eb = maxHeap.top();
             std::cout << "Best abs eb / pre-set eb: " << best_abs_eb / tmp_abs_eb << std::endl; 
