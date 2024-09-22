@@ -41,7 +41,7 @@ namespace SZ {
             //ddf = diff(df,x);
             ddf = df.diff(x.rcp_from_this());
 
-            std::cout<<evalf(df.subs({x:2}))<<std::endl;
+            std::cout<<evalf(df.subs({{x:2}}))<<std::endl;
         }
 
         using Range = multi_dimensional_range<T, N>;
