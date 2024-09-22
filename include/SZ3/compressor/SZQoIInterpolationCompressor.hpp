@@ -65,6 +65,9 @@ namespace SZ {
             quant_inds = encoder.decode(buffer_pos, num_elements);
 
             encoder.postprocess_decode();
+            eb_quant_inds = encoder.decode(buffer_pos, num_elements);
+
+            encoder.postprocess_decode();
             // std::cout << "after encoder, offset = " << buffer_pos - buffer << std::endl;
 
             lossless.postdecompress_data(buffer);
@@ -126,7 +129,8 @@ namespace SZ {
             // quant_inds.reserve(num_elements);
             // 0 ~ num_elements - 1: quant_inds_eb
             // num_elements ~ 2*num_elements - 1: quant_inds_data
-            quant_inds = std::vector<int>(num_elements * 2);
+            quant_inds = std::vector<int>(num_elements );
+            eb_quant_inds = std::vector<int>(num_elements );
             quant_index = 0;
             size_t interp_compressed_size = 0;
 
@@ -184,7 +188,7 @@ namespace SZ {
             // timer.start();
 //            writefile("pred.dat", preds.data(), num_elements);
 //            writefile("quant.dat", quant_inds.data(), num_elements);
-            size_t bufferSize = 1.5 * (quant_inds.size() * sizeof(T) + quantizer.size_est());
+            size_t bufferSize = 1.5 * (quant_inds.size() * sizeof(T) + eb_quant_inds.size() * sizeof(T) + quantizer.size_est());
             uchar *buffer = new uchar[bufferSize];
             uchar *buffer_pos = buffer;
 
@@ -201,12 +205,18 @@ namespace SZ {
 
 
             // timer.start();
-             std::cout << "save encoder, offset = " << buffer_pos - buffer << std::endl;
+             std::cout << "save encoder 1 , offset = " << buffer_pos - buffer << std::endl;
             encoder.preprocess_encode(quant_inds, 0);
             encoder.save(buffer_pos);
             encoder.encode(quant_inds, buffer_pos);
             encoder.postprocess_encode();
-             std::cout << "after encoder, offset = " << buffer_pos - buffer << std::endl;
+             std::cout << "after encoder 1, offset = " << buffer_pos - buffer << std::endl;
+
+            encoder.preprocess_encode(eb_quant_inds, 0);
+            encoder.save(buffer_pos);
+            encoder.encode(eb_quant_inds, buffer_pos);
+            encoder.postprocess_encode();
+            std::cout << "after encoder 2, offset = " << buffer_pos - buffer << std::endl;
             // timer.stop("Encoding");
             // timer.start();
             assert(buffer_pos - buffer < bufferSize);
@@ -240,7 +250,7 @@ namespace SZ {
            //     count++;
             //debug end
             quant_inds[quant_index] = quantizer_eb.quantize_and_overwrite(eb);
-            quant_inds[num_elements + quant_index] = quantizer.quantize_and_overwrite(
+            eb_quant_inds[quant_index] = quantizer.quantize_and_overwrite(
                     *data, pred, eb);
             if(!qoi->check_compliance(ori_data, *data)){
                 // std::cout << "not compliant" << std::endl;
@@ -248,9 +258,9 @@ namespace SZ {
                 eb = 0.0;
                 *data = ori_data;
                 quant_inds[quant_index] = quantizer_eb.quantize_and_overwrite(eb);
-                if(quant_inds[num_elements + quant_index] != 0){
+                if(eb_quant_inds[ quant_index] != 0){
                     // avoiding push multiple data
-                    quant_inds[num_elements + quant_index] = quantizer.quantize_and_overwrite(
+                    eb_quant_inds[ quant_index] = quantizer.quantize_and_overwrite(
                             *data, 0, 0);                    
                 }
             }
@@ -261,7 +271,7 @@ namespace SZ {
 
         inline void recover_data(size_t idx, T& data, T pred) {
             auto eb = quantizer_eb.recover(quant_inds[quant_index]);
-            data = quantizer.recover(pred, quant_inds[num_elements + quant_index], eb);
+            data = quantizer.recover(pred, eb_quant_inds[ quant_index], eb);
             quant_index ++;
         };
 
@@ -562,6 +572,7 @@ namespace SZ {
         double eb_ratio = 0.5;
         std::vector<std::string> interpolators = {"linear", "cubic"};
         std::vector<int> quant_inds;
+        std::vector<int> eb_quant_inds;
         size_t quant_index = 0; // for decompress
         double max_error;
         Quantizer_EB quantizer_eb;
