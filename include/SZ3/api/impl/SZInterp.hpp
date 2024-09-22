@@ -35,11 +35,9 @@ char *SZ_compress_Interp(SZ::Config &conf, T *data, size_t &outSize) {
     // directly use abs when qoi is regional average
     if(conf.qoi > 0){
         //std::cout << conf.qoi << " " << conf.qoiEB << " " << conf.qoiEBBase << " " << conf.qoiEBLogBase << " " << conf.qoiQuantbinCnt << std::endl;
-        auto quantizer = SZ::VariableEBLinearQuantizer<T, T>(conf.quantbinCnt / 2);
-        auto quantizer_eb = SZ::EBLogQuantizer<T>(conf.qoiEBBase, conf.qoiEBLogBase, conf.qoiQuantbinCnt / 2, conf.absErrorBound);
+        
         auto qoi = SZ::GetQOI<T, N>(conf);
-        auto sz = SZ::SZQoIInterpolationCompressor<T, N, SZ::VariableEBLinearQuantizer<T, T>, SZ::EBLogQuantizer<T>, SZ::QoIEncoder<int>, SZ::Lossless_zstd>(
-                quantizer, quantizer_eb, qoi, SZ::QoIEncoder<int>(), SZ::Lossless_zstd());
+
         /*
         // use sampling to determine abs bound
         {
@@ -149,8 +147,15 @@ char *SZ_compress_Interp(SZ::Config &conf, T *data, size_t &outSize) {
                 qoi->set_dims(dims);
                 qoi->init();
             }
+            conf.qoiEBBase = conf.absErrorBound / 1030;
+            std::cout << conf.qoi << " " << conf.qoiEB << " " << conf.qoiEBBase << " " << conf.qoiEBLogBase << " " << conf.qoiQuantbinCnt << std::endl;
+            
+            
         }
-
+        auto quantizer = SZ::VariableEBLinearQuantizer<T, T>(conf.quantbinCnt / 2);
+        auto quantizer_eb = SZ::EBLogQuantizer<T>(conf.qoiEBBase, conf.qoiEBLogBase, conf.qoiQuantbinCnt / 2, conf.absErrorBound);
+        auto sz = SZ::SZQoIInterpolationCompressor<T, N, SZ::VariableEBLinearQuantizer<T, T>, SZ::EBLogQuantizer<T>, SZ::QoIEncoder<int>, SZ::Lossless_zstd>(
+                quantizer, quantizer_eb, qoi, SZ::QoIEncoder<int>(), SZ::Lossless_zstd());
 
         char *cmpData = (char *) sz.compress(conf, data, outSize);
         //qoi->print();//debugging
@@ -334,9 +339,11 @@ char *SZ_compress_Interp_lorenzo(SZ::Config &conf, T *data, size_t &outSize) {
         if(conf.qoiEBLogBase == 0)
             conf.qoiEBLogBase = 2;        
         // update eb base
-        if(qoi!= 2 && qoi != 4 && qoi != 7 && qoi != 10) conf.qoiEBBase = (max - min) * qoi_rel_eb / 1030;
-        else if(qoi == 2 || qoi == 10) conf.qoiEBBase = qoi_rel_eb / 1030;
-        std::cout << conf.qoi << " " << conf.qoiEB << " " << conf.qoiEBBase << " " << conf.qoiEBLogBase << " " << conf.qoiQuantbinCnt << std::endl;
+        
+        //if(qoi!= 2 && qoi != 4 && qoi != 7 && qoi != 10) conf.qoiEBBase = (max - min) * qoi_rel_eb / 1030;
+        //else if(qoi == 2 || qoi == 10) conf.qoiEBBase = qoi_rel_eb / 1030;
+        
+        //std::cout << conf.qoi << " " << conf.qoiEB << " " << conf.qoiEBBase << " " << conf.qoiEBLogBase << " " << conf.qoiQuantbinCnt << std::endl;
     }
     else{
         // compute isovalues for comparison
