@@ -39,9 +39,9 @@ namespace SZ {
             double a = fabs ( log( fabs(data) ) +1 ) / log(2);//datatype may be T
             double b = fabs (1/ (data*log(2) ) );
             T eb;
-            //if( b !=0)
-            //    eb = (sqrt(a*a+2*b*tolerance)-a)/b;
-            //else 
+            if( b !=0)
+                eb = (sqrt(a*a+2*b*tolerance)-a)/b;
+            else 
             if (a!=0)
                 eb = tolerance/a;
             else 

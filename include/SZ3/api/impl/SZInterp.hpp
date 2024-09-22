@@ -17,7 +17,7 @@
 #include "SZ3/api/impl/SZLorenzoReg.hpp"
 #include <cmath>
 #include <memory>
-
+#include <queue>
 template<class T, SZ::uint N>
 char *SZ_compress_Interp(SZ::Config &conf, T *data, size_t &outSize) {
 
@@ -40,6 +40,7 @@ char *SZ_compress_Interp(SZ::Config &conf, T *data, size_t &outSize) {
         auto qoi = SZ::GetQOI<T, N>(conf);
         auto sz = SZ::SZQoIInterpolationCompressor<T, N, SZ::VariableEBLinearQuantizer<T, T>, SZ::EBLogQuantizer<T>, SZ::QoIEncoder<int>, SZ::Lossless_zstd>(
                 quantizer, quantizer_eb, qoi, SZ::QoIEncoder<int>(), SZ::Lossless_zstd());
+        /*
         // use sampling to determine abs bound
         {
             auto dims = conf.dims;
@@ -106,6 +107,50 @@ char *SZ_compress_Interp(SZ::Config &conf, T *data, size_t &outSize) {
                 qoi->init();
             }
         }
+        */
+
+        // use quantile to determine abs bound
+        {
+            auto dims = conf.dims;
+            auto tmp_abs_eb = conf.absErrorBound;
+
+            T *ebs = new T[conf.num];
+            for (size_t i = 0; i < conf.num; i++){
+                ebs[i] = qoi->interpret_eb(data[i]);
+            }
+
+            double quantile = 0.05;//quantile
+
+            size_t k = std::ceil(quantile * conf.num);
+            k = std::max(1, std::min(conf.num, k)); 
+
+          
+            std::priority_queue<T> maxHeap;
+
+            for (size_t i = 0; i < conf.num; i++) {
+                T eb = ebs[i];
+                if (maxHeap.size() < k) {
+                    maxHeap.push(eb);
+                } else if (eb < maxHeap.top()) {
+                    maxHeap.pop();
+                    maxHeap.push(eb);
+                }
+            }
+
+            double best_abs_eb = maxHeap.top();
+            std::cout << "Best abs eb / pre-set eb: " << best_abs_eb / tmp_abs_eb << std::endl; 
+            std::cout << best_abs_eb << " " << tmp_abs_eb << std::endl;
+            conf.absErrorBound = best_abs_eb;
+            qoi->set_global_eb(best_abs_eb);
+            conf.setDims(dims.begin(), dims.end());
+            // reset dimensions and variables for average of square
+            if(conf.qoi == 3){
+                qoi->set_dims(dims);
+                qoi->init();
+            }
+        }
+
+
         char *cmpData = (char *) sz.compress(conf, data, outSize);
         //qoi->print();//debugging
         //sz.clear();//debugging
