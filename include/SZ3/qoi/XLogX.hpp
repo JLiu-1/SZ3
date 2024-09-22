@@ -35,9 +35,14 @@ namespace SZ {
             // if b > 1
             // e = min{(1 - b^{-t})|x|, (b^{t} - 1)|x|}
             // return 0;
-            if(data == 0) return 0;
-            double a = fabs ( log( fabs(data) ) +1 ) / log(2);//datatype may be T
-            double b = fabs (1/ (data*log(2) ) );
+            double a,b;
+            if(data == 0){
+                return global_eb;
+            }
+            else{
+                double a = fabs ( log( fabs(data) ) +1 ) / log(2);//datatype may be T
+                double b = fabs (1/ (data*log(2) ) );
+            }
             T eb;
             if( b !=0)
                 eb = (sqrt(a*a+2*b*tolerance)-a)/b;
