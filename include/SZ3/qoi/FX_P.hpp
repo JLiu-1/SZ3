@@ -37,7 +37,7 @@ namespace SZ {
     class QoI_FX_P : public concepts::QoIInterface<T, N> {
 
     public:
-        QoI_FX_P(T tolerance, T global_eb, std::string f1 = "x", std::string f2 = "0", double th = 0.0) : 
+        QoI_FX_P(T tolerance, T global_eb, std::string f1_c = "x", std::string f2_c = "0", double th = 0.0) : 
                 tolerance(tolerance),
                 global_eb(global_eb), threshold(th) {
             // TODO: adjust type for int data
@@ -50,7 +50,7 @@ namespace SZ {
             Expression ddf;
              x = symbol("x");
     
-            f = Expression(f1);
+            f = Expression(f1_c);
             // std::cout<<"init 2"<< std::endl;
             //df = diff(f,x);
             df = f.diff(x);
@@ -64,11 +64,12 @@ namespace SZ {
             df1 = convert_expression_to_function(df, x);
             ddf1 = convert_expression_to_function(ddf, x);
 
-            f = Expression(f2);
+            f = Expression(f2_c);
         
             df = f.diff(x);
             
             ddf = df.diff(x);
+
             f2 = convert_expression_to_function(f, x);
             df2 = convert_expression_to_function(df, x);
             ddf2 = convert_expression_to_function(ddf, x);
