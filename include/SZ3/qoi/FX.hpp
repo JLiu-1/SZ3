@@ -22,7 +22,7 @@ using SymEngine::diff;
 using SymEngine::RealDouble;
 using SymEngine::evalf;
 using SymEngine::map_basic_basic;
-
+using SymEngine::down_cast;
 
 namespace SZ {
     template<class T, uint N>
@@ -43,7 +43,8 @@ namespace SZ {
             //ddf = diff(df,x);
             ddf = df.diff(x.rcp_from_this());
 
-            std::cout<<(double)evalf(df.subs(map_basic_basic({{x.rcp_from_this(),RealDouble(2).rcp_from_this()}})),53, SymEngine::EvalfDomain::Real)<<std::endl;
+            SymEngine::RCP<const basic> result = evalf(df.subs(map_basic_basic({{x.rcp_from_this(),RealDouble(2).rcp_from_this()}})),53, SymEngine::EvalfDomain::Real)
+            std::cout<< (down_cast<const RealDouble &>(*result)).as_double()<<std::endl;
         }
 
         using Range = multi_dimensional_range<T, N>;
