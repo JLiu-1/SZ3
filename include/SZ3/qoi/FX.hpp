@@ -113,7 +113,7 @@ namespace SZ {
 
     private:
 
-        inline double evaluate(const Expression & func, T val){
+        inline const double evaluate(const Expression & func, T val){
             RCP<const Symbol>  x = symbol("x");
             return (double)func.subs({{x,real_double(val)}}); 
 
