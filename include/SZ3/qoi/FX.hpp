@@ -23,6 +23,7 @@ using SymEngine::symbol;
 using SymEngine::parse;
 using SymEngine::diff;
 using SymEngine::RealDouble;
+using SymEngine::Integer;
 using SymEngine::evalf;
 using SymEngine::map_basic_basic;
 using SymEngine::down_cast;
