@@ -37,9 +37,9 @@ namespace SZ {
     
             f = parse(ff);
             //df = diff(f,x);
-            df = f.diff(x);
+            df = f.diff(x.rcp_from_this());
             //ddf = diff(df,x);
-            ddf = df.diff(x);
+            ddf = df.diff(x.rcp_from_this());
         }
 
         using Range = multi_dimensional_range<T, N>;
