@@ -86,9 +86,9 @@ namespace SZ {
             double b = fabs(deri_2(data));
            // 
             T eb;
-            if( b !=0)
+            if( b !=0 and !isnan(b))
                 eb = (sqrt(a*a+2*b*tolerance)-a)/b;
-            else if (a!=0)
+            else if (a!=0 !isnan(a))
                 eb = tolerance/a;
             else 
                 eb = global_eb;
@@ -171,15 +171,15 @@ namespace SZ {
                 };
             }
             // /
-            
-            else if (SymEngine::is_a<SymEngine::Div>(expr)) {
+            /*
+            else if (SymEngine::is_a<SymEngine::div>(expr)) {
                 auto args = expr.get_args();
                 auto left = convert_expression_to_function(Expression(args[0]), x);
                 auto right = convert_expression_to_function(Expression(args[1]), x);
                 return [left, right](T x_value) {
                     return left(x_value) / right(x_value);
                 };
-            }
+            }*/
             // pow
             else if (SymEngine::is_a<SymEngine::Pow>(expr)) {
                 auto args = expr.get_args();
