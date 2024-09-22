@@ -20,7 +20,7 @@
 #include <queue>
 
 template<class T, SZ::uint N>
-char *SZ_QoI_tuning(SZ::Config &conf, T *data){
+void SZ_QoI_tuning(SZ::Config &conf, T *data){
         
     auto qoi = SZ::GetQOI<T, N>(conf);
 
