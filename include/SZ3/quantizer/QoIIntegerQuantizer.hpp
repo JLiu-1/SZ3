@@ -206,7 +206,7 @@ namespace SZ {
     template<class T>
     class EBLogQuantizer : public concepts::QuantizerInterface<T> {
     public:
-        EBLogQuantizer(double eb_base = std::numeric_limits<T>::epsilon(), double log_base = 2, int r = 32, double g_eb = 1e-3) : 
+        EBLogQuantizer(double eb_base = std::numeric_limits<T>::epsilon(), double log_base = 2, int r = 32, T g_eb = 1e-3) : 
                 eb_base(eb_base), log_base(log_base), radius(r),global_eb(g_eb){
                     // TODO: adjust for int data
                     set_reciprocal();
@@ -215,7 +215,7 @@ namespace SZ {
 
         int get_radius() const { return radius; }
 
-        void set_global_eb(double eb) {
+        void set_global_eb(T eb) {
             global_eb = eb;
             global_eb_reciprocal = 1.0 / eb;
         }
@@ -226,7 +226,7 @@ namespace SZ {
 
 
         // quantize the data with a prediction value, and returns the quantization index
-        int quantize(double eb) {
+        int quantize(T eb) {
             if(eb <= eb_base or eb >= global_eb){
                 //eb = 0;
                 return 0;
@@ -236,10 +236,10 @@ namespace SZ {
         }
 
         // quantize the error bound, and returns the quantization index and the decompressed data
-        int quantize_and_overwrite(double &eb) {
+        int quantize_and_overwrite(T &eb) {
             // std::cout << eb << " ";
-            if(eb <= eb_base or eb>=global_eb){
-                eb = 0;
+            if(eb <= eb_base or eb >= global_eb){
+                eb = 0.0;
                 return 0;
             }
             int id = log2(eb * eb_base_reciprocal) * log_of_base_reciprocal;

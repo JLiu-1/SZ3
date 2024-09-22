@@ -239,7 +239,7 @@ namespace SZ {
             //if (eb <global_eb)
            //     count++;
             //debug end
-            quant_inds[quant_index] = quantizer_eb.quantize_and_overwrite((double)eb);
+            quant_inds[quant_index] = quantizer_eb.quantize_and_overwrite(eb);
             quant_inds[num_elements + quant_index] = quantizer.quantize_and_overwrite(
                     *data, pred, eb);
             if(!qoi->check_compliance(ori_data, *data)){
@@ -247,7 +247,7 @@ namespace SZ {
                 // save as unpredictable
                 eb = 0.0;
                 *data = ori_data;
-                quant_inds[quant_index] = quantizer_eb.quantize_and_overwrite((double)eb);
+                quant_inds[quant_index] = quantizer_eb.quantize_and_overwrite(eb);
                 if(quant_inds[num_elements + quant_index] != 0){
                     // avoiding push multiple data
                     quant_inds[num_elements + quant_index] = quantizer.quantize_and_overwrite(
