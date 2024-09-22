@@ -75,7 +75,7 @@ namespace SZ {
             // *decData = quantizer.recover(0, quant_inds[quant_index++]);
             // timer.start();
             quant_index = 0;
-            double eb = quantizer_eb.get_global_eb(eb);
+            double eb = quantizer_eb.get_global_eb();
             //quantizer_eb.set_global_eb(eb);
             recover_data(0, *decData, 0);
 
