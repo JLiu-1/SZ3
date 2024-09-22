@@ -50,7 +50,7 @@ namespace SZ {
         }
 
         bool check_compliance(T data, T dec_data, bool verbose=false) const {
-            return (fabs(data*data - dec_data*dec_data) < tolerance);
+            return (fabs(data*data*data - dec_data*dec_data*dec_data) < tolerance);
         }
 
         void update_tolerance(T data, T dec_data){}

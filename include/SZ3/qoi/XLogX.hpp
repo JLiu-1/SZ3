@@ -61,9 +61,9 @@ namespace SZ {
             if(data == 0) return (dec_data == 0);
             if(verbose){
                 std::cout << data << " " << dec_data << std::endl;
-                std::cout << log_b_a(fabs(data)) << " " << log_b_a(fabs(dec_data)) << std::endl;
+                std::cout << data*log_b_a(fabs(data)) << " " << dec_data*log_b_a(fabs(dec_data)) << std::endl;
             }
-            return (fabs(log_b_a(fabs(data)) - log_b_a(fabs(dec_data))) < tolerance);
+            return (fabs(data*log_b_a(fabs(data)) - dec_data*log_b_a(fabs(dec_data))) < tolerance);
         }
 
         void update_tolerance(T data, T dec_data){}
