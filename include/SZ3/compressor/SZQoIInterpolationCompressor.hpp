@@ -245,7 +245,7 @@ namespace SZ {
             if(!qoi->check_compliance(ori_data, *data)){
                 // std::cout << "not compliant" << std::endl;
                 // save as unpredictable
-                eb = 0;
+                eb = 0.0;
                 *data = ori_data;
                 quant_inds[quant_index] = quantizer_eb.quantize_and_overwrite(eb);
                 if(quant_inds[num_elements + quant_index] != 0){
