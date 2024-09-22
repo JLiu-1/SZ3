@@ -53,10 +53,10 @@ namespace SZ {
             std::cout<<"df: "<< df<<std::endl;
             std::cout<<"ddf: "<< ddf<<std::endl;
            // RCP<const Basic> result = evalf(df.subs(map_basic_basic({{x,RealDouble(2).rcp_from_this()}})),53, SymEngine::EvalfDomain::Real);
-            RCP<const Symbol> value = symbol("2");
-            map_basic_basic mbb=  {{x,value}};
-            std::cout<<"init 5 "<< std::endl;
-             double result = (double)df.subs(mbb); 
+           // RCP<const Symbol> value = symbol("2");
+           // map_basic_basic mbb=  {{x,value}};
+            //std::cout<<"init 5 "<< std::endl;
+             double result = (double)df.subs(x == 2); 
            
             std::cout<<"Eval res: "<<result<<std::endl;
             //SymEngine::RCP<const Basic> result = evalf(df,53, SymEngine::EvalfDomain::Real);
