@@ -33,8 +33,8 @@ namespace SZ {
             // TODO: adjust type for int data
             //printf("global_eb = %.4f\n", (double) global_eb);
             concepts::QoIInterface<T, N>::id = 14;
-            auto xx = Symbol("x");
-            auto x = SymEngine::RCP<const Symbol>(&xx);
+            SymEngine::RCP<const Symbol>  x = Symbol("x");
+    
             f = parse(ff);
             //df = diff(f,x);
             df = f.diff(x);
