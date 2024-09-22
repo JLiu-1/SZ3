@@ -187,7 +187,7 @@ char *SZ_compress_Interp_lorenzo(SZ::Config &conf, T *data, size_t &outSize) {
         T maxxlogx;
         T minxlogx;
         if(qoi == 13){
-            maxxlogx = data[0]!=0 ? data[0]*log(data[0])/log(2) : 0;
+            maxxlogx = data[0]!=0 ? data[0]*log(fabs(data[0]))/log(2) : 0;
             minxlogx = maxxlogx;
         }
         for (size_t i = 1; i < conf.num; i++) {
