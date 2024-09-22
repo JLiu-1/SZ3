@@ -33,7 +33,7 @@ namespace SZ {
             // TODO: adjust type for int data
             //printf("global_eb = %.4f\n", (double) global_eb);
             concepts::QoIInterface<T, N>::id = 14;
-            x = Symbol("x");
+            auto x = Symbol("x");
             f = parse(ff);
             //df = diff(f,x);
             df = f.diff(x);
@@ -91,7 +91,7 @@ namespace SZ {
     private:
         T tolerance;
         T global_eb;
-        Symbol x;
+        //Symbol x;
         Expression f;
         Expression df;
         Expression ddf;
