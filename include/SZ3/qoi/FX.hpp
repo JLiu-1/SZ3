@@ -86,9 +86,9 @@ namespace SZ {
             double b = fabs(deri_2(data));
            // 
             T eb;
-            if( b !=0)
+            if( b !=0 and b !=NaN)
                 eb = (sqrt(a*a+2*b*tolerance)-a)/b;
-            else if (a!=0)
+            else if (a!=0 and a !=NaN)
                 eb = tolerance/a;
             else 
                 eb = global_eb;
@@ -151,15 +151,15 @@ namespace SZ {
                 };
             }
             // -
-            /*
-            else if (SymEngine::is_a<SymEngine::Sub>(expr)) {
+            
+            else if (SymEngine::is_a<SymEngine::sub>(expr)) {
                 auto args = expr.get_args();
                 auto left = convert_expression_to_function(Expression(args[0]), x);
                 auto right = convert_expression_to_function(Expression(args[1]), x);
                 return [left, right](T x_value) {
                     return left(x_value) - right(x_value);
                 };
-            }*/
+            }
             // *
             else if (SymEngine::is_a<SymEngine::Mul>(expr)) {
                 auto args = expr.get_args();
@@ -170,15 +170,15 @@ namespace SZ {
                 };
             }
             // /
-            /*
-            else if (SymEngine::is_a<SymEngine::Div>(expr)) {
+            
+            else if (SymEngine::is_a<SymEngine::div>(expr)) {
                 auto args = expr.get_args();
                 auto left = convert_expression_to_function(Expression(args[0]), x);
                 auto right = convert_expression_to_function(Expression(args[1]), x);
                 return [left, right](T x_value) {
                     return left(x_value) / right(x_value);
                 };
-            }*/
+            }
             // pow
             else if (SymEngine::is_a<SymEngine::Pow>(expr)) {
                 auto args = expr.get_args();
