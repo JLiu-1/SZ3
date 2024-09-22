@@ -95,7 +95,7 @@ void SZ_QoI_tuning(SZ::Config &conf, T *data){
 
     // use quantile to determine abs bound
     {
-        //auto dims = conf.dims;
+        auto dims = conf.dims;
         auto tmp_abs_eb = conf.absErrorBound;
 
         T *ebs = new T[conf.num];
@@ -135,13 +135,13 @@ void SZ_QoI_tuning(SZ::Config &conf, T *data){
         std::cout << "Best abs eb / pre-set eb: " << best_abs_eb / tmp_abs_eb << std::endl; 
         std::cout << best_abs_eb << " " << tmp_abs_eb << std::endl;
         conf.absErrorBound = best_abs_eb;
-        qoi->set_global_eb(best_abs_eb);
+        //qoi->set_global_eb(best_abs_eb);
        // conf.setDims(dims.begin(), dims.end());
         // reset dimensions and variables for average of square
-        if(conf.qoi == 3){
-            qoi->set_dims(dims);
-            qoi->init();
-        }
+        //if(conf.qoi == 3){
+         //   qoi->set_dims(dims);
+        //    qoi->init();
+        //}
         conf.qoiEBBase = conf.absErrorBound / 1030;
         std::cout << conf.qoi << " " << conf.qoiEB << " " << conf.qoiEBBase << " " << conf.qoiEBLogBase << " " << conf.qoiQuantbinCnt << std::endl;
         conf.qoi_tuned = true;
