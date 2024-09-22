@@ -117,7 +117,7 @@ char *SZ_compress_Interp(SZ::Config &conf, T *data, size_t &outSize) {
                 ebs[i] = qoi->interpret_eb(data[i]);
             }
 
-            double quantile = 0.05;//quantile
+            double quantile = 0.03;//quantile
 
             size_t k = std::ceil(quantile * conf.num);
             k = std::max((size_t)1, std::min(conf.num, k)); 
@@ -149,7 +149,7 @@ char *SZ_compress_Interp(SZ::Config &conf, T *data, size_t &outSize) {
             }
             conf.qoiEBBase = conf.absErrorBound / 1030;
             std::cout << conf.qoi << " " << conf.qoiEB << " " << conf.qoiEBBase << " " << conf.qoiEBLogBase << " " << conf.qoiQuantbinCnt << std::endl;
-            
+
             
         }
         auto quantizer = SZ::VariableEBLinearQuantizer<T, T>(conf.quantbinCnt / 2);
