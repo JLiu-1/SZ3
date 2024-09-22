@@ -115,7 +115,7 @@ namespace SZ {
 
         inline double evaluate(const Expression & func, T val){
             RCP<const Symbol>  x = symbol("x");
-            (double)func.subs({{x,real_double(val)}}); 
+            return (double)func.subs({{x,real_double(val)}}); 
 
         } 
         T tolerance;
