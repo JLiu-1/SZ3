@@ -15,7 +15,7 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
           "MinSizeRel" "RelWithDebInfo")
 endif()
 
-find package(PkgConfig)
+find_package(PkgConfig)
 find_package(OpenMP)
 find_package(SymEngine REQUIRED)
 
