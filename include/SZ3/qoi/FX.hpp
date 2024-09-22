@@ -90,7 +90,7 @@ namespace SZ {
 
         T interpret_eb(const T * data, ptrdiff_t offset) {
             return interpret_eb(*data);
-        }z
+        }
 
         bool check_compliance(T data, T dec_data, bool verbose=false) const {
             return (fabs(sin(data) - sin(dec_data)) < tolerance);
