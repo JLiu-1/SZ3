@@ -57,7 +57,7 @@ namespace SZ {
            // RCP<const Symbol> value = symbol("2");
            // map_basic_basic mbb=  {{x,value}};
             //std::cout<<"init 5 "<< std::endl;
-             double result = (double)df.subs({{x,real_double(2)}}); 
+             //double result = (double)df.subs({{x,real_double(2)}}); 
            
            // std::cout<<"Eval res: "<<result<<std::endl;
             //SymEngine::RCP<const Basic> result = evalf(df,53, SymEngine::EvalfDomain::Real);
@@ -70,8 +70,8 @@ namespace SZ {
         T interpret_eb(T data) const {
             
 
-            double a = evaluate(df,data);//datatype may be T
-            double b = evaluate(ddf,data);
+            double a = fabs(evaluate(df,data));//datatype may be T
+            double b = fabs(evaluate(ddf,data));
             T eb;
             if( b !=0)
                 eb = (sqrt(a*a+2*b*tolerance)-a)/b;
