@@ -37,14 +37,17 @@ namespace SZ {
             // TODO: adjust type for int data
             //printf("global_eb = %.4f\n", (double) global_eb);
             concepts::QoIInterface<T, N>::id = 14;
+            std::cout<<"init 1 "<< f<<std::endl;
             RCP<const Basic>  x = Symbol("x").rcp_from_this();
     
             f = parse(ff);
+             std::cout<<"init 2"<< f<<std::endl;
             //df = diff(f,x);
             df = f.diff(x);
+             std::cout<<"init 3 "<< f<<std::endl;
             //ddf = diff(df,x);
             ddf = df.diff(x);
-
+             std::cout<<"init 4 "<< f<<std::endl;
             RCP<const Basic> result = evalf(df.subs(map_basic_basic({{x,RealDouble(2).rcp_from_this()}})),53, SymEngine::EvalfDomain::Real);
             std::cout<<"f: "<< f<<std::endl;
             std::cout<<"df: "<< df<<std::endl;
