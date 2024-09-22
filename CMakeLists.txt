@@ -17,6 +17,7 @@ endif()
 
 find_package(PkgConfig)
 find_package(OpenMP)
+find_package(symengine REQUIRED)
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/SZ3/version.hpp.in ${CMAKE_CURRENT_SOURCE_DIR}/include/SZ3/version.hpp)
 
@@ -30,6 +31,7 @@ target_compile_features(${PROJECT_NAME}
     INTERFACE cxx_std_17
   )
 
+target_link_libraries(${PROJECT_NAME} INTERFACE symengine)
 target_link_libraries(${PROJECT_NAME} INTERFACE OpenMP::OpenMP_CXX)
 
 option(SZ3_USE_BUNDLED_ZSTD "prefer the bundled version of Zstd" OFF)
