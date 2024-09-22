@@ -38,7 +38,7 @@ namespace SZ {
             //printf("global_eb = %.4f\n", (double) global_eb);
             concepts::QoIInterface<T, N>::id = 14;
             std::cout<<"init 1 "<< std::endl;
-            RCP<const Symbol>  x = Symbol("x");
+            RCP<const Symbol>  x = symbol("x");
     
             f = Expression(ff);
              std::cout<<"init 2"<< std::endl;
