@@ -229,7 +229,7 @@ int main(int argc, char *argv[]) {
     if (argc == 1)
         usage();
     int width = -1;
-    double quantile = 0.01;
+    double quantile = -1;
 
     for (i = 1; i < argc; i++) {
         if (argv[i][0] != '-' || argv[i][2]) {
@@ -468,6 +468,7 @@ int main(int argc, char *argv[]) {
             exit(0);
         }
     }
+    if (quantile>=0)
     conf.quantile = quantile;
 
     if (compression) {
