@@ -99,9 +99,9 @@ namespace SZ {
         T tolerance;
         T global_eb;
         //Symbol x;
-        RCP<const basic> f;
-        RCP<const basic> df;
-        RCP<const basic> ddf;
+        SymEngine::RCP<const basic> f;
+        SymEngine::RCP<const basic> df;
+        SymEngine::RCP<const basic> ddf;
      
     };
 }
