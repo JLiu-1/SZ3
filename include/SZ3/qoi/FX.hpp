@@ -72,7 +72,7 @@ namespace SZ {
 
             double a = fabs(evaluate(df,data));//datatype may be T
             double b = fabs(evaluate(ddf,data));
-            std::cout<<data<<" "<<a<<" "<<b<<std::endl; 
+           // 
             T eb;
             if( b !=0)
                 eb = (sqrt(a*a+2*b*tolerance)-a)/b;
@@ -80,7 +80,7 @@ namespace SZ {
                 eb = tolerance/a;
             else 
                 eb = global_eb;
-           
+            std::cout<<data<<" "<<a<<" "<<b<<" "<<eb<<std::endl; 
             return std::min(eb, global_eb);
         }
 
@@ -90,7 +90,7 @@ namespace SZ {
 
         T interpret_eb(const T * data, ptrdiff_t offset) {
             return interpret_eb(*data);
-        }
+        }z
 
         bool check_compliance(T data, T dec_data, bool verbose=false) const {
             return (fabs(sin(data) - sin(dec_data)) < tolerance);
