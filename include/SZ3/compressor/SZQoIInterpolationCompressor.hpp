@@ -204,7 +204,7 @@ namespace SZ {
              std::cout << "save encoder, offset = " << buffer_pos - buffer << std::endl;
             encoder.preprocess_encode(std::vector(quant_inds.begin(),quant_inds.begin()+num_elements), 0);
             encoder.save(buffer_pos);
-            encoder.encode(quant_inds, buffer_pos);
+            encoder.encode(std::vector(quant_inds.begin(),quant_inds.begin()+num_elements), buffer_pos);
             encoder.postprocess_encode();
              std::cout << "after encoder, offset = " << buffer_pos - buffer << std::endl;
             // timer.stop("Encoding");
