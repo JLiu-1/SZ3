@@ -207,28 +207,35 @@ namespace SZ {
             else if (SymEngine::is_a<SymEngine::Tan>(expr)) {
                 auto arg = convert_expression_to_function(Expression(expr.get_args()[0]), x);
                 return [arg](T x_value) {
-                    return std::cos(arg(x_value));
+                    return std::tan(arg(x_value));
                 };
             }
 
             else if (SymEngine::is_a<SymEngine::Sinh>(expr)) {
                 auto arg = convert_expression_to_function(Expression(expr.get_args()[0]), x);
                 return [arg](T x_value) {
-                    return std::sin(arg(x_value));
+                    return std::sinh(arg(x_value));
                 };
             }
             // cos
             else if (SymEngine::is_a<SymEngine::Cosh>(expr)) {
                 auto arg = convert_expression_to_function(Expression(expr.get_args()[0]), x);
                 return [arg](T x_value) {
-                    return std::cos(arg(x_value));
+                    return std::cosh(arg(x_value));
                 };
             }
 
             else if (SymEngine::is_a<SymEngine::Tanh>(expr)) {
                 auto arg = convert_expression_to_function(Expression(expr.get_args()[0]), x);
                 return [arg](T x_value) {
-                    return std::cos(arg(x_value));
+                    return std::tanh(arg(x_value));
+                };
+            }
+
+            else if (SymEngine::is_a<SymEngine::Sign>(expr)) {
+                auto arg = convert_expression_to_function(Expression(expr.get_args()[0]), x);
+                return [arg](T x_value) {
+                    return (x_value > 0) - (0 > x_value);
                 };
             }
             //  log
