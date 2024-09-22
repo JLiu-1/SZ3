@@ -35,8 +35,8 @@ namespace SZ {
             concepts::QoIInterface<T, N>::id = 14;
             x = Symbol("x");
             f = parse(ff);
-            df = diff(f,x);
-            ddf = diff(df,x);
+            df = diff(f,x,1);
+            ddf = diff(df,x,1);
         }
 
         using Range = multi_dimensional_range<T, N>;
