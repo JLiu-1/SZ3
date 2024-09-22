@@ -13,6 +13,7 @@
 #include "RegionalAverageOfSquare.hpp"
 #include "Isoline.hpp"
 #include "MultiQoIs.hpp"
+#include "FX.hpp"
 #include <vector>
 
 namespace SZ {
