@@ -17,6 +17,7 @@
 #include <symengine/eval.h> 
 using SymEngine::Expression;
 using SymEngine::Symbol;
+using SymEngine::symbol;
 using SymEngine::parse;
 using SymEngine::diff;
 using SymEngine::RealDouble;
