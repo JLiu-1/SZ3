@@ -317,6 +317,9 @@ namespace SZ {
         double max_xlogx_diff = 0;
         double max_xlogx_val = ori_data[0]!=0 ? ori_data[0]*log(fabs(ori_data[0]))/log(2) : 0;
         double min_xlogx_val = max_xlogx_val;
+        double max_tanh_diff = 0;
+        double max_relu_diff = 0;
+
         for(int i=0; i<num_elements; i++){
             double x_square_diff = fabs(ori_data[i] * ori_data[i] - data[i] * data[i]);
             if(x_square_diff > max_x_square_diff) max_x_square_diff = x_square_diff;
@@ -329,6 +332,10 @@ namespace SZ {
             // if(x_square_diff / max_abs_val_sq > 1e-5){
             //     std::cout << i << ": ori = " << ori_data[i] << ", dec = " << data[i] << ", err = " << x_square_diff / max_abs_val_sq << std::endl;
             // }
+            double x_tanh_diff = fabs(std::tanh(ori_data[i])-std::tanh(data[i]));
+            if (x_tanh_diff>max_tanh_diff) max_tanh_diff=x_tanh_diff;
+            double x_relu_diff = fabs(ori_data[i]*(double)(ori_data[i]>0)-data[i]*(double)(data[i]>0));
+            if (x_relu_diff>max_trelu_diff) max_relu_diff=x_relu_diff;
             if(ori_data[i] == 0){
                 // for log x only
                 // if(data[i] != 0){
@@ -360,6 +367,7 @@ namespace SZ {
         printf("Max log error = %.6G, max sin error = %.6G, max 2^x error = %.6G, relative 2^x error = %.6G\n", max_log_diff, max_sin_diff, max_pow_diff, max_pow_diff / max_abs_val_pow);
         //std::cout<<max_xlogx_val<<" "<<min_xlogx_val<<std::endl;
         printf("Max xlogx error = %.6G, relative xlogx error = %.6G\n", max_xlogx_diff, max_xlogx_diff/(max_xlogx_val-min_xlogx_val));
+         printf("Max tanh error = %.6G, max relu error = %.6G\n", max_tanh_diff, max_relu_diff);
 
         for(int i=0; i<num_elements; i++){
             ori_data[i] = ori_data[i] * ori_data[i];
