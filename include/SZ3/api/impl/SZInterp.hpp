@@ -18,95 +18,8 @@
 #include <cmath>
 #include <memory>
 #include <queue>
-template<class T, SZ::uint N>
-char *SZ_compress_Interp(SZ::Config &conf, T *data, size_t &outSize) {
-
-//    std::cout << "****************** Interp Compression ****************" << std::endl;
-//    std::cout << "Interp Op          = " << interpAlgo << std::endl
-//              << "Direction          = " << direction << std::endl
-//              << "SZ block size      = " << blockSize << std::endl
-//              << "Interp block size  = " << interpBlockSize << std::endl;
-
-    assert(N == conf.N);
-    assert(conf.cmprAlgo == SZ::ALGO_INTERP);
-    SZ::calAbsErrorBound(conf, data);
-
-    // conf.print();
-    // directly use abs when qoi is regional average
-    if(conf.qoi > 0){
-        if (!conf.qoi_tuned){
-            SZ_QoI_tuning(conf, data);
-            conf.qoi_tuned = true;
-        }
-        auto qoi = SZ::GetQOI<T, N>(conf);//todo: bring qoi to conf to avoid duplicated initialization.
-        auto quantizer = SZ::VariableEBLinearQuantizer<T, T>(conf.quantbinCnt / 2);
-        auto quantizer_eb = SZ::EBLogQuantizer<T>(conf.qoiEBBase, conf.qoiEBLogBase, conf.qoiQuantbinCnt / 2, conf.absErrorBound);
-        auto sz = SZ::SZQoIInterpolationCompressor<T, N, SZ::VariableEBLinearQuantizer<T, T>, SZ::EBLogQuantizer<T>, SZ::QoIEncoder<int>, SZ::Lossless_zstd>(
-                quantizer, quantizer_eb, qoi, SZ::QoIEncoder<int>(), SZ::Lossless_zstd());
-
-        char *cmpData = (char *) sz.compress(conf, data, outSize);
-        //qoi->print();//debugging
-        //sz.clear();//debugging
-        return cmpData;
-    }
-    auto sz = SZ::SZInterpolationCompressor<T, N, SZ::LinearQuantizer<T>, SZ::HuffmanEncoder<int>, SZ::Lossless_zstd>(
-            SZ::LinearQuantizer<T>(conf.absErrorBound),
-            SZ::HuffmanEncoder<int>(),
-            SZ::Lossless_zstd());
-    char *cmpData = (char *) sz.compress(conf, data, outSize);
-
-    return cmpData;
-}
-
 
 template<class T, SZ::uint N>
-void SZ_decompress_Interp(const SZ::Config &conf, char *cmpData, size_t cmpSize, T *decData) {
-    //std::cout << "SZ_decompress_Interp" << std::endl;
-    assert(conf.cmprAlgo == SZ::ALGO_INTERP);
-    SZ::uchar const *cmpDataPos = (SZ::uchar *) cmpData;
-    // directly use abs when qoi is regional average
-    if(conf.qoi > 0){
-        //std::cout << conf.qoi << " " << conf.qoiEB << " " << conf.qoiEBBase << " " << conf.qoiEBLogBase << " " << conf.qoiQuantbinCnt << std::endl;
-        auto quantizer = SZ::VariableEBLinearQuantizer<T, T>(conf.quantbinCnt / 2);
-        auto quantizer_eb = SZ::EBLogQuantizer<T>(conf.qoiEBBase, conf.qoiEBLogBase, conf.qoiQuantbinCnt / 2, conf.absErrorBound);
-        auto qoi = SZ::GetQOI<T, N>(conf);
-        auto sz = SZ::SZQoIInterpolationCompressor<T, N, SZ::VariableEBLinearQuantizer<T, T>, SZ::EBLogQuantizer<T>, SZ::QoIEncoder<int>, SZ::Lossless_zstd>(
-                quantizer, quantizer_eb, qoi, SZ::QoIEncoder<int>(), SZ::Lossless_zstd());
-        sz.decompress(cmpDataPos, cmpSize, decData);
-        return;
-    }   
-    auto sz = SZ::SZInterpolationCompressor<T, N, SZ::LinearQuantizer<T>, SZ::HuffmanEncoder<int>, SZ::Lossless_zstd>(
-            SZ::LinearQuantizer<T>(),
-            SZ::HuffmanEncoder<int>(),
-            SZ::Lossless_zstd());
-    sz.decompress(cmpDataPos, cmpSize, decData);
-}
-
-
-template<class T, SZ::uint N>
-double do_not_use_this_interp_compress_block_test(T *data, std::vector<size_t> dims, size_t num,
-                                                  double eb, int interp_op, int direction_op, int block_size) {
-
-    std::vector<T> data1(data, data + num);
-    size_t outSize = 0;
-
-    SZ::Config conf;
-    conf.absErrorBound = eb;
-    conf.setDims(dims.begin(), dims.end());
-    conf.blockSize = block_size;
-    conf.interpAlgo = interp_op;
-    conf.interpDirection = direction_op;
-    auto sz = SZ::SZBlockInterpolationCompressor<T, N, SZ::LinearQuantizer<T>, SZ::HuffmanEncoder<int>, SZ::Lossless_zstd>(
-            SZ::LinearQuantizer<T>(eb),
-            SZ::HuffmanEncoder<int>(),
-            SZ::Lossless_zstd());
-    char *cmpData = (char *) sz.compress(conf, data1.data(), outSize);
-    delete[]cmpData;
-    auto compression_ratio = num * sizeof(T) * 1.0 / outSize;
-    return compression_ratio;
-}
-
-
 char *SZ_QoI_tuning(SZ::Config &conf, T *data){
         
     auto qoi = SZ::GetQOI<T, N>(conf);
@@ -237,6 +150,97 @@ char *SZ_QoI_tuning(SZ::Config &conf, T *data){
     }
 
 }
+
+template<class T, SZ::uint N>
+char *SZ_compress_Interp(SZ::Config &conf, T *data, size_t &outSize) {
+
+//    std::cout << "****************** Interp Compression ****************" << std::endl;
+//    std::cout << "Interp Op          = " << interpAlgo << std::endl
+//              << "Direction          = " << direction << std::endl
+//              << "SZ block size      = " << blockSize << std::endl
+//              << "Interp block size  = " << interpBlockSize << std::endl;
+
+    assert(N == conf.N);
+    assert(conf.cmprAlgo == SZ::ALGO_INTERP);
+    SZ::calAbsErrorBound(conf, data);
+
+    // conf.print();
+    // directly use abs when qoi is regional average
+    if(conf.qoi > 0){
+        if (!conf.qoi_tuned){
+            SZ_QoI_tuning(conf, data);
+            conf.qoi_tuned = true;
+        }
+        auto qoi = SZ::GetQOI<T, N>(conf);//todo: bring qoi to conf to avoid duplicated initialization.
+        auto quantizer = SZ::VariableEBLinearQuantizer<T, T>(conf.quantbinCnt / 2);
+        auto quantizer_eb = SZ::EBLogQuantizer<T>(conf.qoiEBBase, conf.qoiEBLogBase, conf.qoiQuantbinCnt / 2, conf.absErrorBound);
+        auto sz = SZ::SZQoIInterpolationCompressor<T, N, SZ::VariableEBLinearQuantizer<T, T>, SZ::EBLogQuantizer<T>, SZ::QoIEncoder<int>, SZ::Lossless_zstd>(
+                quantizer, quantizer_eb, qoi, SZ::QoIEncoder<int>(), SZ::Lossless_zstd());
+
+        char *cmpData = (char *) sz.compress(conf, data, outSize);
+        //qoi->print();//debugging
+        //sz.clear();//debugging
+        return cmpData;
+    }
+    auto sz = SZ::SZInterpolationCompressor<T, N, SZ::LinearQuantizer<T>, SZ::HuffmanEncoder<int>, SZ::Lossless_zstd>(
+            SZ::LinearQuantizer<T>(conf.absErrorBound),
+            SZ::HuffmanEncoder<int>(),
+            SZ::Lossless_zstd());
+    char *cmpData = (char *) sz.compress(conf, data, outSize);
+
+    return cmpData;
+}
+
+
+template<class T, SZ::uint N>
+void SZ_decompress_Interp(const SZ::Config &conf, char *cmpData, size_t cmpSize, T *decData) {
+    //std::cout << "SZ_decompress_Interp" << std::endl;
+    assert(conf.cmprAlgo == SZ::ALGO_INTERP);
+    SZ::uchar const *cmpDataPos = (SZ::uchar *) cmpData;
+    // directly use abs when qoi is regional average
+    if(conf.qoi > 0){
+        //std::cout << conf.qoi << " " << conf.qoiEB << " " << conf.qoiEBBase << " " << conf.qoiEBLogBase << " " << conf.qoiQuantbinCnt << std::endl;
+        auto quantizer = SZ::VariableEBLinearQuantizer<T, T>(conf.quantbinCnt / 2);
+        auto quantizer_eb = SZ::EBLogQuantizer<T>(conf.qoiEBBase, conf.qoiEBLogBase, conf.qoiQuantbinCnt / 2, conf.absErrorBound);
+        auto qoi = SZ::GetQOI<T, N>(conf);
+        auto sz = SZ::SZQoIInterpolationCompressor<T, N, SZ::VariableEBLinearQuantizer<T, T>, SZ::EBLogQuantizer<T>, SZ::QoIEncoder<int>, SZ::Lossless_zstd>(
+                quantizer, quantizer_eb, qoi, SZ::QoIEncoder<int>(), SZ::Lossless_zstd());
+        sz.decompress(cmpDataPos, cmpSize, decData);
+        return;
+    }   
+    auto sz = SZ::SZInterpolationCompressor<T, N, SZ::LinearQuantizer<T>, SZ::HuffmanEncoder<int>, SZ::Lossless_zstd>(
+            SZ::LinearQuantizer<T>(),
+            SZ::HuffmanEncoder<int>(),
+            SZ::Lossless_zstd());
+    sz.decompress(cmpDataPos, cmpSize, decData);
+}
+
+
+template<class T, SZ::uint N>
+double do_not_use_this_interp_compress_block_test(T *data, std::vector<size_t> dims, size_t num,
+                                                  double eb, int interp_op, int direction_op, int block_size) {
+
+    std::vector<T> data1(data, data + num);
+    size_t outSize = 0;
+
+    SZ::Config conf;
+    conf.absErrorBound = eb;
+    conf.setDims(dims.begin(), dims.end());
+    conf.blockSize = block_size;
+    conf.interpAlgo = interp_op;
+    conf.interpDirection = direction_op;
+    auto sz = SZ::SZBlockInterpolationCompressor<T, N, SZ::LinearQuantizer<T>, SZ::HuffmanEncoder<int>, SZ::Lossless_zstd>(
+            SZ::LinearQuantizer<T>(eb),
+            SZ::HuffmanEncoder<int>(),
+            SZ::Lossless_zstd());
+    char *cmpData = (char *) sz.compress(conf, data1.data(), outSize);
+    delete[]cmpData;
+    auto compression_ratio = num * sizeof(T) * 1.0 / outSize;
+    return compression_ratio;
+}
+
+
+
 template<class T, SZ::uint N>
 char *SZ_compress_Interp_lorenzo(SZ::Config &conf, T *data, size_t &outSize) {
     assert(conf.cmprAlgo == SZ::ALGO_INTERP_LORENZO);
