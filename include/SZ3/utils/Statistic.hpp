@@ -321,7 +321,7 @@ namespace SZ {
             if(x_cubic_diff > max_x_cubic_diff) max_x_cubic_diff = x_cubic_diff;
             double x_sin_diff = fabs(sin(ori_data[i]) - sin(data[i]));
             if(x_sin_diff > max_sin_diff) max_sin_diff = x_sin_diff;
-            double x_pow_diff = pow(2,data[i]);
+            double x_pow_diff = fabs(pow(2,ori_data[i]) -pow(2,data[i]));
             if(x_pow_diff > max_pow_diff) max_pow_diff = x_pow_diff;
             // if(x_square_diff / max_abs_val_sq > 1e-5){
             //     std::cout << i << ": ori = " << ori_data[i] << ", dec = " << data[i] << ", err = " << x_square_diff / max_abs_val_sq << std::endl;
