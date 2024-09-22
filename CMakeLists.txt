@@ -32,9 +32,6 @@ target_compile_features(${PROJECT_NAME}
   )
 
 target_link_libraries(${PROJECT_NAME} INTERFACE symengine)
-target_link_libraries(${PROJECT_NAME} INTERFACE symengine::Expression)
-target_link_libraries(${PROJECT_NAME} INTERFACE symengine::Symbol)
-target_link_libraries(${PROJECT_NAME} INTERFACE symengine::parse)
 target_link_libraries(${PROJECT_NAME} INTERFACE OpenMP::OpenMP_CXX)
 
 option(SZ3_USE_BUNDLED_ZSTD "prefer the bundled version of Zstd" OFF)
