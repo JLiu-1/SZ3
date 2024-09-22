@@ -65,6 +65,7 @@ namespace SZ {
             quant_inds = encoder.decode(buffer_pos, num_elements);
 
             encoder.postprocess_decode();
+            encoder.load(buffer_pos, remaining_length);
             eb_quant_inds = encoder.decode(buffer_pos, num_elements);
 
             encoder.postprocess_decode();
