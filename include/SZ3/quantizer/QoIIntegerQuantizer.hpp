@@ -206,8 +206,8 @@ namespace SZ {
     template<class T>
     class EBLogQuantizer : public concepts::QuantizerInterface<T> {
     public:
-        EBLogQuantizer(T eb_base = std::numeric_limits<T>::epsilon(), T log_base = 2, int r = 32) : 
-                eb_base(eb_base), log_base(log_base), radius(r) {
+        EBLogQuantizer(double eb_base = std::numeric_limits<T>::epsilon(), double log_base = 2, int r = 32, double g_eb = 1e-3) : 
+                eb_base(eb_base), log_base(log_base), radius(r),global_eb(g_eb){
                     // TODO: adjust for int data
                     set_reciprocal();
                     //printf("eb_base = %.4f, log_base = %.4f\n", (double) eb_base, (double) log_base);
@@ -215,10 +215,20 @@ namespace SZ {
 
         int get_radius() const { return radius; }
 
+        void set_global_eb(double eb) {
+            global_eb = eb;
+            global_eb_reciprocal = 1.0 / eb;
+        }
+
+        double get_global_eb() {
+            return global_eb;
+        }
+
+
         // quantize the data with a prediction value, and returns the quantization index
-        int quantize(T eb) {
-            if(eb <= eb_base){
-                eb = 0;
+        int quantize(double eb) {
+            if(eb <= eb_base or eb >= global_eb){
+                //eb = 0;
                 return 0;
             }
             int id = log2(eb * eb_base_reciprocal) * log_of_base_reciprocal;
@@ -226,9 +236,9 @@ namespace SZ {
         }
 
         // quantize the error bound, and returns the quantization index and the decompressed data
-        int quantize_and_overwrite(T &eb) {
+        int quantize_and_overwrite(double &eb) {
             // std::cout << eb << " ";
-            if(eb <= eb_base){
+            if(eb <= eb_base or eb>=global_eb){
                 eb = 0;
                 return 0;
             }
@@ -246,7 +256,8 @@ namespace SZ {
         // recover the error bound using the quantization index
         T recover(int quant_index) {
             if (quant_index == 0) {
-                return 0;
+                //return 0;
+                return global_eb;
             } else {
                 return pow(log_base, quant_index) * eb_base;
             }
@@ -273,10 +284,10 @@ namespace SZ {
             c[0] = 0b00000010;
             c += 1;
             // std::cout << "saving eb = " << this->error_bound << ", unpred_num = "  << unpred.size() << std::endl;
-            *reinterpret_cast<T *>(c) = eb_base;
-            c += sizeof(T);
-            *reinterpret_cast<T *>(c) = log_base;
-            c += sizeof(T);
+            *reinterpret_cast<double *>(c) = eb_base;
+            c += sizeof(double);
+            *reinterpret_cast<double *>(c) = log_base;
+            c += sizeof(double);
             *reinterpret_cast<int *>(c) = this->radius;
             c += sizeof(int);
         };
@@ -284,10 +295,10 @@ namespace SZ {
         void load(const unsigned char *&c, size_t &remaining_length) {
             assert(remaining_length > (sizeof(uint8_t) + sizeof(T) + sizeof(int)));
             c += sizeof(uint8_t);
-            eb_base = *reinterpret_cast<const T *>(c);            
-            c += sizeof(T);
-            log_base = *reinterpret_cast<const T *>(c);
-            c += sizeof(T);
+            eb_base = *reinterpret_cast<const double *>(c);            
+            c += sizeof(double);
+            log_base = *reinterpret_cast<const double *>(c);
+            c += sizeof(double);
             set_reciprocal();
             this->radius = *reinterpret_cast<const int *>(c);
             c += sizeof(int);
@@ -305,15 +316,19 @@ namespace SZ {
 
     private:
         void set_reciprocal(){
-            eb_base_reciprocal = ((T) 1.0) / eb_base;
-            log_of_base_reciprocal = ((T) 1.0) / log2(log_base);
+            eb_base_reciprocal = ((double) 1.0) / eb_base;
+            log_of_base_reciprocal = ((double) 1.0) / log2(log_base);
+            global_eb_reciprocal = 1.0 / eb;
         }
 
         int radius; // quantization interval radius
-        T eb_base;
-        T log_base;
-        T eb_base_reciprocal;
-        T log_of_base_reciprocal;
+        double eb_base;
+        double log_base;
+        double eb_base_reciprocal;
+        double log_of_base_reciprocal;
+        double global_eb;
+        double global_eb_reciprocal;
+
     };
 
 }

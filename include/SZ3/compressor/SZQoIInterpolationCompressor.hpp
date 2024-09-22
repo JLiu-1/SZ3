@@ -75,15 +75,17 @@ namespace SZ {
             // *decData = quantizer.recover(0, quant_inds[quant_index++]);
             // timer.start();
             quant_index = 0;
+            double eb = quantizer_eb.get_global_eb(eb);
+            //quantizer_eb.set_global_eb(eb);
             recover_data(0, *decData, 0);
 
             // std::cout << "start decompressing data\n";
             for (uint level = interpolation_level; level > 0 && level <= interpolation_level; level--) {
-                // if (level >= 3) {
-                //     quantizer.set_eb(eb * eb_ratio);
-                // } else {
-                //     quantizer.set_eb(eb);
-                // }
+                 if (level >= 3) {
+                     quantizer_eb.set_global_eb(eb * eb_ratio);
+                 } else {
+                      quantizer_eb.set_global_eb(eb);
+                 }
                 size_t stride = 1U << (level - 1);
                 auto inter_block_range = std::make_shared<
                         SZ::multi_dimensional_range<T, N>>(decData,
@@ -129,6 +131,7 @@ namespace SZ {
             size_t interp_compressed_size = 0;
 
             double eb = qoi->get_global_eb();
+            quantizer_eb.set_global_eb(eb);
             //global_eb = eb;//debug
 //            printf("Absolute error bound = %.5f\n", eb);
 
@@ -142,10 +145,12 @@ namespace SZ {
                 if (level >= 3) {
                     // quantizer.set_eb(eb * eb_ratio);
                     qoi->set_global_eb(eb * eb_ratio);
+                    quantizer_eb.set_global_eb(eb* eb_ratio);
                   //  global_eb = eb * eb_ratio;//debug
                 } else {
                     // quantizer.set_eb(eb);
                     qoi->set_global_eb(eb);
+                    quantizer_eb.set_global_eb(eb);
                    // global_eb = eb;//debug
                 }
                 uint stride = 1U << (level - 1);
