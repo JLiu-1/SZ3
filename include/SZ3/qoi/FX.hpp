@@ -148,7 +148,7 @@ namespace SZ {
                 };
             }
             // -
-            else if (SymEngine::is_a<SymEngine::Sub>(expr)) {
+            else if (SymEngine::is_a<SymEngine::sub>(expr)) {
                 auto args = expr.get_args();
                 auto left = convert_expression_to_function(Expression(args[0]), x);
                 auto right = convert_expression_to_function(Expression(args[1]), x);
@@ -166,7 +166,7 @@ namespace SZ {
                 };
             }
             // /
-            else if (SymEngine::is_a<SymEngine::Div>(expr)) {
+            else if (SymEngine::is_a<SymEngine::div>(expr)) {
                 auto args = expr.get_args();
                 auto left = convert_expression_to_function(Expression(args[0]), x);
                 auto right = convert_expression_to_function(Expression(args[1]), x);
