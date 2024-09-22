@@ -470,7 +470,7 @@ int main(int argc, char *argv[]) {
             exit(0);
         }
     }
-    std::cout<<quantile<<std::endl;
+    //std::cout<<quantile<<std::endl;
     if (quantile>=0)
     conf.quantile = quantile;
 

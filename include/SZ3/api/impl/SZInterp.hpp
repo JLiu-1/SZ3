@@ -118,7 +118,7 @@ char *SZ_compress_Interp(SZ::Config &conf, T *data, size_t &outSize) {
             }
 
             double quantile = conf.quantile;//quantile
-            std::cout<<quantile<<std::endl;
+            //std::cout<<quantile<<std::endl;
 
             size_t k = std::ceil(quantile * conf.num);
             k = std::max((size_t)1, std::min(conf.num, k)); 
