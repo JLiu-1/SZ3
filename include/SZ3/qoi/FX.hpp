@@ -21,7 +21,7 @@ using SymEngine::parse;
 using SymEngine::diff;
 using SymEngine::RealDouble;
 using SymEngine::evalf;
-using SymEngine::map_basic_basic;
+using SymEngine::map_basic_num;
 using SymEngine::down_cast;
 using SymEngine::RCP;
 using SymEngine::Basic;
@@ -55,7 +55,7 @@ namespace SZ {
             RCP<const Realdouble> value(2);
             map_basic_num mbb=  {{x,value}};
             std::cout<<"init 5 "<< std::endl;
-             double result = (double)df.subs( mbb); 
+             double result = (double)df.subs(mbb); 
            
             std::cout<<"Eval res: "<<result<<std::endl;
             //SymEngine::RCP<const Basic> result = evalf(df,53, SymEngine::EvalfDomain::Real);
