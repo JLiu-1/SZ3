@@ -16,7 +16,7 @@
 #include <symengine/derivative.h>
 #include <symengine/eval.h> 
 using SymEngine::Expression;
-using SymEngine::symbol;
+using SymEngine::Symbol;
 using SymEngine::parse;
 using SymEngine::diff;
 using SymEngine::RealDouble;
@@ -33,7 +33,7 @@ namespace SZ {
             // TODO: adjust type for int data
             //printf("global_eb = %.4f\n", (double) global_eb);
             concepts::QoIInterface<T, N>::id = 14;
-            x = symbol("x");
+            x = Symbol("x");
             f = parse(ff);
             df = diff(f,x);
             ddf = diff(df,x);
@@ -89,7 +89,7 @@ namespace SZ {
     private:
         T tolerance;
         T global_eb;
-        symbol x;
+        Symbol x;
         Expression f;
         Expression df;
         Expression ddf;
