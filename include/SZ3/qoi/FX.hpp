@@ -55,7 +55,7 @@ namespace SZ {
            // std::cout<<"ddf: "<< ddf<<std::endl;
             std::cout<<"Eval res: "<<result<<std::endl;
             //SymEngine::RCP<const Basic> result = evalf(df,53, SymEngine::EvalfDomain::Real);
-            std::cout<< (down_cast<const RealDouble &>(*result)).as_double()<<std::endl;
+            //std::cout<< (down_cast<const RealDouble &>(*result)).as_double()<<std::endl;
         }
 
         using Range = multi_dimensional_range<T, N>;
