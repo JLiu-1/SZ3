@@ -136,6 +136,7 @@ char *SZ_compress_Interp(SZ::Config &conf, T *data, size_t &outSize) {
                     maxHeap.push(eb);
                 }
             }
+            delete ebs[];
 
             double best_abs_eb = maxHeap.top();
             std::cout << "Best abs eb / pre-set eb: " << best_abs_eb / tmp_abs_eb << std::endl; 
@@ -333,8 +334,8 @@ char *SZ_compress_Interp_lorenzo(SZ::Config &conf, T *data, size_t &outSize) {
         if(conf.qoiEBLogBase == 0)
             conf.qoiEBLogBase = 2;        
         // update eb base
-        if(qoi != 4 && qoi != 7) conf.qoiEBBase = (max - min) * qoi_rel_eb / 1030;
-        if(qoi == 10) conf.qoiEBBase =  qoi_rel_eb / 1030;
+        if(qoi!= 2 && qoi != 4 && qoi != 7 && qoi != 10) conf.qoiEBBase = (max - min) * qoi_rel_eb / 1030;
+        else if(qoi == 2 || qoi == 10) conf.qoiEBBase = qoi_rel_eb / 1030;
         std::cout << conf.qoi << " " << conf.qoiEB << " " << conf.qoiEBBase << " " << conf.qoiEBLogBase << " " << conf.qoiQuantbinCnt << std::endl;
     }
     else{
