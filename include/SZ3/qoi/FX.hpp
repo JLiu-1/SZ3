@@ -99,9 +99,9 @@ namespace SZ {
         T tolerance;
         T global_eb;
         //Symbol x;
-        Expression f;
-        Expression df;
-        Expression ddf;
+        RCP<const basic> f;
+        RCP<const basic> df;
+        RCP<const basic> ddf;
      
     };
 }
