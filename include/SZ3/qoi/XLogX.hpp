@@ -23,11 +23,6 @@ namespace SZ {
             printf("global_eb = %.4f\n", (double) global_eb);
             printf("tolerance = %.4f\n", (double) tolerance);
             // assuming b > 1
-            T coeff1 = fabs(1 - pow(base, - tolerance));
-            T coeff2 = fabs(pow(base, tolerance) - 1);
-            coeff = std::min(coeff1, coeff2);
-            printf("coeff1 = %.4f, coeff2 = %.4f\n", (double) coeff1, (double) coeff2);
-            printf("coeff = %.4f\n", (double) coeff);
             log_b = log(base);
             printf("log base = %.4f\n", log_b);
             concepts::QoIInterface<T, N>::id = 13;

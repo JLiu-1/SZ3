@@ -315,7 +315,7 @@ namespace SZ {
         double max_sin_diff = 0;
         double max_pow_diff = 0;
         double max_xlogx_diff = 0;
-        double max_xlogx_val = ori_data[0]!=0 ? ori_data[0]*log(ori_data[0])/log(2) : 0;
+        double max_xlogx_val = ori_data[0]!=0 ? ori_data[0]*log(fabs(ori_data[0]))/log(2) : 0;
         double min_xlogx_val = max_xlogx_val;
         for(int i=0; i<num_elements; i++){
             double x_square_diff = fabs(ori_data[i] * ori_data[i] - data[i] * data[i]);
@@ -343,10 +343,10 @@ namespace SZ {
                 // if(log_diff > 1){
                 //     std::cout << i << ": " << ori_data[i] << " " << data[i] << std::endl;
                 // }              
-                double cur_xlogx = ori_data[i]!=0 ? ori_data[i]*log(ori_data[i])/log(2) : 0;
+                double cur_xlogx = ori_data[i]!=0 ? ori_data[i]*log(fabs(ori_data[i]))/log(2) : 0;
                 if (max_xlogx_val < cur_xlogx) max_xlogx_val = cur_xlogx;
                 if (min_xlogx_val > cur_xlogx) min_xlogx_val = cur_xlogx;
-                double dec_xlogx = data[i]!=0 ? data[i]*log(data[i])/log(2) : 0;
+                double dec_xlogx = data[i]!=0 ? data[i]*log(fabs(data[i]))/log(2) : 0;
                 double xlogx_diff = fabs(cur_xlogx-dec_xlogx);
                 if(xlogx_diff > max_xlogx_diff) max_xlogx_diff = xlogx_diff;  
 
