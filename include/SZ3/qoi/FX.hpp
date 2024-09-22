@@ -80,7 +80,7 @@ namespace SZ {
                 eb = tolerance/a;
             else 
                 eb = global_eb;
-            std::cout<<data<<" "<<a<<" "<<b<<" "<<eb<<std::endl; 
+            std::cout<<data<<" "<<a<<" "<<b<<" "<<eb<<" "<<global_eb<<std::endl; 
             return std::min(eb, global_eb);
         }
 
