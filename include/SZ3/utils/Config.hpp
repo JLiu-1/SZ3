@@ -126,7 +126,10 @@ namespace SZ {
             qoiIsoNum = cfg.GetInteger("QoISettings", "qoiIsoNum", 1);
             quantile = cfg.GetReal("QoISettings", "quantile", 0.01);
             auto qoistring_c = cfg.Get("QoISettings", "qoi_string", "x^2");
+            auto qoistring_c2 = cfg.Get("QoISettings", "qoi_string", "0");
             qoi_string = std::string(qoistring_c);
+            qoi_string_2 = std::string(qoistring_c2);
+            threshold = cfg.GetReal("QoISettings", "threshold", 0.0);
 
         }
 
@@ -245,6 +248,8 @@ namespace SZ {
         double quantile = 0.01;
         bool qoi_tuned=false;
         std::string qoi_string = "x^2";
+        std::string qoi_string_2 = "0";
+        double threshold = 0.0;
     };
 
 

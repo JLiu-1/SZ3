@@ -14,6 +14,7 @@
 #include "Isoline.hpp"
 #include "MultiQoIs.hpp"
 #include "FX.hpp"
+#include "FX_P.hpp"
 #include <vector>
 
 namespace SZ {
@@ -90,6 +91,8 @@ namespace SZ {
                 return std::make_shared<SZ::QoI_XLog_X<T, N>>(conf.qoiEB, conf.absErrorBound);
             case 14:
                 return std::make_shared<SZ::QoI_FX<T, N>>(conf.qoiEB, conf.absErrorBound, conf.qoi_string);
+            case 15:
+                return std::make_shared<SZ::QoI_FX_P<T, N>>(conf.qoiEB, conf.absErrorBound, conf.qoi_string, conf.qoi_string_2, conf.threshold);
         }
         return NULL;
     }

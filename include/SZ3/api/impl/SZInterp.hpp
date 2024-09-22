@@ -319,7 +319,7 @@ char *SZ_compress_Interp_lorenzo(SZ::Config &conf, T *data, size_t &outSize) {
             conf.qoiEB *= (maxxlogx-minxlogx);
         }
         // qoi_string would be absbound
-        else if(qoi >= 5){
+        else if(qoi >= 5 and qoi <= 13){//14 15 is FX
             // (x^2) + (log x) + (isoline)
             auto max_2 = max * max;
             auto min_2 = min * min;
