@@ -18,7 +18,6 @@ endif()
 find_package(PkgConfig)
 find_package(OpenMP)
 find_package(SymEngine REQUIRED)
-find_package(GMP REQUIRED)
 
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/SZ3/version.hpp.in ${CMAKE_CURRENT_SOURCE_DIR}/include/SZ3/version.hpp)
