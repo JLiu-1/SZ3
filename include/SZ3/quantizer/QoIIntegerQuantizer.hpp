@@ -239,13 +239,13 @@ namespace SZ {
         int quantize_and_overwrite(T &eb) {
             // std::cout << eb << " ";
             if(eb <= eb_base or eb >= global_eb){
-                eb = 0.0;
+                eb = global_eb;
                 return 0;
             }
             int id = log2(eb * eb_base_reciprocal) * log_of_base_reciprocal;
             // need to check if id = 0
             if(id == 0){
-                eb = 0;
+                eb = global_eb;
                 return 0;
             }
             id = std::min(id, radius);
