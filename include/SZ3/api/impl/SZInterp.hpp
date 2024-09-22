@@ -272,7 +272,7 @@ char *SZ_compress_Interp_lorenzo(SZ::Config &conf, T *data, size_t &outSize) {
                 if (minxlogx > cur_xlogx) minxlogx = cur_xlogx;
             }
         }
-        if(qoi == 1 || qoi == 3 ||qoi == 14){//14 temp;
+        if(qoi == 1 || qoi == 3){
             // x^2
             auto max_2 = max * max;
             auto min_2 = min * min;
@@ -318,6 +318,7 @@ char *SZ_compress_Interp_lorenzo(SZ::Config &conf, T *data, size_t &outSize) {
             // 2^x
             conf.qoiEB *= (maxxlogx-minxlogx);
         }
+        // qoi_string would be absbound
         else if(qoi >= 5){
             // (x^2) + (log x) + (isoline)
             auto max_2 = max * max;
@@ -432,7 +433,7 @@ char *SZ_compress_Interp_lorenzo(SZ::Config &conf, T *data, size_t &outSize) {
 
     }
 
-    bool useInterp = !(best_lorenzo_ratio > best_interp_ratio && best_lorenzo_ratio < 80 && best_interp_ratio < 80);
+    bool useInterp = !(best_lorenzo_ratio > best_interp_ratio && best_lorenzo_ratio < 80 && best_interp_ratio < 80);//should we temp add qoi>0?
 //    printf("\nLorenzo compression ratio = %.2f\n", best_lorenzo_ratio);
 //    printf("Interp compression ratio = %.2f\n", best_interp_ratio);
     printf("choose %s\n", useInterp ? "interp" : "Lorenzo");

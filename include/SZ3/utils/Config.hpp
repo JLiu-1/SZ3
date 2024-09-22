@@ -125,6 +125,9 @@ namespace SZ {
             qoiRegionSize = cfg.GetInteger("QoISettings", "qoiRegionSize", blockSize);
             qoiIsoNum = cfg.GetInteger("QoISettings", "qoiIsoNum", 1);
             quantile = cfg.GetReal("QoISettings", "quantile", 0.01);
+            auto qoistring_c = cfg.Get("QoISettings", "qoi_string", "x^2");
+            qoi_string = std::string(qoistring_c);
+
         }
 
         void save(unsigned char *&c) {
@@ -241,6 +244,7 @@ namespace SZ {
         std::vector<double> qoiEBs;
         double quantile = 0.01;
         bool qoi_tuned=false;
+        std::string qoi_string = "x^2";
     };
 
 

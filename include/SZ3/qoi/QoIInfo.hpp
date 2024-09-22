@@ -89,7 +89,7 @@ namespace SZ {
             case 13:
                 return std::make_shared<SZ::QoI_XLog_X<T, N>>(conf.qoiEB, conf.absErrorBound);
             case 14:
-                return std::make_shared<SZ::QoI_FX<T, N>>(conf.qoiEB, conf.absErrorBound, "x^2");
+                return std::make_shared<SZ::QoI_FX<T, N>>(conf.qoiEB, conf.absErrorBound, conf.qoi_string);
         }
         return NULL;
     }
