@@ -130,11 +130,11 @@ namespace SZ {
         } 
         std::function<double(T)> convert_expression_to_function(const Expression &expr, const RCP<const Symbol> &x) {
             // x
-            if (SymEngine::is_a<const Symbol>(expr)) {
+            if (SymEngine::is_a<const SymEngine::Symbol>(expr)) {
                 return [](T x_value) { return x_value; };
             }
             // c
-            else if (SymEngine::is_a<const Number>(expr)) {
+            else if (SymEngine::is_a<const SymEngine::Number>(expr)) {
                 double constant_value = SymEngine::evalf(expr).as_double();
                 return [constant_value](T) { return constant_value; };
             }
