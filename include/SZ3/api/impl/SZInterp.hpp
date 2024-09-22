@@ -259,7 +259,7 @@ char *SZ_compress_Interp_lorenzo(SZ::Config &conf, T *data, size_t &outSize) {
                 if (minxlogx > cur_xlogx) minxlogx = cur_xlogx;
             }
         }
-        if(qoi == 1 || qoi == 3){
+        if(qoi == 1 || qoi == 3 ||qoi == 14){//14 temp;
             // x^2
             auto max_2 = max * max;
             auto min_2 = min * min;
