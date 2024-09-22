@@ -29,6 +29,7 @@ using SymEngine::down_cast;
 using SymEngine::RCP;
 using SymEngine::Basic;
 using SymEngine::real_double;
+using SymEngine::eval_double;
 
 namespace SZ {
     template<class T, uint N>
@@ -135,7 +136,7 @@ namespace SZ {
             }
             // c
             else if (SymEngine::is_a<const SymEngine::Number>(expr)) {
-                double constant_value = (double)(expr);
+                double constant_value = eval_double(expr);
                 return [constant_value](T) { return constant_value; };
             }
             // +
