@@ -251,7 +251,7 @@ namespace SZ {
                 return 0;
             }
             id = std::min(id, radius);
-            eb = std::max(global_eb-static_cast<T>(pow(log_base, id) * eb_base),static_cast<T>(0.0));
+            eb = std::max(global_eb-pow(log_base, id) * eb_base,0);
             return id;            
         }
 
@@ -261,7 +261,7 @@ namespace SZ {
                 //return 0;
                 return global_eb;
             } else {
-                return std::max(global_eb-static_cast<T>(pow(log_base, quant_index) * eb_base),static_cast<T>(0.0));
+                return std::max(global_eb-pow(log_base, quant_index) * eb_base,0);
             }
         }
 
@@ -328,7 +328,7 @@ namespace SZ {
         double log_base;
         double eb_base_reciprocal;
         double log_of_base_reciprocal;
-        double global_eb;
+        T global_eb;
         double global_eb_reciprocal;
 
     };
