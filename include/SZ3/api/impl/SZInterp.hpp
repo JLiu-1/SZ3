@@ -194,7 +194,7 @@ char *SZ_compress_Interp_lorenzo(SZ::Config &conf, T *data, size_t &outSize) {
             if (max < data[i]) max = data[i];
             if (min > data[i]) min = data[i];
             if(qoi == 13){
-                T cur_xlogx = data[i]!=0 ? data[i]*log(data[i])/log(2) : 0;
+                T cur_xlogx = data[i]!=0 ? data[i]*log(fabs(data[i]))/log(2) : 0;
                 if (maxxlogx < cur_xlogx) maxxlogx = cur_xlogx;
                 if (minxlogx > cur_xlogx) minxlogx = cur_xlogx;
             }
