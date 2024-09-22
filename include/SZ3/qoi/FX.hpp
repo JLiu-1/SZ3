@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <functional>
 #include "SZ3/def.hpp"
 #include "SZ3/qoi/QoI.hpp"
 #include "SZ3/utils/Iterator.hpp"
@@ -15,6 +16,7 @@
 #include <symengine/symbol.h>
 #include <symengine/derivative.h>
 #include <symengine/eval.h> 
+
 using SymEngine::Expression;
 using SymEngine::Symbol;
 using SymEngine::symbol;
@@ -40,6 +42,10 @@ namespace SZ {
             //printf("global_eb = %.4f\n", (double) global_eb);
             concepts::QoIInterface<T, N>::id = 14;
             //std::cout<<"init 1 "<< std::endl;
+            
+            Expression f;
+            Expression df;
+            Expression ddf;
              x = symbol("x");
     
             f = Expression(ff);
@@ -49,6 +55,9 @@ namespace SZ {
            //  std::cout<<"init 3 "<< std::endl;
             //ddf = diff(df,x);
             ddf = df.diff(x);
+
+            deri_1 = convert_expression_to_function(df, x);
+            deri_2 = convert_expression_to_function(ddf, x);
            //  std::cout<<"init 4 "<< std::endl;
            //   std::cout<<"f: "<< f<<std::endl;
           //  std::cout<<"df: "<< df<<std::endl;
@@ -70,8 +79,8 @@ namespace SZ {
         T interpret_eb(T data) const {
             
 
-            double a = fabs(evaluate(df,data));//datatype may be T
-            double b = fabs(evaluate(ddf,data));
+            double a = fabs(deri_1(data));//datatype may be T
+            double b = fabs(deri_2(data));
            // 
             T eb;
             if( b !=0)
@@ -119,12 +128,99 @@ namespace SZ {
             return (double)func.subs({{x,real_double(val)}}); 
 
         } 
+        std::function<double(T)> convert_expression_to_function(const Expression &expr, const RCP<const Symbol> &x) {
+            // x
+            if (SymEngine::is_a<const Symbol>(*expr)) {
+                return [](T x_value) { return x_value; };
+            }
+            // c
+            else if (SymEngine::is_a<const Number>(*expr)) {
+                double constant_value = SymEngine::evalf(expr).as_double();
+                return [constant_value](T) { return constant_value; };
+            }
+            // +
+            else if (SymEngine::is_a<SymEngine::Add>(*expr)) {
+                auto args = expr.get_args();
+                auto left = convert_expression_to_function(Expression(args[0]), x);
+                auto right = convert_expression_to_function(Expression(args[1]), x);
+                return [left, right](T x_value) {
+                    return left(x_value) + right(x_value);
+                };
+            }
+            // -
+            else if (SymEngine::is_a<SymEngine::Sub>(*expr)) {
+                auto args = expr.get_args();
+                auto left = convert_expression_to_function(Expression(args[0]), x);
+                auto right = convert_expression_to_function(Expression(args[1]), x);
+                return [left, right](T x_value) {
+                    return left(x_value) - right(x_value);
+                };
+            }
+            // *
+            else if (SymEngine::is_a<SymEngine::Mul>(*expr)) {
+                auto args = expr.get_args();
+                auto left = convert_expression_to_function(Expression(args[0]), x);
+                auto right = convert_expression_to_function(Expression(args[1]), x);
+                return [left, right](T x_value) {
+                    return left(x_value) * right(x_value);
+                };
+            }
+            // /
+            else if (SymEngine::is_a<SymEngine::Div>(*expr)) {
+                auto args = expr.get_args();
+                auto left = convert_expression_to_function(Expression(args[0]), x);
+                auto right = convert_expression_to_function(Expression(args[1]), x);
+                return [left, right](T x_value) {
+                    return left(x_value) / right(x_value);
+                };
+            }
+            // pow
+            else if (SymEngine::is_a<SymEngine::Pow>(*expr)) {
+                auto args = expr.get_args();
+                auto base = convert_expression_to_function(Expression(args[0]), x);
+                auto exponent = convert_expression_to_function(Expression(args[1]), x);
+                return [base, exponent](T x_value) {
+                    return std::pow(base(x_value), exponent(x_value));
+                };
+            }
+            // sin
+            else if (SymEngine::is_a<SymEngine::Sin>(*expr)) {
+                auto arg = convert_expression_to_function(Expression(expr.get_args()[0]), x);
+                return [arg](T x_value) {
+                    return std::sin(arg(x_value));
+                };
+            }
+            // cos
+            else if (SymEngine::is_a<SymEngine::Cos>(*expr)) {
+                auto arg = convert_expression_to_function(Expression(expr.get_args()[0]), x);
+                return [arg](T x_value) {
+                    return std::cos(arg(x_value));
+                };
+            }
+            //  log
+            else if (SymEngine::is_a<SymEngine::Log>(*expr)) {
+                auto args = expr.get_args();
+                auto arg = convert_expression_to_function(Expression(args[0]), x);
+
+                if (args.size() == 2) { // base log
+                    auto base = convert_expression_to_function(Expression(args[1]), x);
+                    return [arg, base](T x_value) {
+                        return std::log(arg(x_value)) / std::log(base(x_value));
+                    };
+                } else { // ln
+                    return [arg](T x_value) {
+                        return std::log(arg(x_value));
+                    };
+                }
+            }
+
+            throw std::runtime_error("Unsupported expression type");
+        }
+        RCP<const Symbol>  x;
         T tolerance;
         T global_eb;
-        RCP<const Symbol>  x;
-        Expression f;
-        Expression df;
-        Expression ddf;
+        std::function<double(T)> deri_1;
+        std::function<double(T)> deri_2;
      
     };
 }
