@@ -132,7 +132,7 @@ namespace SZ {
 
         } 
         std::function<double(T)> convert_expression_to_function(const Basic &expr, const RCP<const Symbol> &x) {
-            std::cout<<expr.get_type_code()<<std::endl;
+            std::cout<<SymEngine::type_code_name(expr.get_type_code())<<std::endl;
             // x
             if (SymEngine::is_a<const SymEngine::Symbol>(expr)) {
                 return [](T x_value) { return x_value; };
