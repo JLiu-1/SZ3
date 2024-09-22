@@ -28,10 +28,12 @@ namespace SZ {
 
         T interpret_eb(T data) const {
             //2^X
-            double low_bound = data - log( pow(2, data) - tolerance)/ log(2);
-            double high_bound = log( pow(2, data) + tolerance) / log(2)-data;
-
-            T eb = std::min(low_bound,high_bound);
+            //double low_bound = data - log( pow(2, data) - tolerance)/ log(2);
+            //double high_bound = log( pow(2, data) + tolerance) / log(2)-data;
+            //T eb = std::min(low_bound,high_bound);
+            double a = fabs(pow(2,data)*log(2) );//datatype may be T
+            double b = fabs(a*log(2));
+            T eb = (sqrt(a*a+2*b*tolerance)-a)/b;
             return std::min(eb, global_eb);
         }
 
