@@ -35,8 +35,10 @@ namespace SZ {
             concepts::QoIInterface<T, N>::id = 14;
             x = Symbol("x");
             f = parse(ff);
-            df = diff(f,x,1);
-            ddf = diff(df,x,1);
+            //df = diff(f,x);
+            df = f.diff(x);
+            //ddf = diff(df,x);
+            ddf = df.diff(x);
         }
 
         using Range = multi_dimensional_range<T, N>;
@@ -89,7 +91,7 @@ namespace SZ {
     private:
         T tolerance;
         T global_eb;
-        Expression x;
+        Symbol x;
         Expression f;
         Expression df;
         Expression ddf;
