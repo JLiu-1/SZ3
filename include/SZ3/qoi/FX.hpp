@@ -60,7 +60,8 @@ namespace SZ {
             std::cout<<"f: "<< f<<std::endl;
             std::cout<<"df: "<< df<<std::endl;
             std::cout<<"ddf: "<< ddf<<std::endl;
-
+  
+            func = convert_expression_to_function(f, x);
             deri_1 = convert_expression_to_function(df, x);
             deri_2 = convert_expression_to_function(ddf, x);
             // std::cout<<"init 4 "<< std::endl;
@@ -105,7 +106,7 @@ namespace SZ {
         }
 
         bool check_compliance(T data, T dec_data, bool verbose=false) const {
-            return (fabs(sin(data) - sin(dec_data)) < tolerance);
+            return (fabs(func(data) - func(dec_data)) < tolerance);
         }
 
         void update_tolerance(T data, T dec_data){}
@@ -260,6 +261,7 @@ namespace SZ {
         RCP<const Symbol>  x;
         T tolerance;
         T global_eb;
+        std::function<double(T)> func;
         std::function<double(T)> deri_1;
         std::function<double(T)> deri_2;
      

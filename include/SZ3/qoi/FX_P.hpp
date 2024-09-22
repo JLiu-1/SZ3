@@ -60,7 +60,7 @@ namespace SZ {
            // std::cout<<"f: "<< f<<std::endl;
             //std::cout<<"df: "<< df<<std::endl;
             //std::cout<<"ddf: "<< ddf<<std::endl;
-
+            f1 = convert_expression_to_function(f, x);
             df1 = convert_expression_to_function(df, x);
             ddf1 = convert_expression_to_function(ddf, x);
 
@@ -69,6 +69,7 @@ namespace SZ {
             df = f.diff(x);
             
             ddf = df.diff(x);
+            f2 = convert_expression_to_function(f, x);
             df2 = convert_expression_to_function(df, x);
             ddf2 = convert_expression_to_function(ddf, x);
             // std::cout<<"init 4 "<< std::endl;
@@ -123,7 +124,9 @@ namespace SZ {
         }
 
         bool check_compliance(T data, T dec_data, bool verbose=false) const {
-            return (fabs(sin(data) - sin(dec_data)) < tolerance);
+            double y_0 = data >= threshold ? f1(data):f2(data);
+            double y_1 = dec_data >= threshold ? f1(dec_data):f2(dec_data);
+            return (fabs(y_0 - y_1) < tolerance);
         }
 
         void update_tolerance(T data, T dec_data){}
@@ -279,6 +282,8 @@ namespace SZ {
         T tolerance;
         T global_eb;
         double threshold;
+        std::function<double(T)> f1;
+        std::function<double(T)> f2;
         std::function<double(T)> df1;
         std::function<double(T)> ddf1;
         std::function<double(T)> df2;
