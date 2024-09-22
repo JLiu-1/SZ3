@@ -56,7 +56,7 @@ namespace SZ {
            // RCP<const Symbol> value = symbol("2");
            // map_basic_basic mbb=  {{x,value}};
             //std::cout<<"init 5 "<< std::endl;
-             double result = (double)df.subs(x == 2); 
+             double result = (double)df.subs(x == RealDouble(2)); 
            
             std::cout<<"Eval res: "<<result<<std::endl;
             //SymEngine::RCP<const Basic> result = evalf(df,53, SymEngine::EvalfDomain::Real);
