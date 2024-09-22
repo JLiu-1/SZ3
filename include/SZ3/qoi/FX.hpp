@@ -40,7 +40,7 @@ namespace SZ {
             //printf("global_eb = %.4f\n", (double) global_eb);
             concepts::QoIInterface<T, N>::id = 14;
             //std::cout<<"init 1 "<< std::endl;
-            RCP<const Symbol>  x = symbol("x");
+             x = symbol("x");
     
             f = Expression(ff);
             // std::cout<<"init 2"<< std::endl;
@@ -72,6 +72,7 @@ namespace SZ {
 
             double a = fabs(evaluate(df,data));//datatype may be T
             double b = fabs(evaluate(ddf,data));
+            std::cout<<data<<" "<<a<<" "<<b<<std::endl; 
             T eb;
             if( b !=0)
                 eb = (sqrt(a*a+2*b*tolerance)-a)/b;
@@ -114,13 +115,13 @@ namespace SZ {
     private:
 
         inline double evaluate(const Expression & func, T val) const{
-            RCP<const Symbol>  x = symbol("x");
+            
             return (double)func.subs({{x,real_double(val)}}); 
 
         } 
         T tolerance;
         T global_eb;
-        //Symbol x;
+        RCP<const Symbol>  x;
         Expression f;
         Expression df;
         Expression ddf;
