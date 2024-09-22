@@ -21,10 +21,10 @@ using SymEngine::parse;
 using SymEngine::diff;
 using SymEngine::RealDouble;
 using SymEngine::evalf;
-using SymEngine::Basic;
-using SymEngine::RCP;
 using SymEngine::map_basic_basic;
 using SymEngine::down_cast;
+using SymEngine::RCP;
+using SymEngine::Basic;
 
 namespace SZ {
     template<class T, uint N>
@@ -37,7 +37,7 @@ namespace SZ {
             // TODO: adjust type for int data
             //printf("global_eb = %.4f\n", (double) global_eb);
             concepts::QoIInterface<T, N>::id = 14;
-            RCP<const Basic> x = Symbol("x").rcp_from_this();
+            RCP<const Basic>  x = Symbol("x");
     
             f = parse(ff);
             //df = diff(f,x);
@@ -45,8 +45,8 @@ namespace SZ {
             //ddf = diff(df,x);
             ddf = df.diff(x.rcp_from_this());
 
-            //SymEngine::RCP<const basic> result = evalf(*(df.subs(map_basic_basic({{x.rcp_from_this(),RealDouble(2).rcp_from_this()}})).rcp_from_this()),53, SymEngine::EvalfDomain::Real);
-            RCP<const Basic> result = evalf(*df,53, SymEngine::EvalfDomain::Real);
+            RCP<const Basic> result = evalf(df.subs(map_basic_basic({{x.rcp_from_this(),RealDouble(2).rcp_from_this()}})),53, SymEngine::EvalfDomain::Real);
+            //SymEngine::RCP<const Basic> result = evalf(df,53, SymEngine::EvalfDomain::Real);
             std::cout<< (down_cast<const RealDouble &>(*result)).as_double()<<std::endl;
         }
 
@@ -101,9 +101,9 @@ namespace SZ {
         T tolerance;
         T global_eb;
         //Symbol x;
-        RCP<const Basic> f;
-        RCP<const Basic> df;
-        RCP<const Basic> ddf;
+        Expression f;
+        Expression df;
+        Expression ddf;
      
     };
 }
