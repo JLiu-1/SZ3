@@ -335,7 +335,7 @@ namespace SZ {
             double x_tanh_diff = fabs(std::tanh(ori_data[i])-std::tanh(data[i]));
             if (x_tanh_diff>max_tanh_diff) max_tanh_diff=x_tanh_diff;
             double x_relu_diff = fabs(ori_data[i]*(double)(ori_data[i]>0)-data[i]*(double)(data[i]>0));
-            if (x_relu_diff>max_trelu_diff) max_relu_diff=x_relu_diff;
+            if (x_relu_diff>max_relu_diff) max_relu_diff=x_relu_diff;
             if(ori_data[i] == 0){
                 // for log x only
                 // if(data[i] != 0){
