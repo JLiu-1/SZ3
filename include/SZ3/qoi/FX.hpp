@@ -70,8 +70,8 @@ namespace SZ {
         T interpret_eb(T data) const {
             
 
-            double a = fabs(cos(data));//datatype may be T
-            double b = fabs(sin(data));
+            double a = evaluate(df,data);//datatype may be T
+            double b = evaluate(ddf,data);
             T eb;
             if( b !=0)
                 eb = (sqrt(a*a+2*b*tolerance)-a)/b;
