@@ -86,9 +86,9 @@ namespace SZ {
             double b = fabs(deri_2(data));
            // 
             T eb;
-            if( b !=0 and b !=NaN)
+            if( b !=0)
                 eb = (sqrt(a*a+2*b*tolerance)-a)/b;
-            else if (a!=0 and a !=NaN)
+            else if (a!=0)
                 eb = tolerance/a;
             else 
                 eb = global_eb;
@@ -132,6 +132,7 @@ namespace SZ {
 
         } 
         std::function<double(T)> convert_expression_to_function(const Basic &expr, const RCP<const Symbol> &x) {
+            std::cout<<expr.get_type_code()<<std::endl;
             // x
             if (SymEngine::is_a<const SymEngine::Symbol>(expr)) {
                 return [](T x_value) { return x_value; };
