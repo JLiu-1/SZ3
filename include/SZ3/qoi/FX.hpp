@@ -33,12 +33,12 @@ namespace SZ {
             // TODO: adjust type for int data
             //printf("global_eb = %.4f\n", (double) global_eb);
             concepts::QoIInterface<T, N>::id = 14;
-            SymEngine::RCP<const Symbol>  x("x");
+            auto x = Symbol("x");
             f = parse(ff);
             //df = diff(f,x);
-            df = f.diff(x);
+            df = f.diff(Symbol("x"));
             //ddf = diff(df,x);
-            ddf = df.diff(x);
+            ddf = df.diff(Symbol("x"));
         }
 
         using Range = multi_dimensional_range<T, N>;
