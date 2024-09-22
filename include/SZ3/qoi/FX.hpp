@@ -148,6 +148,7 @@ namespace SZ {
                 };
             }
             // -
+            /*
             else if (SymEngine::is_a<SymEngine::sub>(expr)) {
                 auto args = expr.get_args();
                 auto left = convert_expression_to_function(Expression(args[0]), x);
@@ -155,7 +156,7 @@ namespace SZ {
                 return [left, right](T x_value) {
                     return left(x_value) - right(x_value);
                 };
-            }
+            }*/
             // *
             else if (SymEngine::is_a<SymEngine::Mul>(expr)) {
                 auto args = expr.get_args();
@@ -166,6 +167,7 @@ namespace SZ {
                 };
             }
             // /
+            /*
             else if (SymEngine::is_a<SymEngine::div>(expr)) {
                 auto args = expr.get_args();
                 auto left = convert_expression_to_function(Expression(args[0]), x);
@@ -173,7 +175,7 @@ namespace SZ {
                 return [left, right](T x_value) {
                     return left(x_value) / right(x_value);
                 };
-            }
+            }*/
             // pow
             else if (SymEngine::is_a<SymEngine::Pow>(expr)) {
                 auto args = expr.get_args();
