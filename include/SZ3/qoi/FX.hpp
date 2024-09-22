@@ -203,6 +203,34 @@ namespace SZ {
                     return std::cos(arg(x_value));
                 };
             }
+
+            else if (SymEngine::is_a<SymEngine::Tan>(expr)) {
+                auto arg = convert_expression_to_function(Expression(expr.get_args()[0]), x);
+                return [arg](T x_value) {
+                    return std::cos(arg(x_value));
+                };
+            }
+
+            else if (SymEngine::is_a<SymEngine::Sinh>(expr)) {
+                auto arg = convert_expression_to_function(Expression(expr.get_args()[0]), x);
+                return [arg](T x_value) {
+                    return std::sin(arg(x_value));
+                };
+            }
+            // cos
+            else if (SymEngine::is_a<SymEngine::Cosh>(expr)) {
+                auto arg = convert_expression_to_function(Expression(expr.get_args()[0]), x);
+                return [arg](T x_value) {
+                    return std::cos(arg(x_value));
+                };
+            }
+
+            else if (SymEngine::is_a<SymEngine::Tanh>(expr)) {
+                auto arg = convert_expression_to_function(Expression(expr.get_args()[0]), x);
+                return [arg](T x_value) {
+                    return std::cos(arg(x_value));
+                };
+            }
             //  log
             else if (SymEngine::is_a<SymEngine::Log>(expr)) {
                 auto args = expr.get_args();
