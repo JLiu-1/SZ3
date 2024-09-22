@@ -44,7 +44,7 @@ namespace SZ {
             ddf = df.diff(x.rcp_from_this());
 
             SymEngine::RCP<const basic> result = evalf(df.subs(map_basic_basic({{x.rcp_from_this(),RealDouble(2).rcp_from_this()}})),53, SymEngine::EvalfDomain::Real);
-            std::cout<< (down_cast<const RealDouble &>(*result)).as_double()<<std::endl;
+            std::cout<< (down_cast<const RealDouble &>(result)).as_double()<<std::endl;
         }
 
         using Range = multi_dimensional_range<T, N>;
