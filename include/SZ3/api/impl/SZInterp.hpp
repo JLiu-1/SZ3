@@ -122,7 +122,7 @@ char *SZ_compress_Interp(SZ::Config &conf, T *data, size_t &outSize) {
             double quantile = 0.05;//quantile
 
             size_t k = std::ceil(quantile * conf.num);
-            k = std::max(1, std::min(conf.num, k)); 
+            k = std::max((size_t)1, std::min(conf.num, k)); 
 
           
             std::priority_queue<T> maxHeap;
