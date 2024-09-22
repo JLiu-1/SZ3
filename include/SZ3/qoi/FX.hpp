@@ -171,15 +171,15 @@ namespace SZ {
                 };
             }
             // /
-            /*
-            else if (SymEngine::is_a<SymEngine::div>(expr)) {
+            
+            else if (SymEngine::is_a<SymEngine::Div>(expr)) {
                 auto args = expr.get_args();
                 auto left = convert_expression_to_function(Expression(args[0]), x);
                 auto right = convert_expression_to_function(Expression(args[1]), x);
                 return [left, right](T x_value) {
                     return left(x_value) / right(x_value);
                 };
-            }*/
+            }
             // pow
             else if (SymEngine::is_a<SymEngine::Pow>(expr)) {
                 auto args = expr.get_args();
