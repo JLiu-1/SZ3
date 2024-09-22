@@ -251,7 +251,7 @@ namespace SZ {
                 return 0;
             }
             id = std::min(id, radius);
-            eb = std::max(global_eb-pow(log_base, id) * eb_base,0);
+            eb = std::max(global_eb-pow(log_base, id) * eb_base,T(0.0));
             return id;            
         }
 
@@ -261,7 +261,7 @@ namespace SZ {
                 //return 0;
                 return global_eb;
             } else {
-                return std::max(global_eb-pow(log_base, quant_index) * eb_base,0);
+                return std::max(global_eb-pow(log_base, quant_index) * eb_base,T(0.0));
             }
         }
 
