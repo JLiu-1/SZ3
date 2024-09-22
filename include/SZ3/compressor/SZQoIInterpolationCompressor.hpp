@@ -64,7 +64,7 @@ namespace SZ {
             encoder.load(buffer_pos, remaining_length);
             quant_inds = encoder.decode(buffer_pos, num_elements);
 
-            encoder.postprocess_decode();
+            //encoder.postprocess_decode();
             encoder.load(buffer_pos, remaining_length);
             eb_quant_inds = encoder.decode(buffer_pos, num_elements);
 
@@ -210,7 +210,7 @@ namespace SZ {
             encoder.preprocess_encode(quant_inds, 0);
             encoder.save(buffer_pos);
             encoder.encode(quant_inds, buffer_pos);
-            encoder.postprocess_encode();
+           // encoder.postprocess_encode();
              std::cout << "after encoder 1, offset = " << buffer_pos - buffer << std::endl;
 
             encoder.preprocess_encode(eb_quant_inds, 0);
