@@ -117,7 +117,7 @@ char *SZ_compress_Interp(SZ::Config &conf, T *data, size_t &outSize) {
                 ebs[i] = qoi->interpret_eb(data[i]);
             }
 
-            double quantile = 0.03;//quantile
+            double quantile = 0.05;//quantile
 
             size_t k = std::ceil(quantile * conf.num);
             k = std::max((size_t)1, std::min(conf.num, k)); 
@@ -134,9 +134,17 @@ char *SZ_compress_Interp(SZ::Config &conf, T *data, size_t &outSize) {
                     maxHeap.push(eb);
                 }
             }
-            delete []ebs;
 
             double best_abs_eb = maxHeap.top();
+            size_t count = 0;
+            for (size_t i = 0; i < conf.num; i++){
+                if(ebs[i] < best_abs_eb)
+                    count++;
+            }
+            std::cout<<"Smaller ebs: "<<(double)(count)/(double)(conf.num)<<std::endl;
+            delete []ebs;
+
+            
             std::cout << "Best abs eb / pre-set eb: " << best_abs_eb / tmp_abs_eb << std::endl; 
             std::cout << best_abs_eb << " " << tmp_abs_eb << std::endl;
             conf.absErrorBound = best_abs_eb;
