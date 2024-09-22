@@ -130,16 +130,16 @@ namespace SZ {
         } 
         std::function<double(T)> convert_expression_to_function(const Expression &expr, const RCP<const Symbol> &x) {
             // x
-            if (SymEngine::is_a<const Symbol>(*expr)) {
+            if (SymEngine::is_a<const Symbol>(expr)) {
                 return [](T x_value) { return x_value; };
             }
             // c
-            else if (SymEngine::is_a<const Number>(*expr)) {
+            else if (SymEngine::is_a<const Number>(expr)) {
                 double constant_value = SymEngine::evalf(expr).as_double();
                 return [constant_value](T) { return constant_value; };
             }
             // +
-            else if (SymEngine::is_a<SymEngine::Add>(*expr)) {
+            else if (SymEngine::is_a<SymEngine::Add>(expr)) {
                 auto args = expr.get_args();
                 auto left = convert_expression_to_function(Expression(args[0]), x);
                 auto right = convert_expression_to_function(Expression(args[1]), x);
@@ -148,7 +148,7 @@ namespace SZ {
                 };
             }
             // -
-            else if (SymEngine::is_a<SymEngine::Sub>(*expr)) {
+            else if (SymEngine::is_a<SymEngine::Sub>(expr)) {
                 auto args = expr.get_args();
                 auto left = convert_expression_to_function(Expression(args[0]), x);
                 auto right = convert_expression_to_function(Expression(args[1]), x);
@@ -157,7 +157,7 @@ namespace SZ {
                 };
             }
             // *
-            else if (SymEngine::is_a<SymEngine::Mul>(*expr)) {
+            else if (SymEngine::is_a<SymEngine::Mul>(expr)) {
                 auto args = expr.get_args();
                 auto left = convert_expression_to_function(Expression(args[0]), x);
                 auto right = convert_expression_to_function(Expression(args[1]), x);
@@ -166,7 +166,7 @@ namespace SZ {
                 };
             }
             // /
-            else if (SymEngine::is_a<SymEngine::Div>(*expr)) {
+            else if (SymEngine::is_a<SymEngine::Div>(expr)) {
                 auto args = expr.get_args();
                 auto left = convert_expression_to_function(Expression(args[0]), x);
                 auto right = convert_expression_to_function(Expression(args[1]), x);
@@ -175,7 +175,7 @@ namespace SZ {
                 };
             }
             // pow
-            else if (SymEngine::is_a<SymEngine::Pow>(*expr)) {
+            else if (SymEngine::is_a<SymEngine::Pow>(expr)) {
                 auto args = expr.get_args();
                 auto base = convert_expression_to_function(Expression(args[0]), x);
                 auto exponent = convert_expression_to_function(Expression(args[1]), x);
@@ -184,21 +184,21 @@ namespace SZ {
                 };
             }
             // sin
-            else if (SymEngine::is_a<SymEngine::Sin>(*expr)) {
+            else if (SymEngine::is_a<SymEngine::Sin>(expr)) {
                 auto arg = convert_expression_to_function(Expression(expr.get_args()[0]), x);
                 return [arg](T x_value) {
                     return std::sin(arg(x_value));
                 };
             }
             // cos
-            else if (SymEngine::is_a<SymEngine::Cos>(*expr)) {
+            else if (SymEngine::is_a<SymEngine::Cos>(expr)) {
                 auto arg = convert_expression_to_function(Expression(expr.get_args()[0]), x);
                 return [arg](T x_value) {
                     return std::cos(arg(x_value));
                 };
             }
             //  log
-            else if (SymEngine::is_a<SymEngine::Log>(*expr)) {
+            else if (SymEngine::is_a<SymEngine::Log>(expr)) {
                 auto args = expr.get_args();
                 auto arg = convert_expression_to_function(Expression(args[0]), x);
 
