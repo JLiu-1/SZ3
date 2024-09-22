@@ -124,6 +124,7 @@ namespace SZ {
             qoiQuantbinCnt = cfg.GetInteger("QoISettings", "qoiQuantbinCnt", 64);
             qoiRegionSize = cfg.GetInteger("QoISettings", "qoiRegionSize", blockSize);
             qoiIsoNum = cfg.GetInteger("QoISettings", "qoiIsoNum", 1);
+            quantile = cfg.GetReal("QoISettings", "quantile", 0.01);
         }
 
         void save(unsigned char *&c) {
@@ -238,6 +239,7 @@ namespace SZ {
         std::vector<double> isovalues;
         int qoiNum = 0;
         std::vector<double> qoiEBs;
+        double quantile = 0.01;
     };
 
 

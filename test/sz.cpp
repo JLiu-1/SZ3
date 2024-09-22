@@ -52,6 +52,7 @@ void usage() {
 //    printf("		-P <point-wise relative error bound>: specifying point-wise relative error bound\n");
     printf("		-S <PSNR>: specifying PSNR\n");
     printf("		-N <normErr>: specifying normErr\n");
+    printf("    -u <quantile> : eb quantile\n");
     printf("* dimensions: \n");
     printf("	-1 <nx> : dimension for 1D data such as data[nx]\n");
     printf("	-2 <nx> <ny> : dimensions for 2D data such as data[ny][nx]\n");
@@ -228,6 +229,7 @@ int main(int argc, char *argv[]) {
     if (argc == 1)
         usage();
     int width = -1;
+    double quantile = 0.01
 
     for (i = 1; i < argc; i++) {
         if (argv[i][0] != '-' || argv[i][2]) {
@@ -358,6 +360,11 @@ int main(int argc, char *argv[]) {
 //                    usage();
 //                pwrErrorBound = argv[i];
 //                break;
+            case 'u':
+                if (++i == argc)
+                    usage();
+                quantile = argv[i];
+                break;
             case 'N':
                 if (++i == argc)
                     usage();
@@ -462,6 +469,7 @@ int main(int argc, char *argv[]) {
             exit(0);
         }
     }
+    conf.quantile = quantile;
 
     if (compression) {
 
