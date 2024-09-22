@@ -128,7 +128,7 @@ namespace SZ {
             return (double)func.subs({{x,real_double(val)}}); 
 
         } 
-        std::function<double(T)> convert_expression_to_function(const Expression &expr, const RCP<const Symbol> &x) {
+        std::function<double(T)> convert_expression_to_function(const Basic &expr, const RCP<const Symbol> &x) {
             // x
             if (SymEngine::is_a<const SymEngine::Symbol>(expr)) {
                 return [](T x_value) { return x_value; };
@@ -140,7 +140,7 @@ namespace SZ {
             }
             // +
             else if (SymEngine::is_a<SymEngine::Add>(expr)) {
-                auto args = expr.expand();
+                auto args = expr.get_args();
                 auto left = convert_expression_to_function(Expression(args[0]), x);
                 auto right = convert_expression_to_function(Expression(args[1]), x);
                 return [left, right](T x_value) {
