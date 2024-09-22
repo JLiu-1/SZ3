@@ -31,11 +31,11 @@ namespace SZ {
             //double low_bound = data - log( pow(2, data) - tolerance)/ log(2);
             //double high_bound = log( pow(2, data) + tolerance) / log(2)-data;
             //T eb = std::min(low_bound,high_bound);
-           // double a = fabs(pow(2,data)*log(2) );//datatype may be T
-           // double b = fabs(a*log(2));
-          //  T eb = (sqrt(a*a+2*b*tolerance)-a)/b;
-           // return std::min(eb, global_eb);
-            return global_eb;
+            double a = fabs(pow(2,data)*log(2) );//datatype may be T
+            double b = fabs(a*log(2));
+            T eb = (sqrt(a*a+2*b*tolerance)-a)/b;
+            return std::min(eb, global_eb);
+            //return global_eb;
         }
 
         T interpret_eb(const iterator &iter) const {

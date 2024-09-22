@@ -8,6 +8,7 @@
 #include "XExp.hpp"
 #include "XLin.hpp"
 #include "LogX.hpp"
+#include "XLogX.hpp"
 #include "RegionalAverage.hpp"
 #include "RegionalAverageOfSquare.hpp"
 #include "Isoline.hpp"
@@ -84,6 +85,8 @@ namespace SZ {
                 return std::make_shared<SZ::QoI_X_Lin<T, N>>(conf.qoiEB, conf.absErrorBound);
             case 12:
                 return std::make_shared<SZ::QoI_X_Exp<T, N>>(conf.qoiEB, conf.absErrorBound);
+            case 13:
+                return std::make_shared<SZ::QoI_XLog_X<T, N>>(conf.qoiEB, conf.absErrorBound);
         }
         return NULL;
     }

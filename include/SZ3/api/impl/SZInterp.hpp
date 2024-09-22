@@ -184,9 +184,20 @@ char *SZ_compress_Interp_lorenzo(SZ::Config &conf, T *data, size_t &outSize) {
         T qoi_rel_eb = conf.qoiEB;
         T max = data[0];
         T min = data[0];
+        T maxxlogx;
+        T minxlogx;
+        if(qoi == 13){
+            maxxlogx = data[0]!=0 ? data[0]*log(data[0])/log(2) : 0;
+            minxlogx = maxxlogx;
+        }
         for (size_t i = 1; i < conf.num; i++) {
             if (max < data[i]) max = data[i];
             if (min > data[i]) min = data[i];
+            if(qoi == 13){
+                T cur_xlogx = data[i]!=0 ? data[i]*log(data[i])/log(2) : 0;
+                if (maxxlogx < cur_xlogx) maxxlogx = cur_xlogx;
+                if (minxlogx > cur_xlogx) minxlogx = cur_xlogx;
+            }
         }
         if(qoi == 1 || qoi == 3){
             // x^2
@@ -229,6 +240,10 @@ char *SZ_compress_Interp_lorenzo(SZ::Config &conf, T *data, size_t &outSize) {
             // 2^x
             auto max_abs_val = pow(2,max);
             conf.qoiEB *= max_abs_val;
+        }
+        else if(qoi == 13){
+            // 2^x
+            conf.qoiEB *= (maxxlogx-minxlogx);
         }
         else if(qoi >= 5){
             // (x^2) + (log x) + (isoline)
