@@ -86,7 +86,7 @@ namespace SZ {
             double b = fabs(deri_2(data));
            // 
             T eb;
-            if( !std::isnan(b) and b !=0 )
+            if(!std::isnan(a) and !std::isnan(b) and b !=0 )
                 eb = (sqrt(a*a+2*b*tolerance)-a)/b;
             else if (!std::isnan(a) and a!=0 )
                 eb = tolerance/a;
