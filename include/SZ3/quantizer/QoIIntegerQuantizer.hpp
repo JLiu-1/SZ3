@@ -318,7 +318,7 @@ namespace SZ {
         void set_reciprocal(){
             eb_base_reciprocal = ((double) 1.0) / eb_base;
             log_of_base_reciprocal = ((double) 1.0) / log2(log_base);
-            global_eb_reciprocal = 1.0 / eb;
+            global_eb_reciprocal = 1.0 / global_eb;
         }
 
         int radius; // quantization interval radius
