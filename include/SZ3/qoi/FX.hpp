@@ -13,7 +13,7 @@
 #include <symengine/expression.h>
 #include <symengine/parser.h>
 #include <symengine/symbol.h>
-#include <symengine/diff.h>
+#include <symengine/derivative.h>
 #include <symengine/evalf.h> 
 using SymEngine::Expression;
 using SymEngine::symbol;
