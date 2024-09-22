@@ -135,7 +135,7 @@ namespace SZ {
                 return [](T x_value) { return x_value; };
             }
             // c
-            else if (SymEngine::is_a<const SymEngine::Number>(expr)) {
+            else if (SymEngine::is_a<const RealDouble>(expr) or SymEngine::is_a<const Integer>(expr)) {
                 double constant_value = eval_double(expr);
                 return [constant_value](T) { return constant_value; };
             }
