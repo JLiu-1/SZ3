@@ -61,9 +61,9 @@ namespace SZ {
             deri_1 = convert_expression_to_function(df, x);
             deri_2 = convert_expression_to_function(ddf, x);
            //  std::cout<<"init 4 "<< std::endl;
-           //   std::cout<<"f: "<< f<<std::endl;
-          //  std::cout<<"df: "<< df<<std::endl;
-           // std::cout<<"ddf: "<< ddf<<std::endl;
+              std::cout<<"f: "<< f<<std::endl;
+            std::cout<<"df: "<< df<<std::endl;
+            std::cout<<"ddf: "<< ddf<<std::endl;
            // RCP<const Basic> result = evalf(df.subs(map_basic_basic({{x,RealDouble(2).rcp_from_this()}})),53, SymEngine::EvalfDomain::Real);
            // RCP<const Symbol> value = symbol("2");
            // map_basic_basic mbb=  {{x,value}};
