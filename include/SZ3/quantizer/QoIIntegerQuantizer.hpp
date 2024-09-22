@@ -231,8 +231,7 @@ namespace SZ {
                 //eb = 0;
                 return 0;
             }
-            T eb_delta = global_eb - eb;
-            int id = std::ceil(log2(eb_delta * eb_base_reciprocal) * log_of_base_reciprocal);
+            int id = log2(eb * eb_base_reciprocal) * log_of_base_reciprocal;
             return id;
         }
 
@@ -240,18 +239,17 @@ namespace SZ {
         int quantize_and_overwrite(T &eb) {
             // std::cout << eb << " ";
             if(eb <= eb_base or eb >= global_eb){
-                eb = global_eb;
+                eb = 0.0;
                 return 0;
             }
-            T eb_delta = global_eb - eb;
-            int id = std::ceil(log2(eb_delta * eb_base_reciprocal) * log_of_base_reciprocal);
+            int id = log2(eb * eb_base_reciprocal) * log_of_base_reciprocal;
             // need to check if id = 0
             if(id == 0){
-                eb = global_eb;
+                eb = 0;
                 return 0;
             }
             id = std::min(id, radius);
-            eb = std::max(global_eb-static_cast<T>(pow(log_base, id) * eb_base),static_cast<T>(0));
+            eb = pow(log_base, id) * eb_base;
             return id;            
         }
 
@@ -259,9 +257,9 @@ namespace SZ {
         T recover(int quant_index) {
             if (quant_index == 0) {
                 //return 0;
-                return global_eb;
+                return global_eb; 
             } else {
-                return std::max(global_eb-static_cast<T>(pow(log_base, quant_index) * eb_base),static_cast<T>(0));
+                return pow(log_base, quant_index) * eb_base;
             }
         }
 
