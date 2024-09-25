@@ -261,7 +261,7 @@ void SZ_decompress_Interp(const SZ::Config &conf, char *cmpData, size_t cmpSize,
 
         sz.decompress(cmpDataPos+ebCmprSize, dataCmprSize, decData, ebs);
 
-        delete [] ebs;
+        //delete [] ebs;
 
         return;
     }   
