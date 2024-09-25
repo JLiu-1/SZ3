@@ -122,7 +122,7 @@ namespace SZ {
             // Timer timer(true);
             // timer.start();
             init();
-            ebs = &(conf.ebs);
+            ebs = conf.ebs;
             // quant_inds.reserve(num_elements);
             // 0 ~ num_elements - 1: quant_inds_eb
             // num_elements ~ 2*num_elements - 1: quant_inds_data
@@ -236,7 +236,7 @@ namespace SZ {
         inline void quantize_data(size_t offset, T * data, T pred){
             auto ori_data = *data;
             //auto eb = qoi->interpret_eb(data, offset);
-            T eb = (*ebs)[offset];
+            T eb = ebs[offset];
             //debug
             //if (eb <global_eb)
            //     count++;
@@ -565,7 +565,7 @@ namespace SZ {
         std::vector<std::string> interpolators = {"linear", "cubic"};
         std::vector<int> quant_inds;
 
-        std::vector<double> *ebs;
+        std::vector<double> ebs;
         size_t quant_index = 0; // for decompress
         double max_error;
         Quantizer_EB quantizer_eb;
