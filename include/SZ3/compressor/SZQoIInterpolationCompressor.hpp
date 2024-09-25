@@ -35,12 +35,12 @@ namespace SZ {
                           "must implement the lossless interface");
         }
 
-        T *decompress(uchar const *cmpData, const size_t &cmpSize, size_t num, T * dec_ebs) {
+        T *decompress(uchar const *cmpData, const size_t &cmpSize, size_t num, T * dec_ebs = NULL) {
             T *dec_data = new T[num];
             return decompress(cmpData, cmpSize, dec_data,dec_ebs);
         }
 
-        T *decompress(uchar const *cmpData, const size_t &cmpSize, T *decData, T * dec_ebs) {
+        T *decompress(uchar const *cmpData, const size_t &cmpSize, T *decData, T * dec_ebs = NULL) {
             Timer timer(true);
             timer.start();
             size_t remaining_length = cmpSize;
@@ -64,7 +64,9 @@ namespace SZ {
             encoder.load(buffer_pos, remaining_length);
             quant_inds = encoder.decode(buffer_pos, num_elements);
 
-            ebs = std::vector<double>(dec_ebs,dec_ebs+num_elements);
+            if(dec_ebs!=NULL)
+
+                ebs = std::vector<T>(dec_ebs,dec_ebs+num_elements);
 
             encoder.postprocess_decode();
             // std::cout << "after encoder, offset = " << buffer_pos - buffer << std::endl;
