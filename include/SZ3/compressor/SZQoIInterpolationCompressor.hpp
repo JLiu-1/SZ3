@@ -236,7 +236,7 @@ namespace SZ {
         inline void quantize_data(size_t offset, T * data, T pred){
             auto ori_data = *data;
             //auto eb = qoi->interpret_eb(data, offset);
-            auto eb = conf.ebs[offset];
+            T eb = conf.ebs[offset];
             //debug
             //if (eb <global_eb)
            //     count++;
