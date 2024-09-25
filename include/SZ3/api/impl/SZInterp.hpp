@@ -23,6 +23,7 @@ template<class T, SZ::uint N>
 void SZ_QoI_tuning(SZ::Config &conf, T *data){
         
     auto qoi = SZ::GetQOI<T, N>(conf);
+    conf.ebs = std::vector<T>(conf.num);
 
     /*
     // use sampling to determine abs bound
@@ -98,9 +99,9 @@ void SZ_QoI_tuning(SZ::Config &conf, T *data){
         auto dims = conf.dims;
         auto tmp_abs_eb = conf.absErrorBound;
 
-        T *ebs = new T[conf.num];
+        //T *ebs = new T[conf.num];
         for (size_t i = 0; i < conf.num; i++){
-            ebs[i] = qoi->interpret_eb(data[i]);
+            conf.ebs[i] = qoi->interpret_eb(data[i]);
         }
 
         double quantile = conf.quantile;//quantile
@@ -113,7 +114,7 @@ void SZ_QoI_tuning(SZ::Config &conf, T *data){
         std::priority_queue<T> maxHeap;
 
         for (size_t i = 0; i < conf.num; i++) {
-            T eb = ebs[i];
+            T eb = conf.ebs[i];
             if (maxHeap.size() < k) {
                 maxHeap.push(eb);
             } else if (eb < maxHeap.top()) {
@@ -125,16 +126,20 @@ void SZ_QoI_tuning(SZ::Config &conf, T *data){
         double best_abs_eb = maxHeap.top();
         size_t count = 0;
         for (size_t i = 0; i < conf.num; i++){
-            if(ebs[i] < best_abs_eb)
+            if(conf.ebs[i] < best_abs_eb)
                 count++;
         }
         std::cout<<"Smaller ebs: "<<(double)(count)/(double)(conf.num)<<std::endl;
-        delete []ebs;
+        //delete []ebs;
 
         
         std::cout << "Best abs eb / pre-set eb: " << best_abs_eb / tmp_abs_eb << std::endl; 
         std::cout << best_abs_eb << " " << tmp_abs_eb << std::endl;
         conf.absErrorBound = best_abs_eb;
+        for (size_t i = 0; i < conf.num; i++){
+            if(conf.ebs[i]>best_abs_eb)
+                conf.ebs[i] = best_abs_eb;
+        }
         //qoi->set_global_eb(best_abs_eb);
        // conf.setDims(dims.begin(), dims.end());
         // reset dimensions and variables for average of square
@@ -251,9 +256,10 @@ char *SZ_compress_Interp_lorenzo(SZ::Config &conf, T *data, size_t &outSize) {
     SZ::calAbsErrorBound(conf, data);
     // overwrite qoi for parameter exploration
     int qoi = conf.qoi;
-    auto tmp_abs_eb = conf.absErrorBound;
+    //T* ebs;
     if(qoi){
         // compute abs qoi eb
+
         T qoi_rel_eb = conf.qoiEB;
         T max = data[0];
         T min = data[0];
