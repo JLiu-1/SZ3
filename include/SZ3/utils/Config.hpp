@@ -250,7 +250,7 @@ namespace SZ {
         std::string qoi_string = "x^2";
         std::string qoi_string_2 = "0";
         double threshold = 0.0;
-        std::vector<T> ebs;
+        std::vector<double> ebs;
     };
 
 
