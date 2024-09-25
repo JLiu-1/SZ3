@@ -207,7 +207,7 @@ char *SZ_compress_Interp(SZ::Config &conf, T *data, size_t &outSize) {
 
         
         size_t totalsize=outSize+ebCmprOutSize;
-        char * final_output=new char[totalsize+conf.size_est()*2];
+        char * final_output=new char[totalsize+conf.size_est()];
         memcpy(final_output,ebCmprData,ebCmprOutSize);
         memcpy(final_output+ebCmprOutSize,cmpData,outSize);
         outSize=totalsize;
@@ -249,7 +249,7 @@ void SZ_decompress_Interp(const SZ::Config &conf, char *cmpData, size_t cmpSize,
         ebConf.regression2 = false;
         ebConf.absErrorBound = conf.qoiEBBase;
         T * ebs = new T[conf.num];
-        SZ_decompress_LorenzoReg(ebConf, cmpDataPos, ebCmprSize, T *ebs);
+        SZ_decompress_LorenzoReg(ebConf, cmpDataPos, ebCmprSize, ebs);
 
 
         auto quantizer = SZ::VariableEBLinearQuantizer<T, T>(conf.quantbinCnt / 2);
@@ -259,10 +259,10 @@ void SZ_decompress_Interp(const SZ::Config &conf, char *cmpData, size_t cmpSize,
                 quantizer, quantizer_eb, qoi, SZ::QoIEncoder<int>(), SZ::Lossless_zstd());
 
 
-        sz.decompress(cmpDataPos+ebCmprOutSize, dataCmprSize, decData, ebs);
+        sz.decompress(cmpDataPos+ebCmprSize, dataCmprSize, decData, ebs);
 
         delete [] ebs;
-        
+
         return;
     }   
     auto sz = SZ::SZInterpolationCompressor<T, N, SZ::LinearQuantizer<T>, SZ::HuffmanEncoder<int>, SZ::Lossless_zstd>(
