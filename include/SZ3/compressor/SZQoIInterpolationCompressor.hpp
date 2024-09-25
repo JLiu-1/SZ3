@@ -40,7 +40,7 @@ namespace SZ {
             return decompress(cmpData, cmpSize, dec_data);
         }
 
-        T *decompress(uchar const *cmpData, const size_t &cmpSize, T *decData) {
+        T *decompress(uchar const *cmpData, const size_t &cmpSize, T *decData, T * dec_ebs) {
             Timer timer(true);
             timer.start();
             size_t remaining_length = cmpSize;
@@ -63,6 +63,8 @@ namespace SZ {
             // std::cout << "load encoder, offset = " << buffer_pos - buffer << std::endl;
             encoder.load(buffer_pos, remaining_length);
             quant_inds = encoder.decode(buffer_pos, num_elements);
+
+            ebs = std::vector<double>(dec_ebs,dec_ebs+num_elements);
 
             encoder.postprocess_decode();
             // std::cout << "after encoder, offset = " << buffer_pos - buffer << std::endl;
@@ -122,11 +124,13 @@ namespace SZ {
             // Timer timer(true);
             // timer.start();
             init();
-            ebs = conf.ebs.data();
+            ebs=std::vector<T>(num_elements);
+            for(size_t i=0;i<num_elements;i++)
+                ebs[i] = conf.ebs[i];
             // quant_inds.reserve(num_elements);
             // 0 ~ num_elements - 1: quant_inds_eb
             // num_elements ~ 2*num_elements - 1: quant_inds_data
-            quant_inds = std::vector<int>(num_elements * 2);
+            quant_inds = std::vector<int>(num_elements);
             quant_index = 0;
             size_t interp_compressed_size = 0;
 
@@ -241,18 +245,18 @@ namespace SZ {
             //if (eb <global_eb)
            //     count++;
             //debug end
-            quant_inds[quant_index] = quantizer_eb.quantize_and_overwrite(eb);
-            quant_inds[num_elements + quant_index] = quantizer.quantize_and_overwrite(
+            //quant_inds[quant_index] = quantizer_eb.quantize_and_overwrite(eb);
+            quant_inds[quant_index] = quantizer.quantize_and_overwrite(
                     *data, pred, eb);
             if(!qoi->check_compliance(ori_data, *data)){
                 // std::cout << "not compliant" << std::endl;
                 // save as unpredictable
-                eb = 0.0;
-                *data = ori_data;
+                //eb = 0.0;
+                //*data = ori_data;
                 quant_inds[quant_index] = quantizer_eb.quantize_and_overwrite(eb);
-                if(quant_inds[num_elements + quant_index] != 0){
+                if(quant_inds[ quant_index] != 0){
                     // avoiding push multiple data
-                    quant_inds[num_elements + quant_index] = quantizer.quantize_and_overwrite(
+                    quant_inds[ quant_index] = quantizer.quantize_and_overwrite(
                             *data, 0, 0);                    
                 }
             }
@@ -262,8 +266,9 @@ namespace SZ {
         }
 
         inline void recover_data(size_t idx, T& data, T pred) {
-            auto eb = quantizer_eb.recover(quant_inds[quant_index]);
-            data = quantizer.recover(pred, quant_inds[num_elements + quant_index], eb);
+           // auto eb = quantizer_eb.recover(quant_inds[quant_index]);
+            T eb = ebs[idx];
+            data = quantizer.recover(pred, quant_inds[quant_index], eb);
             quant_index ++;
         };
 
@@ -565,7 +570,7 @@ namespace SZ {
         std::vector<std::string> interpolators = {"linear", "cubic"};
         std::vector<int> quant_inds;
 
-        double * ebs;
+        std::vector<T> ebs;
         size_t quant_index = 0; // for decompress
         double max_error;
         Quantizer_EB quantizer_eb;

@@ -168,6 +168,7 @@ namespace SZ {
             qoiNum = qoiEBs.size();
             write(qoiNum, c);
             write(qoiEBs.data(), qoiEBs.size(), c);
+            write(ebCmprSize, c);
         };
 
         void load(const unsigned char *&c) {
@@ -206,6 +207,7 @@ namespace SZ {
             read(qoiNum, c);
             qoiEBs.resize(qoiNum);
             read(qoiEBs.data(), qoiNum, c);
+            read(ebCmprSize, c);
         }
 
         void print() {
@@ -251,6 +253,7 @@ namespace SZ {
         std::string qoi_string_2 = "0";
         double threshold = 0.0;
         std::vector<double> ebs;
+        size_t ebCmprSize;
     };
 
 
