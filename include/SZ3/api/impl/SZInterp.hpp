@@ -147,7 +147,7 @@ void SZ_QoI_tuning(SZ::Config &conf, T *data){
          //   qoi->set_dims(dims);
         //    qoi->init();
         //}
-        conf.qoiEBBase = conf.absErrorBound / 1030;
+        conf.qoiEBBase = conf.absErrorBound / 515;
         std::cout << conf.qoi << " " << conf.qoiEB << " " << conf.qoiEBBase << " " << conf.qoiEBLogBase << " " << conf.qoiQuantbinCnt << std::endl;
         conf.qoi_tuned = true;
 
