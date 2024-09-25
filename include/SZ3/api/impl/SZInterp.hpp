@@ -249,7 +249,7 @@ void SZ_decompress_Interp(const SZ::Config &conf, char *cmpData, size_t cmpSize,
         ebConf.regression2 = false;
         ebConf.absErrorBound = conf.qoiEBBase;
         T * ebs = new T[conf.num];
-        SZ_decompress_LorenzoReg<T,1>(ebConf, cmpDataPos, ebCmprSize, ebs);
+        SZ_decompress_LorenzoReg<T,1>(ebConf, cmpData, ebCmprSize, ebs);
 
 
         auto quantizer = SZ::VariableEBLinearQuantizer<T, T>(conf.quantbinCnt / 2);
