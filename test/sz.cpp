@@ -472,7 +472,7 @@ int main(int argc, char *argv[]) {
     }
     //std::cout<<quantile<<std::endl;
     if (quantile>=0)
-    conf.quantile = quantile;
+        conf.quantile = quantile;
 
     if (compression) {
 

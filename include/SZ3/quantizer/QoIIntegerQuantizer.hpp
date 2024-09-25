@@ -229,7 +229,7 @@ namespace SZ {
         int quantize(T eb) {
             if(eb <= eb_base or eb >= global_eb){
                 //eb = 0;
-                return global_eb;
+                return 0;
             }
             int id = log2(eb * eb_base_reciprocal) * log_of_base_reciprocal;
             return id;
@@ -240,13 +240,13 @@ namespace SZ {
             // std::cout << eb << " ";
             if(eb <= eb_base or eb >= global_eb){
                 eb = global_eb;
-                return global_eb;
+                return 0;
             }
             int id = log2(eb * eb_base_reciprocal) * log_of_base_reciprocal;
             // need to check if id = 0
             if(id == 0){
                 eb = global_eb;
-                return global_eb;
+                return 0;
             }
             id = std::min(id, radius);
             eb = pow(log_base, id) * eb_base;
