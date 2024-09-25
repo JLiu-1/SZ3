@@ -122,7 +122,7 @@ namespace SZ {
             // Timer timer(true);
             // timer.start();
             init();
-            ebs = conf.ebs;
+            ebs = conf.ebs.data();
             // quant_inds.reserve(num_elements);
             // 0 ~ num_elements - 1: quant_inds_eb
             // num_elements ~ 2*num_elements - 1: quant_inds_data
@@ -565,7 +565,7 @@ namespace SZ {
         std::vector<std::string> interpolators = {"linear", "cubic"};
         std::vector<int> quant_inds;
 
-        std::vector<double> ebs;
+        double * ebs;
         size_t quant_index = 0; // for decompress
         double max_error;
         Quantizer_EB quantizer_eb;

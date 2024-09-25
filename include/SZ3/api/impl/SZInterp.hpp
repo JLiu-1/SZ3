@@ -176,6 +176,16 @@ char *SZ_compress_Interp(SZ::Config &conf, T *data, size_t &outSize) {
             SZ_QoI_tuning<T,N>(conf, data);
             conf.qoi_tuned = true;
         }
+
+        SZ::Config ebConf(conf.num);
+
+        ebConf.lorenzo = true;
+        ebConf.lorenzo2 = false;
+        ebConf.regression = false;
+        ebConf.regression2 = false;
+
+        ebConf.absErrorBound = qoiEBBase;
+
         auto qoi = SZ::GetQOI<T, N>(conf);//todo: bring qoi to conf to avoid duplicated initialization.
         auto quantizer = SZ::VariableEBLinearQuantizer<T, T>(conf.quantbinCnt / 2);
         auto quantizer_eb = SZ::EBLogQuantizer<T>(conf.qoiEBBase, conf.qoiEBLogBase, conf.qoiQuantbinCnt / 2, conf.absErrorBound);
