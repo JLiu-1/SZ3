@@ -35,9 +35,9 @@ namespace SZ {
                           "must implement the lossless interface");
         }
 
-        T *decompress(uchar const *cmpData, const size_t &cmpSize, size_t num) {
+        T *decompress(uchar const *cmpData, const size_t &cmpSize, size_t num, T * dec_ebs) {
             T *dec_data = new T[num];
-            return decompress(cmpData, cmpSize, dec_data);
+            return decompress(cmpData, cmpSize, dec_data,dec_ebs);
         }
 
         T *decompress(uchar const *cmpData, const size_t &cmpSize, T *decData, T * dec_ebs) {
