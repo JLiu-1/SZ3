@@ -23,7 +23,7 @@ template<class T, SZ::uint N>
 void SZ_QoI_tuning(SZ::Config &conf, T *data){
         
     auto qoi = SZ::GetQOI<T, N>(conf);
-    conf.ebs = std::vector<T>(conf.num);
+    conf.ebs = std::vector<double>(conf.num);
 
     /*
     // use sampling to determine abs bound
