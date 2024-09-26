@@ -122,6 +122,7 @@ namespace SZ {
             // Timer timer(true);
             // timer.start();
             init();
+
             ebs = conf.ebs;
             // quant_inds.reserve(num_elements);
             // 0 ~ num_elements - 1: quant_inds_eb
@@ -262,7 +263,7 @@ namespace SZ {
         }
 
         inline void recover_data(size_t idx, T& data, T pred) {
-            auto eb = quantizer_eb.recover(quant_inds[quant_index]);
+            T eb = quantizer_eb.recover(quant_inds[quant_index]);
             data = quantizer.recover(pred, quant_inds[num_elements + quant_index], eb);
             quant_index ++;
         };
@@ -565,7 +566,7 @@ namespace SZ {
         std::vector<std::string> interpolators = {"linear", "cubic"};
         std::vector<int> quant_inds;
 
-        std::vector<double> ebs;
+        std::vector<T> ebs;
         size_t quant_index = 0; // for decompress
         double max_error;
         Quantizer_EB quantizer_eb;
