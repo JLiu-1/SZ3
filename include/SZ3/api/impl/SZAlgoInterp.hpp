@@ -117,6 +117,7 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
             ratio = interp_compress_test<T, N>(
                 sampling_data.data(), conf, sample_dims, sampling_num, conf.absErrorBound, interp_op, conf.interpDirection,
                 sampling_block, buffer, bufferCap);
+            std::cout<<static_cast<int>(interp_op)<<" "<<ratio<<std::endl;
             if (ratio > best_interp_ratio) {
                 best_interp_ratio = ratio;
                 conf.interpAlgo = interp_op;
@@ -127,13 +128,14 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
         ratio = interp_compress_test<T, N>(sampling_data.data(), conf, sample_dims, sampling_num,
                                                                  conf.absErrorBound, conf.interpAlgo, direction_op,
                                                                  sampling_block, buffer, bufferCap);
+        std::cout<<"reverse "<<ratio<<std::endl;
         if (ratio > best_interp_ratio * 1.02) {
             best_interp_ratio = ratio;
             conf.interpDirection = direction_op;
         }
     }
     bool useInterp = !(best_lorenzo_ratio > best_interp_ratio && best_lorenzo_ratio < 80 && best_interp_ratio < 80);
-    //std::cout<<best_lorenzo_ratio<<" "<<best_interp_ratio<<std::endl;
+    std::cout<<best_lorenzo_ratio<<" "<<best_interp_ratio<<std::endl;
     size_t cmpSize = 0;
     if (useInterp) {
         conf.cmprAlgo = ALGO_INTERP;
