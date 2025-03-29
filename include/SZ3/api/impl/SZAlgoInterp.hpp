@@ -114,6 +114,8 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
     {
         // tune interp
         for (auto &interp_op : {INTERP_ALGO_LINEAR, INTERP_ALGO_CUBIC, INTERP_ALGO_CUBIC_NATURAL}) {
+            if(N <= 2 and interp_op == INTERP_ALGO_CUBIC_NATURAL)
+                continue;
             ratio = interp_compress_test<T, N>(
                 sampling_data.data(), conf, sample_dims, sampling_num, conf.absErrorBound, interp_op, conf.interpDirection,
                 sampling_block, buffer, bufferCap);
