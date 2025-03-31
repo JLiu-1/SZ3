@@ -363,7 +363,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                     }
                 }
             }
-        } else if(interp_func == "cubic"){
+        } else {
             if (pb == PB_predict_overwrite) {
                 T *d;
                 size_t i;
@@ -389,46 +389,6 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                 for (i = 3; i + 3 < n; i += 2) {
                     d = data + begin + i * stride;
                     recover(d - data, *d, interp_cubic(*(d - stride3x), *(d - stride), *(d + stride), *(d + stride3x)));
-                }
-                d = data + begin + stride;
-
-                recover(d - data, *d, interp_quad_1(*(d - stride), *(d + stride), *(d + stride3x)));
-
-                d = data + begin + i * stride;
-                recover(d - data, *d, interp_quad_2(*(d - stride3x), *(d - stride), *(d + stride)));
-
-                if (n % 2 == 0) {
-                    d = data + begin + (n - 1) * stride;
-                    recover(d - data, *d, interp_quad_3(*(d - stride5x), *(d - stride3x), *(d - stride)));
-                }
-            }
-        }
-        else{
-            if (pb == PB_predict_overwrite) {
-                T *d;
-                size_t i;
-                for (i = 3; i + 3 < n; i += 2) {
-                    d = data + begin + i * stride;
-                    quantize(d - data, *d,
-                             interp_cubic_natural(*(d - stride3x), *(d - stride), *(d + stride), *(d + stride3x)));
-                }
-                d = data + begin + stride;
-                quantize(d - data, *d, interp_quad_1(*(d - stride), *(d + stride), *(d + stride3x)));
-
-                d = data + begin + i * stride;
-                quantize(d - data, *d, interp_quad_2(*(d - stride3x), *(d - stride), *(d + stride)));
-                if (n % 2 == 0) {
-                    d = data + begin + (n - 1) * stride;
-                    quantize(d - data, *d, interp_quad_3(*(d - stride5x), *(d - stride3x), *(d - stride)));
-                }
-
-            } else {
-                T *d;
-
-                size_t i;
-                for (i = 3; i + 3 < n; i += 2) {
-                    d = data + begin + i * stride;
-                    recover(d - data, *d, interp_cubic_natural(*(d - stride3x), *(d - stride), *(d + stride), *(d + stride3x)));
                 }
                 d = data + begin + stride;
 
