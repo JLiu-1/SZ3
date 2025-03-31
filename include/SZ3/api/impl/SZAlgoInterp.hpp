@@ -94,7 +94,7 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
     auto buffer = static_cast<uchar *>(malloc(bufferCap));
     Config lorenzo_config = conf;
     {
-        if(N ==){
+        if(N <= 3){
             // test lorenzo
             lorenzo_config.cmprAlgo = ALGO_LORENZO_REG;
             lorenzo_config.setDims(sample_dims.begin(), sample_dims.end());
