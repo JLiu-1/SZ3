@@ -88,7 +88,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         quant_inds = quant_inds_vec.data();
         double eb = quantizer.get_eb();
 
-        /*
+        
         if(conf.tuning){
             auto range = std::make_shared<multi_dimensional_range<T, N>>(data, std::begin(global_dimensions),
                                                                      std::end(global_dimensions), blocksize, 0);
@@ -113,8 +113,8 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                                         interpolators[interpolator_id], direction_sequence_id, stride_ip);
                 }
             }
-        }*/
-       // else{
+        }
+        else{
         if (anchorStride == 0){
             quant_inds[quant_index++] = quantizer.quantize_and_overwrite(*data, 0);
         }
@@ -165,7 +165,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                                     interpolators[interpolator_id], direction_sequence_id, stride);
             }
         }
-        //}
+        }
 
         quantizer.postcompress_data();
         return quant_inds_vec;
