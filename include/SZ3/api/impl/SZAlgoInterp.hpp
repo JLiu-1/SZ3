@@ -52,8 +52,8 @@ double interp_compress_test(T *data, const Config &theConf, std::vector<size_t> 
     conf.interpDirection = direction_op;
     //conf.tuning = true;
     conf.interp_anchorStride = 0;
-    conf.alpha = 1.0;
-    conf.beta = 1.0;
+    conf.interp_alpha = 1.0;
+    conf.interp_beta = 1.0;
     conf.tuning = true;
     /*
     auto sz = SZBlockInterpolationCompressor<T, N, LinearQuantizer<T>, HuffmanEncoder<int>, Lossless_zstd>(
