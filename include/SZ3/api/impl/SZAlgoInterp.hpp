@@ -114,7 +114,7 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
     }
     {
         // tune interp
-        for (auto &interp_op : {INTERP_ALGO_LINEAR, INTERP_ALGO_CUBIC, INTERP_ALGO_CUBIC_NATURAL}) {
+        for (auto &interp_op : {INTERP_ALGO_LINEAR, INTERP_ALGO_CUBIC}) {
             //if(N <= 2 and interp_op == INTERP_ALGO_CUBIC_NATURAL)
             //    continue;
             ratio = interp_compress_test<T, N>(
@@ -137,7 +137,7 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
             conf.interpDirection = direction_op;
         }
     }
-    bool useInterp = !(best_lorenzo_ratio > best_interp_ratio * 1.1 && best_lorenzo_ratio < 80 && best_interp_ratio < 80);
+    bool useInterp = !(best_lorenzo_ratio > best_interp_ratio  && best_lorenzo_ratio < 80 && best_interp_ratio < 80);
     //std::cout<<best_lorenzo_ratio<<" "<<best_interp_ratio<<std::endl;
     size_t cmpSize = 0;
     if (useInterp) {
