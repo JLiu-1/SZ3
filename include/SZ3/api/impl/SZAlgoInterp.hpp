@@ -83,7 +83,8 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
 
     size_t sampling_num, sampling_block;
     std::vector<size_t> sample_dims(N);
-    std::vector<T> sampling_data = sampling<T, N>(data, conf.dims, sampling_num, sample_dims, sampling_block);
+    double sampling_ratio = 0.02;
+    std::vector<T> sampling_data = sampling<T, N>(data, conf.dims, sampling_num, sample_dims, sampling_block, sampling_ratio);
     if (sampling_num == conf.num) {
         conf.cmprAlgo = ALGO_INTERP;
         return SZ_compress_Interp<T, N>(conf, data, cmpData, cmpCap);

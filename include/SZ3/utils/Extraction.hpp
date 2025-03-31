@@ -20,7 +20,7 @@ template <class T, uint N>
 inline typename std::enable_if<N == 4, std::vector<T>>::type sampling(T *data, std::vector<size_t> dims,
                                                                       size_t &sample_num,
                                                                       std::vector<size_t> &sample_dims,
-                                                                      size_t &sampling_block) {
+                                                                      size_t &sampling_block, double sampling_ratio = 0.035) {
     assert(dims.size() == N);
     assert(sample_dims.size() == N);
     Timer timer(true);
@@ -28,7 +28,7 @@ inline typename std::enable_if<N == 4, std::vector<T>>::type sampling(T *data, s
 
     size_t dmin = *std::min_element(dims.begin(), dims.end());
     sampling_block = dmin;
-    while (cal_sampling_ratio<N>(sampling_block, num, dmin, dims) > 0.035) {
+    while (cal_sampling_ratio<N>(sampling_block, num, dmin, dims) > sampling_ratio) {
         sampling_block--;
     }
     if (sampling_block * 2 > dmin) {
@@ -90,14 +90,14 @@ template <class T, uint N>
 inline typename std::enable_if<N == 3, std::vector<T>>::type sampling(T *data, std::vector<size_t> dims,
                                                                       size_t &sample_num,
                                                                       std::vector<size_t> &sample_dims,
-                                                                      size_t &sampling_block) {
+                                                                      size_t &sampling_block, double sampling_ratio = 0.035) {
     assert(dims.size() == N);
     assert(sample_dims.size() == N);
     size_t num = std::accumulate(dims.begin(), dims.end(), static_cast<size_t>(1), std::multiplies<size_t>());
 
     size_t dmin = *std::min_element(dims.begin(), dims.end());
     sampling_block = dmin;
-    while (cal_sampling_ratio<N>(sampling_block, num, dmin, dims) > 0.035) {
+    while (cal_sampling_ratio<N>(sampling_block, num, dmin, dims) > sampling_ratio) {
         sampling_block--;
     }
     if (sampling_block * 2 > dmin) {
@@ -149,7 +149,7 @@ template <class T, uint N>
 inline typename std::enable_if<N == 2, std::vector<T>>::type sampling(T *data, std::vector<size_t> dims,
                                                                       size_t &sample_num,
                                                                       std::vector<size_t> &sample_dims,
-                                                                      size_t &sampling_block) {
+                                                                      size_t &sampling_block, double sampling_ratio = 0.035) {
     assert(dims.size() == N);
     assert(sample_dims.size() == N);
     Timer timer(true);
@@ -157,7 +157,7 @@ inline typename std::enable_if<N == 2, std::vector<T>>::type sampling(T *data, s
 
     size_t dmin = *std::min_element(dims.begin(), dims.end());
     sampling_block = dmin;
-    while (cal_sampling_ratio<N>(sampling_block, num, dmin, dims) > 0.035) {
+    while (cal_sampling_ratio<N>(sampling_block, num, dmin, dims) > sampling_ratio) {
         sampling_block--;
     }
     if (sampling_block * 2 > dmin) {
@@ -199,7 +199,7 @@ template <class T, uint N>
 inline typename std::enable_if<N == 1, std::vector<T>>::type sampling(T *data, std::vector<size_t> dims,
                                                                       size_t &sample_num,
                                                                       std::vector<size_t> &sample_dims,
-                                                                      size_t &sampling_block) {
+                                                                      size_t &sampling_block, double sampling_ratio = 0.035) {
     assert(dims.size() == N);
     assert(sample_dims.size() == N);
     Timer timer(true);
@@ -207,7 +207,7 @@ inline typename std::enable_if<N == 1, std::vector<T>>::type sampling(T *data, s
 
     size_t dmin = *std::min_element(dims.begin(), dims.end());
     sampling_block = dmin;
-    while (cal_sampling_ratio<N>(sampling_block, num, dmin, dims) > 0.035) {
+    while (cal_sampling_ratio<N>(sampling_block, num, dmin, dims) > sampling_ratio) {
         sampling_block--;
     }
     if (sampling_block * 2 > dmin) {
