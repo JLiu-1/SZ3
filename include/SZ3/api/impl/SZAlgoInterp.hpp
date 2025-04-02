@@ -215,6 +215,11 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
     if (sampleBlockSize < 8)
         sampleBlockSize = 8;
 
+    bool to_tune = pow(sampleBlockSize,N) <= 0.05 * conf.num; 
+    if(!to_tune){
+        conf.cmprAlgo = ALGO_INTERP;
+        return SZ_compress_Interp<T, N>(conf, data, cmpData, cmpCap);
+    }
     std::vector< std::vector<T> > sampled_blocks;
     //size_t num_sampled_blocks;
     size_t per_block_ele_num = pow(sampleBlockSize + 1, N) ;
