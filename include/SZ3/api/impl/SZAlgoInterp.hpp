@@ -245,25 +245,7 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
     size_t bufferCap = conf.num * sizeof(T);
     auto buffer = static_cast<uchar *>(malloc(bufferCap));
     Config lorenzo_config = conf;
-    {
-        if(N == 1){
-        //if (N <= 3){
-            // test lorenzo
-            std::vector<size_t> sample_dims(N, sampleBlockSize + 1);
-            lorenzo_config.cmprAlgo = ALGO_LORENZO_REG;
-            lorenzo_config.setDims(sample_dims.begin(), sample_dims.end());
-            lorenzo_config.lorenzo = true;
-            lorenzo_config.lorenzo2 = true;
-            lorenzo_config.regression = false;
-            lorenzo_config.regression2 = false;
-            lorenzo_config.openmp = false;
-            lorenzo_config.blockSize = 5;
-            //        lorenzo_config.quantbinCnt = 65536 * 2;
-            best_lorenzo_ratio = lorenzo_compress_test_qoz<T, N>(sampled_blocks, lorenzo_config, buffer, bufferCap);
-            //            delete[]cmprData;
-            //    printf("Lorenzo ratio = %.2f\n", ratio);
-        }
-    }
+    
     {
         // tune interp
         conf.interpDirection = 0; 
@@ -318,6 +300,26 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
 
         }
     }
+    {
+        if(N == 1 && best_interp_ratio < 50){
+        //if (N <= 3){
+            // test lorenzo
+            std::vector<size_t> sample_dims(N, sampleBlockSize + 1);
+            lorenzo_config.cmprAlgo = ALGO_LORENZO_REG;
+            lorenzo_config.setDims(sample_dims.begin(), sample_dims.end());
+            lorenzo_config.lorenzo = true;
+            lorenzo_config.lorenzo2 = true;
+            lorenzo_config.regression = false;
+            lorenzo_config.regression2 = false;
+            lorenzo_config.openmp = false;
+            lorenzo_config.blockSize = 5;
+            //        lorenzo_config.quantbinCnt = 65536 * 2;
+            best_lorenzo_ratio = lorenzo_compress_test_qoz<T, N>(sampled_blocks, lorenzo_config, buffer, bufferCap);
+            //            delete[]cmprData;
+            //    printf("Lorenzo ratio = %.2f\n", ratio);
+        }
+    }
+
     //bool useInterp = !(best_lorenzo_ratio > best_interp_ratio && best_lorenzo_ratio < 50 && best_interp_ratio < 50);
     bool useInterp = !(best_lorenzo_ratio >= best_interp_ratio * 1.1 && best_lorenzo_ratio < 50 && best_interp_ratio < 50);
     //std::cout<<best_lorenzo_ratio<<" "<<best_interp_ratio<<std::endl;
