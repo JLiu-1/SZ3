@@ -246,14 +246,14 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
     auto buffer = static_cast<uchar *>(malloc(bufferCap));
     Config lorenzo_config = conf;
     {
-        if(N == 1){
-        //if (N <= 3){
+        //if(N == 1){
+        if (N <= 3){
             // test lorenzo
             std::vector<size_t> sample_dims(N, sampleBlockSize + 1);
             lorenzo_config.cmprAlgo = ALGO_LORENZO_REG;
             lorenzo_config.setDims(sample_dims.begin(), sample_dims.end());
             lorenzo_config.lorenzo = true;
-            lorenzo_config.lorenzo2 = true;
+            lorenzo_config.lorenzo2 = false;
             lorenzo_config.regression = false;
             lorenzo_config.regression2 = false;
             lorenzo_config.openmp = false;
