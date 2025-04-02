@@ -54,7 +54,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             }
             size_t stride = 1U << (level - 1);
             auto inter_block_range = std::make_shared<multi_dimensional_range<T, N>>(
-                dec_data, std::begin(global_dimensions), std::end(global_dimensions), stride * blocksize, 0);
+                dec_data, std::begin(global_dimensions), std::end(global_dimensions), stride, 0);
             auto inter_begin = inter_block_range->begin();
             auto inter_end = inter_block_range->end();
             for (auto block = inter_begin; block != inter_end; ++block) {
@@ -76,10 +76,11 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
     // compress given the error bound
     std::vector<int> compress(const Config &conf, T *data) override {
         std::copy_n(conf.dims.begin(), N, global_dimensions.begin());
-        blocksize = 16384;
+       
         interpolator_id = conf.interpAlgo;
         direction_sequence_id = conf.interpDirection;
         anchorStride = conf.interp_anchorStride;
+        blocksize = anchorStride > 0 ? anchorStride * 4 : 32;
         alpha = conf.interp_alpha;
         beta = conf.interp_beta;
 
