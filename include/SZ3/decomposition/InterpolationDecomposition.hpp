@@ -76,7 +76,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
     // compress given the error bound
     std::vector<int> compress(const Config &conf, T *data) override {
         std::copy_n(conf.dims.begin(), N, global_dimensions.begin());
-        blocksize = 32;
+        blocksize = 512;
         interpolator_id = conf.interpAlgo;
         direction_sequence_id = conf.interpDirection;
         anchorStride = conf.interp_anchorStride;
