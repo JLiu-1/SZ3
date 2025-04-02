@@ -215,8 +215,8 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
     if (sampleBlockSize < 8)
         sampleBlockSize = 8;
 
-    bool to_tune = pow(sampleBlockSize + 1, N) <= 0.05 * conf.num; 
-    if(!to_tune){
+    bool to_tune = pow(sampleBlockSize + 1, N) <= 0.05 * conf.num; //to further revise
+    if (!to_tune){
         conf.cmprAlgo = ALGO_INTERP;
         return SZ_compress_Interp<T, N>(conf, data, cmpData, cmpCap);
     }
