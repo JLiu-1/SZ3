@@ -43,15 +43,6 @@ template <class T, uint N>
 double interp_compress_test(const std::vector< std::vector<T> > sampled_blocks, const Config conf,
                                                   int block_size, uchar *cmpData,
                                                   size_t cmpCap) {
-
-
-    //conf.setDims(dims.begin(), dims.end());
-    //conf.interpAlgo = interp_op;
-    //conf.interpDirection = direction_op;
-    //conf.tuning = true;
-
-    
-    
     auto sz = make_decomposition_interpolation<T, N>(conf, LinearQuantizer<T>(conf.absErrorBound, conf.quantbinCnt / 2));
 
     std::vector<int> total_quant_bins;
