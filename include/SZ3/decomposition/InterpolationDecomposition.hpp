@@ -91,33 +91,6 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         quant_inds = quant_inds_vec.data();
         double eb = quantizer.get_eb();
 
-        /*
-        if(conf.tuning){
-            auto range = std::make_shared<multi_dimensional_range<T, N>>(data, std::begin(global_dimensions),
-                                                                     std::end(global_dimensions), blocksize, 0);
-            for (auto block = range->begin(); block != range->end(); ++block) {
-                auto block_global_idx = block.get_global_index();
-                auto interp_end_idx = block.get_global_index();
-                uint max_interp_level = 1;
-                for (auto i = 0; i < static_cast<int>(N); i++) {
-                    size_t block_dim = (block_global_idx[i] + blocksize > global_dimensions[i])
-                                           ? global_dimensions[i] - block_global_idx[i]
-                                           : blocksize;
-                    interp_end_idx[i] += block_dim - 1;
-                    if (max_interp_level < ceil(log2(block_dim))) {
-                        max_interp_level = static_cast<uint>(ceil(log2(block_dim)));
-                    }
-                }
-                quant_inds[quant_index++] = quantizer.quantize_and_overwrite(*block, 0);
-
-                for (uint level = max_interp_level; level > 0 && level <= max_interp_level; level--) {
-                    uint stride_ip = 1U << (level - 1);
-                    block_interpolation(data, block.get_global_index(), interp_end_idx, PB_predict_overwrite,
-                                        interpolators[interpolator_id], direction_sequence_id, stride_ip);
-                }
-            }
-        }*/
-       // else{
         if (anchorStride == 0){
             quant_inds[quant_index++] = quantizer.quantize_and_overwrite(*data, 0);
         }
@@ -127,22 +100,20 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         }
         for (uint level = interpolation_level; level > 0 && level <= interpolation_level; level--) {
             double cur_eb = eb;
-            //if (!conf.tuning){
-                if (alpha < 0){
-                    if (level >= 3){
-                        cur_eb = eb * eb_ratio;
-                    } else {
-                        cur_eb = eb;
-                    }
+            if (alpha < 0){
+                if (level >= 3){
+                    cur_eb = eb * eb_ratio;
+                } else {
+                    cur_eb = eb;
                 }
-                else if (alpha >= 1){              
-                    double cur_ratio = pow(alpha, level - 1);
-                    if (cur_ratio > beta){
-                        cur_ratio = beta;
-                    }            
-                    cur_eb = eb / cur_ratio;
-                }
-            //}
+            }
+            else if (alpha >= 1){              
+                double cur_ratio = pow(alpha, level - 1);
+                if (cur_ratio > beta){
+                    cur_ratio = beta;
+                }            
+                cur_eb = eb / cur_ratio;
+            }
             quantizer.set_eb(cur_eb);
             size_t stride = 1U << (level - 1);
 
@@ -168,7 +139,6 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                                     interpolators[interpolator_id], direction_sequence_id, stride);
             }
         }
-        //}
         quantizer.set_eb(eb);
         quantizer.postcompress_data();
         return quant_inds_vec;
@@ -291,7 +261,6 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                 for (size_t y = 0; y < global_dimensions[1]; y += anchorStride){
                     decData[x * dimension_offsets[0] + y] = quantizer.recover_unpred();
                     quant_index++;
-                    //decData[x * dimension_offsets[0] + y] = quantizer.recover(0, quant_inds[quant_index++]);
                 }
             }
         }

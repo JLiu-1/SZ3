@@ -344,7 +344,6 @@ class Config {
     int interp_anchorStride = 0;
     double interp_alpha = 1.25;
     double interp_beta = 2.0;
-    //bool tuning = false;
 };
 
 }  // namespace SZ3
