@@ -235,7 +235,7 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
             lorenzo_config.openmp = false;
             lorenzo_config.blockSize = 5;
             //        lorenzo_config.quantbinCnt = 65536 * 2;
-            best_lorenzo_ratio = lorenzo_compress_test_qoz<T, N>(sampled_blocks, lorenzo_config, buffer, bufferCap);
+            best_lorenzo_ratio = lorenzo_compress_test<T, N>(sampled_blocks, lorenzo_config, buffer, bufferCap);
             //            delete[]cmprData;
             //    printf("Lorenzo ratio = %.2f\n", ratio);
         }
