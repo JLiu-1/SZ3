@@ -53,7 +53,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                 quantizer.set_eb(eb / cur_ratio);
             }
             size_t stride = 1U << (level - 1);
-            auto interp_block_size = level == 1 ? 65536 : blocksize * stride;
+            auto interp_block_size = blocksize * stride;
             auto inter_block_range = std::make_shared<multi_dimensional_range<T, N>>(
                 dec_data, std::begin(global_dimensions), std::end(global_dimensions), interp_block_size, 0);
             auto inter_begin = inter_block_range->begin();
@@ -81,7 +81,6 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         interpolator_id = conf.interpAlgo;
         direction_sequence_id = conf.interpDirection;
         anchorStride = conf.interp_anchorStride;
-        //blocksize = anchorStride > 0 ? anchorStride * 4 : 32;
         blocksize = 32;
         alpha = conf.interp_alpha;
         beta = conf.interp_beta;
@@ -117,7 +116,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             quantizer.set_eb(cur_eb);
             size_t stride = 1U << (level - 1);
 
-            auto interp_block_size = level == 1 ? 65536 : blocksize * stride;
+            auto interp_block_size = blocksize * stride;
 
 
             auto inter_block_range = std::make_shared<multi_dimensional_range<T, N>>(
