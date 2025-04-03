@@ -157,7 +157,7 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
         return SZ_compress_Interp<T, N>(conf, data, cmpData, cmpCap);
     }
     std::vector< std::vector<T> > sampled_blocks;
-    size_t per_block_ele_num = pow(sampleBlockSize + 1, N) ;
+    size_t per_block_ele_num = pow(sampleBlockSize + 1, N);
     size_t sampling_num;
     std::vector< std::vector<size_t> >starts;
     auto profStride = sampleBlockSize / 4;
