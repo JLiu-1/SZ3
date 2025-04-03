@@ -157,7 +157,6 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
         return SZ_compress_Interp<T, N>(conf, data, cmpData, cmpCap);
     }
     std::vector< std::vector<T> > sampled_blocks;
-    //size_t num_sampled_blocks;
     size_t per_block_ele_num = pow(sampleBlockSize + 1, N) ;
     size_t sampling_num;
     std::vector< std::vector<size_t> >starts;
@@ -190,7 +189,6 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
             testConfig.interpAlgo = interp_op;
             ratio = interp_compress_test<T, N>(
                 sampled_blocks, testConfig, sampleBlockSize, buffer, bufferCap);
-            //std::cout<<static_cast<int>(interp_op)<<" "<<ratio<<std::endl;
             if (ratio > best_interp_ratio) {
                 best_interp_ratio = ratio;
                 conf.interpAlgo = interp_op;
@@ -200,7 +198,6 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
         testConfig.interpAlgo = conf.interpAlgo;
         testConfig.interpDirection = factorial(N) - 1;
         ratio = interp_compress_test<T, N>(sampled_blocks, testConfig, sampleBlockSize, buffer, bufferCap);
-        //std::cout<<"reverse "<<ratio<<std::endl;
         if (ratio > best_interp_ratio * 1.02) {
             best_interp_ratio = ratio;
             conf.interpDirection = testConfig.interpDirection;
