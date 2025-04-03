@@ -53,14 +53,15 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                 quantizer.set_eb(eb / cur_ratio);
             }
             size_t stride = 1U << (level - 1);
+            auto interp_block_size = blocksize;// * stride;
             auto inter_block_range = std::make_shared<multi_dimensional_range<T, N>>(
-                dec_data, std::begin(global_dimensions), std::end(global_dimensions), blocksize, 0);
+                dec_data, std::begin(global_dimensions), std::end(global_dimensions), interp_block_size, 0);
             auto inter_begin = inter_block_range->begin();
             auto inter_end = inter_block_range->end();
             for (auto block = inter_begin; block != inter_end; ++block) {
                 auto end_idx = block.get_global_index();
                 for (int i = 0; i < N; i++) {
-                    end_idx[i] += stride * blocksize;
+                    end_idx[i] += interp_block_size;
                     if (end_idx[i] > global_dimensions[i] - 1) {
                         end_idx[i] = global_dimensions[i] - 1;
                     }
