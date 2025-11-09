@@ -26,32 +26,7 @@ size_t SZ_compress_Interp(Config &conf, T *data, uchar *cmpData, size_t cmpCap) 
         conf.interpAnchorStride = anchor_strides[N - 1];
     }
 
-    std::array<size_t,N> lr_dims;
-
-    size_t lr_num = 1;
-    for (size_t i=0;i<N;i++){
-        lr_dims[i] = conf.dims[i] / 2;
-        lr_num *= lr_dims[i];
-    }
-
-    T *lr_data = new T[lr_num];
-    SZ3::readfile<T>("lr.sperr", lr_num, lr_data);
-
-    if (N==3){
-        size_t offset_x = conf.dims[1] * conf.dims[2], offset_y = conf.dims[2];
-        size_t offset_lr_x = lr_dims[1] * lr_dims[2], offset_lr_y = lr_dims[2];
-        for(size_t i=0;i<lr_dims[0];i++){
-            for(size_t j=0;j<lr_dims[1];j++){
-                for(size_t k=0;k<lr_dims[2];k++){
-                    auto lr_idx = i * offset_lr_x + j * offset_lr_y + k;
-                    auto idx = (i * offset_x + j * offset_y + k) * 2;
-                    data [idx] = lr_data [lr_idx];
-                }
-            }
-        }
-    }
-    delete []lr_data;
-
+    
 
 
     auto sz = make_compressor_sz_generic<T, N>(
@@ -212,6 +187,38 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
             break;
         }
     }
+
+
+    std::array<size_t,N> lr_dims;
+
+    size_t lr_num = 1;
+    for (size_t i=0;i<N;i++){
+        lr_dims[i] = conf.dims[i] / 2;
+        lr_num *= lr_dims[i];
+    }
+
+    T *lr_data = new T[lr_num];
+    SZ3::readfile<T>("lr.sperr", lr_num, lr_data);
+
+    if (N==3){
+        size_t offset_x = conf.dims[1] * conf.dims[2], offset_y = conf.dims[2];
+        size_t offset_lr_x = lr_dims[1] * lr_dims[2], offset_lr_y = lr_dims[2];
+        for(size_t i=0;i<lr_dims[0];i++){
+            for(size_t j=0;j<lr_dims[1];j++){
+                for(size_t k=0;k<lr_dims[2];k++){
+                    auto lr_idx = i * offset_lr_x + j * offset_lr_y + k;
+                    auto idx = (i * offset_x + j * offset_y + k) * 2;
+                    data [idx] = lr_data [lr_idx];
+                }
+            }
+        }
+    }
+    delete []lr_data;
+
+
+
+
+
 
     if (!to_tune) {  // if the sampled data would be too many (currently it is 5% of the input), skip the tuning
         conf.cmprAlgo = ALGO_INTERP;
