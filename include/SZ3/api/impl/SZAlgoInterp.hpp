@@ -84,7 +84,6 @@ double interp_compress_test(
     for (size_t k = 0; k < sampled_blocks.size(); k++) {
         auto cur_block = sampled_blocks[k];
         auto quant_bins = sz.compress(conf, cur_block.data());
-        std::cout<<quant_bins.size()<<std::endl;
         total_quant_bins.insert(total_quant_bins.end(), quant_bins.begin(),
                                 quant_bins.end());  // merge the quant bins. Lossless them together
     }
@@ -195,10 +194,8 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
     size_t lr_num = 1;
     for (size_t i=0;i<N;i++){
         lr_dims[i] = conf.dims[i] / 2;
-        std::cout<<lr_dims[i]<<std::endl;
         lr_num *= lr_dims[i];
     }
-    std::cout<<lr_num<<std::endl;
 
     T *lr_data = new T[lr_num];
     SZ3::readfile<T>("lr.sperr", lr_num, lr_data);
@@ -221,7 +218,6 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
 
 
 
-    std::cout<<"s1"<<std::endl;
 
     if (!to_tune) {  // if the sampled data would be too many (currently it is 5% of the input), skip the tuning
         conf.cmprAlgo = ALGO_INTERP;
@@ -249,7 +245,6 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
     size_t bufferCap = conf.num * sizeof(T);
     auto buffer = static_cast<uchar *>(malloc(bufferCap));
     Config lorenzo_config = conf;
-    std::cout<<"s2"<<std::endl;
     {
         // tune interp
         conf.interpDirection = 0;
@@ -260,14 +255,12 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
         testConfig.setDims(dims.begin(), dims.end());
         for (auto &interp_op : {INTERP_ALGO_LINEAR, INTERP_ALGO_CUBIC}) {
             testConfig.interpAlgo = interp_op;
-             std::cout<<"s2.05"<<std::endl;
             ratio = interp_compress_test<T, N>(sampled_blocks, testConfig, sampleBlockSize, buffer, bufferCap);
             if (ratio > best_interp_ratio) {
                 best_interp_ratio = ratio;
                 conf.interpAlgo = interp_op;
             }
         }
-         std::cout<<"s2.1"<<std::endl;
 
         testConfig.interpAlgo = conf.interpAlgo;
         testConfig.interpDirection = factorial(N) - 1;
@@ -294,7 +287,6 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
             }
         }*/
     }
-    std::cout<<"s3"<<std::endl;
     {
         // only test lorenzo for 1D
         if (N == 1 && best_interp_ratio < 50) {
@@ -353,7 +345,6 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
         //            double tuning_time = timer.stop();
         cmpSize = SZ_compress_LorenzoReg<T, N>(conf, data, cmpData, cmpCap);
     }
-    std::cout<<"s4"<<std::endl;
 
     free(buffer);
     return cmpSize;
