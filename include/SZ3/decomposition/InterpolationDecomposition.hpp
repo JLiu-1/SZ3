@@ -90,7 +90,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         eb_beta = conf.interpBeta;
 
         init();
-        std::vector<int> quant_inds_vec(num_elements);
+        std::vector<int> quant_inds_vec(num_elements - num_lr_elements);
         quant_inds = quant_inds_vec.data();
         double eb = quantizer.get_eb();
         /*
@@ -184,6 +184,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         assert(blocksize % 2 == 0 && "Interpolation block size should be even numbers");
         assert((anchor_stride & anchor_stride - 1) == 0 && "Anchor stride should be 0 or 2's exponentials");
         num_elements = 1;
+        num_lr_elements = 1;
         interp_level = -1;
 	//bool use_anchor = false;
         for (uint i = 0; i < N; i++) {
@@ -191,10 +192,12 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                 interp_level = static_cast<int>(ceil(log2(original_dimensions[i])));
             }
             /*
-	    if (original_dimensions[i] > anchor_stride)
+	        if (original_dimensions[i] > anchor_stride)
 	        use_anchor = true;
-            num_elements *= original_dimensions[i];
             */
+            num_elements *= original_dimensions[i];
+            num_lr_elements *= original_dimensions[i] / 2;
+            
         }
         
            /* 
@@ -474,6 +477,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
     double max_error;
     Quantizer quantizer;
     size_t num_elements;
+    size_t num_lr_elements;
     std::array<size_t, N> original_dimensions;
     std::array<size_t, N> original_dim_offsets;
     std::vector<std::array<int, N>> dim_sequences;
