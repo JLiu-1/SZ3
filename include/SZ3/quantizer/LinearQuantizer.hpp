@@ -28,6 +28,10 @@ class LinearQuantizer : public concepts::QuantizerInterface<T, int> {
         error_bound_reciprocal = 1.0 / eb;
     }
 
+    void set_radius(int r) {
+        radius = r;
+    }
+
     std::pair<int, int> get_out_range() const override { return std::make_pair(0, radius * 2); }
 
     // quantize the data with a prediction value, and returns the quantization index and the decompressed data
