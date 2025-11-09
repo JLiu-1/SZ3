@@ -64,6 +64,14 @@ template <class T, uint N>
 void SZ_decompress_Interp(const Config &conf, const uchar *cmpData, size_t cmpSize, T *decData) {
     assert(conf.cmprAlgo == ALGO_INTERP);
 
+    std::array<size_t,N> lr_dims;
+
+    size_t lr_num = 1;
+    for (size_t i=0;i<N;i++){
+        lr_dims[i] = conf.dims[i] / 2;
+        lr_num *= lr_dims[i];
+    }
+
     T *lr_data = new T[lr_num];
     SZ3::readfile<T>("lr.sperr", lr_num, lr_data);
 
@@ -258,6 +266,7 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
         }
         testConfig.interpDirection = conf.interpDirection;
         // test more alpha-beta pairs for best compression ratio,
+        /*
         auto alphalist = std::vector<double>{1.0, 1.5, 2.0};
         auto betalist = std::vector<double>{1.0, 2.5, 3.0};
         for (size_t i = 0; i < alphalist.size(); i++) {
@@ -271,7 +280,7 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
                 conf.interpAlpha = alpha;
                 conf.interpBeta = beta;
             }
-        }
+        }*/
     }
     {
         // only test lorenzo for 1D
