@@ -28,16 +28,17 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
         this->quant_inds = quant_inds.data();
         double eb = quantizer.get_eb();
-
+        /*
         if (anchor_stride == 0) {                                               // check whether used anchor points
             *dec_data = quantizer.recover(0, this->quant_inds[quant_index++]);  // no anchor points
         } else {
             recover_anchor_grid(dec_data);  // recover anchor points
             interp_level--;
-        }
+        }*/
 
-        for (int level = interp_level; level > 0 && level <= interp_level; level--) {
+        for (int level = 1; level > 0 && level <= interp_level; level--) {
             // set level-wise error bound
+            /*
             if (eb_alpha < 0) {
                 if (level >= 3) {
                     quantizer.set_eb(eb * eb_ratio);
@@ -51,6 +52,8 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                 }
                 quantizer.set_eb(eb / cur_ratio);
             }
+            */
+            quantizer.set_eb(eb);
             size_t stride = 1U << (level - 1);
             auto interp_block_size = blocksize * stride;
             auto inter_block_range = std::make_shared<multi_dimensional_range<T, N>>(
@@ -90,16 +93,18 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         std::vector<int> quant_inds_vec(num_elements);
         quant_inds = quant_inds_vec.data();
         double eb = quantizer.get_eb();
+        /*
         if (anchor_stride == 0) {  // check whether to use anchor points
             quant_inds[quant_index++] = quantizer.quantize_and_overwrite(*data, 0);  // no
         } else {
             build_anchor_grid(data);  // losslessly saving anchor points
             interp_level--;
-        }
+        }*/
 
-        for (int level = interp_level; level > 0 && level <= interp_level; level--) {
+        for (int level = 1; level > 0 && level <= interp_level; level--) {
             double cur_eb = eb;
             // set level-wise error bound
+            /*
             if (eb_alpha < 0) {
                 if (level >= 3) {
                     cur_eb = eb * eb_ratio;
@@ -113,6 +118,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                 }
                 cur_eb = eb / cur_ratio;
             }
+            */
             quantizer.set_eb(cur_eb);
             size_t stride = 1U << (level - 1);
 
@@ -179,15 +185,17 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         assert((anchor_stride & anchor_stride - 1) == 0 && "Anchor stride should be 0 or 2's exponentials");
         num_elements = 1;
         interp_level = -1;
-	bool use_anchor = false;
+	//bool use_anchor = false;
         for (uint i = 0; i < N; i++) {
             if (interp_level < ceil(log2(original_dimensions[i]))) {
                 interp_level = static_cast<int>(ceil(log2(original_dimensions[i])));
             }
+            /*
 	    if (original_dimensions[i] > anchor_stride)
 	        use_anchor = true;
             num_elements *= original_dimensions[i];
-        }
+        }*/
+           /* 
         if (!use_anchor)
             anchor_stride = 0;
         if (anchor_stride > 0) {
@@ -195,7 +203,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             if (max_interpolation_level <= interp_level) {
                 interp_level = max_interpolation_level;
             }
-        }
+        }*/
 
         original_dim_offsets[N - 1] = 1;
         for (int i = N - 2; i >= 0; i--) {
