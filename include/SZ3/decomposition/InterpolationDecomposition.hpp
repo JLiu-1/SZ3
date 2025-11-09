@@ -35,7 +35,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             recover_anchor_grid(dec_data);  // recover anchor points
             interp_level--;
         }
-
+        std::array <int,5> quant_radius_list = {32768, 8192, 2048, 512, 128};
         for (int level = interp_level; level > 0 && level <= interp_level; level--) {
             // set level-wise error bound
             if (eb_alpha < 0) {
@@ -51,6 +51,12 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                 }
                 quantizer.set_eb(eb / cur_ratio);
             }
+
+            
+            
+            int cur_radius = level >= 5 ? quant_radius_list[4] : quant_radius_list[level-1];
+
+            quantizer.set_radius(cur_radius);
             size_t stride = 1U << (level - 1);
             auto interp_block_size = blocksize * stride;
             auto inter_block_range = std::make_shared<multi_dimensional_range<T, N>>(
