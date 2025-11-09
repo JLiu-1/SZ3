@@ -35,7 +35,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             recover_anchor_grid(dec_data);  // recover anchor points
             interp_level--;
         }
-        std::array <int,5> quant_radius_list = {32768, 8192, 2048, 512, 128};
+        std::array <int,5> quant_radius_list = {32768, 16384, 8192, 4096, 2048};
         for (int level = interp_level; level > 0 && level <= interp_level; level--) {
             // set level-wise error bound
             if (eb_alpha < 0) {
@@ -53,7 +53,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             }
 
             
-            
+
             int cur_radius = level >= 5 ? quant_radius_list[4] : quant_radius_list[level-1];
 
             quantizer.set_radius(cur_radius);
@@ -102,7 +102,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             build_anchor_grid(data);  // losslessly saving anchor points
             interp_level--;
         }
-        std::array <int,5> quant_radius_list = {32768, 8192, 2048, 512, 128};
+        std::array <int,5> quant_radius_list = {32768, 16384, 8192, 4096, 2048};
 
         for (int level = interp_level; level > 0 && level <= interp_level; level--) {
             double cur_eb = eb;
