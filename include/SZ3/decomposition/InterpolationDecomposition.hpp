@@ -194,7 +194,9 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 	    if (original_dimensions[i] > anchor_stride)
 	        use_anchor = true;
             num_elements *= original_dimensions[i];
-        }*/
+            */
+        }
+        
            /* 
         if (!use_anchor)
             anchor_stride = 0;
@@ -203,7 +205,9 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             if (max_interpolation_level <= interp_level) {
                 interp_level = max_interpolation_level;
             }
-        }*/
+           
+        }
+         */
 
         original_dim_offsets[N - 1] = 1;
         for (int i = N - 2; i >= 0; i--) {
@@ -263,7 +267,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
         size_t stride3x = 3 * stride;
         size_t stride5x = 5 * stride;
-        if (interp_func == "linear" || n < 5) {
+        if (interp_func == "linear" || n < 5 ) {
             // if (pb == PB_predict_overwrite) {
             for (size_t i = 1; i + 1 < n; i += 2) {
                 T *d = data + begin + i * stride;
