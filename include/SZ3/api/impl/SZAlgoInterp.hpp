@@ -84,6 +84,7 @@ double interp_compress_test(
     for (size_t k = 0; k < sampled_blocks.size(); k++) {
         auto cur_block = sampled_blocks[k];
         auto quant_bins = sz.compress(conf, cur_block.data());
+        std::cout<<quant_bins.size()<<std::endl;
         total_quant_bins.insert(total_quant_bins.end(), quant_bins.begin(),
                                 quant_bins.end());  // merge the quant bins. Lossless them together
     }
