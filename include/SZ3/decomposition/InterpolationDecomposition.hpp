@@ -88,7 +88,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                 for(int y_start=0; y_start+block_size <=conf.dims[1];y_start+=block_size){
                     for(int z_start=0; z_start+block_size <=conf.dims[2];z_start+=block_size){
                         int fix_q = quant_inds[quant_index++] - q_center;
-                        T fix = fix_q * q_unit;
+                        double fix = fix_q * q_unit;
                         for(int x = x_start; x < x_start + block_size ; x++){
                             for(int y = y_start; y < y_start + block_size ; y++){
                                 for(int z = z_start; z < z_start + block_size ; z++){
@@ -196,7 +196,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             for(int x_start=0; x_start+block_size <=conf.dims[0];x_start+=block_size){
                 for(int y_start=0; y_start+block_size <=conf.dims[1];y_start+=block_size){
                     for(int z_start=0; z_start+block_size <=conf.dims[2];z_start+=block_size){
-                        T upfix_max = 2 * eb, downfix_min = -2 * eb;
+                        double upfix_max = 2 * eb, downfix_min = -2 * eb;
                         T agg_err = 0.0;
                         for(int x = x_start; x < x_start + block_size ; x++){
                             for(int y = y_start; y < y_start + block_size ; y++){
@@ -209,7 +209,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                                 }
                             }
                         }
-                        T fix = agg_err / ele_num;
+                        double fix = agg_err / ele_num;
                         if (fix>=0){
                             fix = std::min(fix,upfix_max);
                         }
