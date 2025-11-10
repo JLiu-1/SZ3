@@ -260,13 +260,13 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                         ori_std = std::sqrt(ori_std);
 
                         double a = dec_std !=0 ? ori_std/dec_std : 1.0;
-                       // if (a_max>=a_min){
-                      //      a = std::max(a,a_max);
-                      //      a = std::min(a,a_min);
-                     //   }
-                     //   else{
-                     //       a = 1.0;
-                    //    }
+                        if (a_max>=a_min){
+                            a = std::max(a,a_max);
+                            a = std::min(a,a_min);
+                        }
+                        else{
+                            a = 1.0;
+                        }
 
                         double fix = a - 1.0;
                         int fix_q =(int)(fix/q_unit);
@@ -312,12 +312,12 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                             }
                         }
                         double fix = agg_err / ele_num;
-                       // if (fix>=0){
-                       //     fix = std::min(fix,upfix_max);
-                       // }
-                       // else{
-                       //     fix = std::max(fix,downfix_min);
-                      //  }
+                        if (fix>=0){
+                            fix = std::min(fix,upfix_max);
+                        }
+                        else{
+                            fix = std::max(fix,downfix_min);
+                        }
                         int fix_q =(int)(fix/q_unit);
                         fix = fix_q * q_unit;
                         quant_inds_vec.push_back(fix_q+q_center);
