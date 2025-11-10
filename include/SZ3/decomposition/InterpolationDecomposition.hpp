@@ -76,8 +76,32 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         //postfix
         if(N==3){
 
+            double q_unit = 0.01;
 
-            double q_unit = 0.01 * eb;
+            int block_size = 8;
+            size_t offset_x = original_dim_offsets[0], offset_y = original_dim_offsets[1];
+            int q_center = conf.quantbinCnt / 2;
+            for(int x_start=0; x_start+block_size <=conf.dims[0];x_start+=block_size){
+                for(int y_start=0; y_start+block_size <=conf.dims[1];y_start+=block_size){
+                    for(int z_start=0; z_start+block_size <=conf.dims[2];z_start+=block_size){
+                    
+                        int fix_q = quant_inds[quant_index++] - q_center;
+                        double a = 1.0 + fix_q * q_unit;
+                        for(int x = x_start; x < x_start + block_size ; x++){
+                            for(int y = y_start; y < y_start + block_size ; y++){
+                                for(int z = z_start; z < z_start + block_size ; z++){
+                                    size_t idx = x * offset_x + y * offset_y + z;
+                                    data[idx] *= a;
+                                }
+                            }
+                        }
+
+                    }
+                }
+            }
+
+            /*
+            double q_unit = 0.05 * eb;
 
             int block_size = 8;
             size_t offset_x = original_dim_offsets[0], offset_y = original_dim_offsets[1];
@@ -100,6 +124,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                     }
                 }
             }
+            */
         }
 
 
@@ -185,8 +210,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         if(N==3){
 
 
-
-            double q_unit = 0.01 * eb;
+            double q_unit = 0.01;
 
             int block_size = 8;
             int ele_num = block_size * block_size * block_size;
@@ -196,7 +220,87 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                 for(int y_start=0; y_start+block_size <=conf.dims[1];y_start+=block_size){
                     for(int z_start=0; z_start+block_size <=conf.dims[2];z_start+=block_size){
                         double upfix_max = 2 * eb, downfix_min = -2 * eb;
-                        T agg_err = 0.0;
+                        double mean = 0.0, ori_mean = 0.0;
+
+                        double a_min = 0; a_max = 2.0;
+                        for(int x = x_start; x < x_start + block_size ; x++){
+                            for(int y = y_start; y < y_start + block_size ; y++){
+                                for(int z = z_start; z < z_start + block_size ; z++){
+                                    size_t idx = x * offset_x + y * offset_y + z;
+                                    double ori = ori_data[idx], dec = data[idx];
+                                    mean += dec;
+                                    ori_mean += ori;
+
+                                    if(dec>0){
+                                        a_max = std::min(a_max,(ori+eb)/dec);
+                                        a_min = std::max(a_min,(ori-eb)/dec);
+                                    }
+                                    else if(dec<0){
+                                        a_max = std::min(a_max,(ori-eb)/dec);
+                                        a_min = std::max(a_min,(ori+eb)/dec);
+                                    }
+                                }
+                            }
+                        }
+
+                        mean /= ele_num;
+                        ori_mean /= ele_num;
+                        double dec_std=0.0, ori_std = 0.0;
+
+                        for(int x = x_start; x < x_start + block_size ; x++){
+                            for(int y = y_start; y < y_start + block_size ; y++){
+                                for(int z = z_start; z < z_start + block_size ; z++){
+                                    size_t idx = x * offset_x + y * offset_y + z;
+                                    double ori = ori_data[idx], dec = data[idx];
+                                    dec_std += (dec-mean) * (dec-mean);
+                                    ori_std += (ori_std-ori_mean) * (ori_std-ori_mean);
+                                }
+                            }
+                        }
+                        dec_std = std::sqrt(dec_std);
+                        ori_std = std::sqrt(ori_std);
+
+                        double a = dec_std !=0 ? ori_std/dec_std : 1.0;
+                        if (a_max>=a_min){
+                            a = std::max(a,a_max);
+                            a = std:min(a,a_min);
+                        }
+                        else{
+                            a = 1.0;
+                        }
+
+                        double fix = a - 1.0;
+                        int fix_q =(int)(fix/q_unit);
+                        a = 1.0 + fix_q * q_unit;
+                        quant_inds_vec.push_back(fix_q + q_center);
+                        for(int x = x_start; x < x_start + block_size ; x++){
+                            for(int y = y_start; y < y_start + block_size ; y++){
+                                for(int z = z_start; z < z_start + block_size ; z++){
+                                    size_t idx = x * offset_x + y * offset_y + z;
+                                    data[idx] *= a;
+                                }
+                            }
+                        }
+
+                    }
+                }
+            }
+
+
+
+
+            /*
+            double q_unit = 0.05 * eb;
+
+            int block_size = 8;
+            int ele_num = block_size * block_size * block_size;
+            size_t offset_x = original_dim_offsets[0], offset_y = original_dim_offsets[1];
+            int q_center = conf.quantbinCnt / 2;
+            for(int x_start=0; x_start+block_size <=conf.dims[0];x_start+=block_size){
+                for(int y_start=0; y_start+block_size <=conf.dims[1];y_start+=block_size){
+                    for(int z_start=0; z_start+block_size <=conf.dims[2];z_start+=block_size){
+                        double upfix_max = 2 * eb, downfix_min = -2 * eb;
+                        double agg_err = 0.0;
                         for(int x = x_start; x < x_start + block_size ; x++){
                             for(int y = y_start; y < y_start + block_size ; y++){
                                 for(int z = z_start; z < z_start + block_size ; z++){
@@ -229,7 +333,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
                     }
                 }
-            }
+            }*/
         }
         //ori_data.clear();
 
