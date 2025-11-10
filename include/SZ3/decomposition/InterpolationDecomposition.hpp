@@ -72,11 +72,46 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             }
         }
         quantizer.postdecompress_data();
+
+        //postfix
+        if(N==3){
+
+
+            double q_unit = 0.05 * eb;
+
+            int block_size = 8;
+            int ele_num = block_size * block_size * block_size;
+            size_t offset_x = original_dim_offsets[0], offset_y = original_dim_offsets[1];
+            int q_center = conf.quantbinCnt / 2;
+            //size_t fq_idx = conf.num;
+            for(int x_start=0; x_start+block_size <=conf.dims[0];x_start+=block_size){
+                for(int y_start=0; y_start+block_size <=conf.dims[1];y_start+=block_size){
+                    for(int z_start=0; z_start+block_size <=conf.dims[2];z_start+=block_size){
+                        int fix_q = quant_inds[quant_index++] - q_center;
+                        T fix = fix_q * q_unit;
+                        for(int x = x_start; x < x_start + block_size ; x++){
+                            for(int y = y_start; y < y_start + block_size ; y++){
+                                for(int z = z_start; z < z_start + block_size ; z++){
+                                    size_t idx = x * offset_x + y * offset_y + z;
+                                    data[idx] += fix;
+                                }
+                            }
+                        }
+
+                    }
+                }
+            }
+        }
+
+
+
+
         return dec_data;
     }
 
     // compress given the error bound
     std::vector<int> compress(const Config &conf, T *data) override {
+
         std::copy_n(conf.dims.begin(), N, original_dimensions.begin());
 
         interp_id = conf.interpAlgo;
@@ -87,6 +122,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         eb_beta = conf.interpBeta;
 
         init();
+        auto ori_data = std::vector<T>(data, data + conf.num);
         std::vector<int> quant_inds_vec(num_elements);
         quant_inds = quant_inds_vec.data();
         double eb = quantizer.get_eb();
@@ -143,6 +179,63 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         }
         quantizer.set_eb(eb);
         quantizer.postcompress_data();
+
+
+         //postfix
+
+        if(N==3){
+
+
+
+            double q_unit = 0.05 * eb;
+
+            int block_size = 8;
+            int ele_num = block_size * block_size * block_size;
+            size_t offset_x = original_dim_offsets[0], offset_y = original_dim_offsets[1];
+            int q_center = conf.quantbinCnt / 2;
+            for(int x_start=0; x_start+block_size <=conf.dims[0];x_start+=block_size){
+                for(int y_start=0; y_start+block_size <=conf.dims[1];y_start+=block_size){
+                    for(int z_start=0; z_start+block_size <=conf.dims[2];z_start+=block_size){
+                        T upfix_max = 2 * eb, downfix_min = -2 * eb;
+                        T agg_err = 0.0;
+                        for(int x = x_start; x < x_start + block_size ; x++){
+                            for(int y = y_start; y < y_start + block_size ; y++){
+                                for(int z = z_start; z < z_start + block_size ; z++){
+                                    size_t idx = x * offset_x + y * offset_y + z;
+                                    agg_err += ori_data[idx] - data[idx];
+
+                                    upfix_max = std::min(upfix_max,ori_data[idx] + eb - data[idx]);
+                                    downfix_min = std::max(downfix_max, ori_data[idx] - eb - data[idx]);
+                                }
+                            }
+                        }
+                        T fix = agg_err / ele_num;
+                        if (fix>=0){
+                            fix = std::min(fix,upfix_max);
+                        }
+                        else{
+                            fix = std::max(fix,downfix_min);
+                        }
+                        int fix_q =(int)(fix/q_unit);
+                        fix = fix_q * q_unit;
+                        quant_inds_vec.append(fix_q+q_center);
+                        for(int x = x_start; x < x_start + block_size ; x++){
+                            for(int y = y_start; y < y_start + block_size ; y++){
+                                for(int z = z_start; z < z_start + block_size ; z++){
+                                    size_t idx = x * offset_x + y * offset_y + z;
+                                    data[idx] += fix;
+                                }
+                            }
+                        }
+
+                    }
+                }
+            }
+        }
+        //ori_data.clear();
+
+
+
         return quant_inds_vec;
     }
 

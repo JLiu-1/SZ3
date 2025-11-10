@@ -125,6 +125,8 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
     //        Timer timer(true);
     calAbsErrorBound(conf, data);
 
+    auto ori_data = std::vector<T>(data, data + conf.num);
+
     if (conf.interpAnchorStride < 0) {  // set default anchor stride
         std::array<size_t, 4> anchor_strides = {4096, 128, 32, 16};
         conf.interpAnchorStride = anchor_strides[N - 1];
@@ -247,7 +249,77 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
     if (useInterp) {
         conf.cmprAlgo = ALGO_INTERP;
         cmpSize = SZ_compress_Interp<T, N>(conf, data, cmpData, cmpCap);
+
+        //postfix
+
+        if(N==3){
+
+            std::vector<int> block_mu_q;
+
+            T eb = conf.absErrorBound;
+
+            T q_unit = 0.05 * eb;
+
+            int block_size = 8;
+            int ele_num = block_size * block_size * block_size;
+            size_t offset_x = conf.dims[1] * conf.dims[2], offset_y = conf.dims[2];
+            int q_center = conf.quantbinCnt / 2;
+
+
+
+            for(int x_start=0; x_start+block_size <=conf.dims[0];x_start+=block_size){
+                for(int y_start=0; y_start+block_size <=conf.dims[1];y_start+=block_size){
+                    for(int z_start=0; z_start+block_size <=conf.dims[2];z_start+=block_size){
+                        T upfix_max = 2 * eb, downfix_min = -2 * eb;
+                        T agg_err = 0.0;
+                        for(int x = x_start; x < x_start + block_size ; x++){
+                            for(int y = y_start; y < y_start + block_size ; y++){
+                                for(int z = z_start; z < z_start + block_size ; z++){
+                                    size_t idx = x * offset_x + y * offset_y + z;
+                                    agg_err += ori_data[idx] - data[idx];
+
+                                    upfix_max = std::min(upfix_max,ori_data[idx] + eb - data[idx]);
+                                    downfix_min = std::max(downfix_max, ori_data[idx] - eb - data[idx]);
+                                }
+                            }
+                        }
+                        T fix = agg_err / ele_num;
+                        if (fix>=0){
+                            fix = std::min(fix,upfix_max);
+                        }
+                        else{
+                            fix = std::max(fix,downfix_min);
+                        }
+                        int fix_q =(int)(fix/q_unit);
+                        fix = fix_q * q_unit;
+                        block_mu_q.append(fix_q+q_center);
+                        for(int x = x_start; x < x_start + block_size ; x++){
+                            for(int y = y_start; y < y_start + block_size ; y++){
+                                for(int z = z_start; z < z_start + block_size ; z++){
+                                    size_t idx = x * offset_x + y * offset_y + z;
+                                    data[idx] += fix;
+                                }
+                            }
+                        }
+
+                    }
+                }
+            }
+
+        }
+        ori_data.clear();
+
+
+
+
+
+
+
+
+
+
     } else {
+        ori_data.clear();
         // no need to tune lorenzo for 3D anymore
         // if (N == 3) {
         //     float pred_freq, mean_freq;
