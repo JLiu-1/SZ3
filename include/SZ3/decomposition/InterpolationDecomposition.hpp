@@ -259,7 +259,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                         dec_std = std::sqrt(dec_std);
                         ori_std = std::sqrt(ori_std);
 
-                       // double a = dec_std !=0 ? ori_std/dec_std : 1.0;
+                        double a = dec_std !=0 ? ori_std/dec_std : 1.0;
                        // if (a_max>=a_min){
                       //      a = std::max(a,a_max);
                       //      a = std::min(a,a_min);
