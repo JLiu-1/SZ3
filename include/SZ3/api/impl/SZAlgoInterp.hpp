@@ -261,7 +261,6 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
 
 
     } else {
-        ori_data.clear();
         // no need to tune lorenzo for 3D anymore
         // if (N == 3) {
         //     float pred_freq, mean_freq;
