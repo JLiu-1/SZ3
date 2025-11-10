@@ -91,7 +91,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                             for(int y = y_start; y < y_start + block_size ; y++){
                                 for(int z = z_start; z < z_start + block_size ; z++){
                                     size_t idx = x * offset_x + y * offset_y + z;
-                                    data[idx] *= a;
+                                    dec_data[idx] *= a;
                                 }
                             }
                         }
@@ -219,7 +219,6 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             for(int x_start=0; x_start+block_size <=conf.dims[0];x_start+=block_size){
                 for(int y_start=0; y_start+block_size <=conf.dims[1];y_start+=block_size){
                     for(int z_start=0; z_start+block_size <=conf.dims[2];z_start+=block_size){
-                        double upfix_max = 2 * eb, downfix_min = -2 * eb;
                         double mean = 0.0, ori_mean = 0.0;
 
                         double a_min = 0; a_max = 2.0;
@@ -253,7 +252,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                                     size_t idx = x * offset_x + y * offset_y + z;
                                     double ori = ori_data[idx], dec = data[idx];
                                     dec_std += (dec-mean) * (dec-mean);
-                                    ori_std += (ori_std-ori_mean) * (ori_std-ori_mean);
+                                    ori_std += (ori-ori_mean) * (ori-ori_mean);
                                 }
                             }
                         }
