@@ -77,10 +77,9 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         if(N==3){
 
 
-            double q_unit = 0.05 * eb;
+            double q_unit = 0.01 * eb;
 
             int block_size = 8;
-            int ele_num = block_size * block_size * block_size;
             size_t offset_x = original_dim_offsets[0], offset_y = original_dim_offsets[1];
             int q_center = conf.quantbinCnt / 2;
             //size_t fq_idx = conf.num;
@@ -187,7 +186,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
 
 
-            double q_unit = 0.05 * eb;
+            double q_unit = 0.01 * eb;
 
             int block_size = 8;
             int ele_num = block_size * block_size * block_size;
