@@ -57,7 +57,7 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
         write<size_t>(quant_inds.size(), buffer_pos);
         encoder.encode(quant_inds, buffer_pos);
         encoder.postprocess_encode();
-        SZ3::writefile<char>("huff.test", buffer, buffer_pos - buffer);
+        SZ3::writefile<unsigned char>("huff.test", buffer, buffer_pos - buffer);
         auto cmpSize = lossless.compress(buffer, buffer_pos - buffer, cmpData, cmpCap);
         free(buffer);
 
