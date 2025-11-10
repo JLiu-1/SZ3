@@ -221,7 +221,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                     for(int z_start=0; z_start+block_size <=conf.dims[2];z_start+=block_size){
                         double mean = 0.0, ori_mean = 0.0;
 
-                        double a_min = 0; a_max = 2.0;
+                        double a_min = 0, a_max = 2.0;
                         for(int x = x_start; x < x_start + block_size ; x++){
                             for(int y = y_start; y < y_start + block_size ; y++){
                                 for(int z = z_start; z < z_start + block_size ; z++){
@@ -262,7 +262,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                         double a = dec_std !=0 ? ori_std/dec_std : 1.0;
                         if (a_max>=a_min){
                             a = std::max(a,a_max);
-                            a = std:min(a,a_min);
+                            a = std::min(a,a_min);
                         }
                         else{
                             a = 1.0;
