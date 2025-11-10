@@ -103,9 +103,9 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             
             q_unit = 0.05 * eb;
 
-            int block_size = 8;
-            size_t offset_x = original_dim_offsets[0], offset_y = original_dim_offsets[1];
-            int q_center = conf.quantbinCnt / 2;
+           // int block_size = 8;
+            //size_t offset_x = original_dim_offsets[0], offset_y = original_dim_offsets[1];
+           // int q_center = conf.quantbinCnt / 2;
             //size_t fq_idx = conf.num;
             for(int x_start=0; x_start+block_size <=conf.dims[0];x_start+=block_size){
                 for(int y_start=0; y_start+block_size <=conf.dims[1];y_start+=block_size){
