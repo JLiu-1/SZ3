@@ -148,6 +148,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         eb_beta = conf.interpBeta;
 
         init();
+        auto ori_data = std::vector<T>(data, data + conf.num);
         std::vector<int> quant_inds_vec(num_elements - num_lr_elements);
         quant_inds = quant_inds_vec.data();
         double eb = quantizer.get_eb();
