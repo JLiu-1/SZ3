@@ -100,8 +100,8 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                 }
             }
 
-            /*
-            double q_unit = 0.05 * eb;
+            
+            q_unit = 0.05 * eb;
 
             int block_size = 8;
             size_t offset_x = original_dim_offsets[0], offset_y = original_dim_offsets[1];
@@ -124,7 +124,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                     }
                 }
             }
-            */
+            
         }
 
 
@@ -288,8 +288,8 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
 
 
-            /*
-            double q_unit = 0.05 * eb;
+            
+            q_unit = 0.05 * eb;
 
             int block_size = 8;
             int ele_num = block_size * block_size * block_size;
@@ -332,7 +332,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
                     }
                 }
-            }*/
+            }
         }
         //ori_data.clear();
 
