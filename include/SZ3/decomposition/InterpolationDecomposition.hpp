@@ -93,7 +93,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                             for(int y = y_start; y < y_start + block_size ; y++){
                                 for(int z = z_start; z < z_start + block_size ; z++){
                                     size_t idx = x * offset_x + y * offset_y + z;
-                                    data[idx] += fix;
+                                    dec_data[idx] += fix;
                                 }
                             }
                         }
@@ -205,7 +205,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                                     agg_err += ori_data[idx] - data[idx];
 
                                     upfix_max = std::min(upfix_max,ori_data[idx] + eb - data[idx]);
-                                    downfix_min = std::max(downfix_max, ori_data[idx] - eb - data[idx]);
+                                    downfix_min = std::max(downfix_min, ori_data[idx] - eb - data[idx]);
                                 }
                             }
                         }
@@ -218,7 +218,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                         }
                         int fix_q =(int)(fix/q_unit);
                         fix = fix_q * q_unit;
-                        quant_inds_vec.append(fix_q+q_center);
+                        quant_inds_vec.push_back(fix_q+q_center);
                         for(int x = x_start; x < x_start + block_size ; x++){
                             for(int y = y_start; y < y_start + block_size ; y++){
                                 for(int z = z_start; z < z_start + block_size ; z++){
