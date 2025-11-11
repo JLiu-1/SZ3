@@ -54,12 +54,57 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             size_t stride = 1U << (level - 1);
             bool use_gather_scatter = (stride == 1) && (N <= 3) && (max_dim >=35); //todo: try different conditions
             if(use_gather_scatter){
-                gather(dec_data, stride);
+                //gather(dec_data, stride);
+
+                timer.start();
+                T * test = new T[conf.num];
+                if(N==3){
+                    
+                    auto even_len_x =  (original_dimensions[0] - 1)/2 + 1;
+                    auto even_len_y =  (original_dimensions[1] - 1)/2 + 1;
+                    auto even_len_z =  (original_dimensions[2] - 1)/2 + 1;
+                    for (size_t i =0 ;i < original_dimensions[0];i++){
+                        auto ii = i % 2 == 0 ? i /2 : even_len_x + i/2;
+                        for (size_t j =0 ;j < original_dimensions[1];j++){
+                            auto jj = j % 2 == 0 ? j /2 : even_len_y + j/2;
+                            for (size_t k =0 ;k < original_dimensions[2];k++){
+                                
+                                auto kk = k % 2 == 0 ? k /2 : even_len_z + k/2;
+                                test[ii*original_dim_offsets[0]+jj*original_dim_offsets[1]+kk] = dec_data[i*original_dim_offsets[0]+j*original_dim_offsets[1]+k];
+
+                            }
+                        }
+                    }
+                }
+                timer.stop("Gather2");
+                
                 interpolation_gathered(
-                    dec_data, interpolators[interp_id],
+                    test, interpolators[interp_id],
                     [&](size_t idx, T &d, T pred) { d = quantizer.recover(pred, quant_inds[quant_index++]); },
                     direction_sequence_id, stride);
-                scatter(dec_data, stride);
+                //scatter(dec_data, stride);
+
+                timer.start();
+                if(N==3){
+                    
+                    auto even_len_x =  (original_dimensions[0] - 1)/2 + 1;
+                    auto even_len_y =  (original_dimensions[1] - 1)/2 + 1;
+                    auto even_len_z =  (original_dimensions[2] - 1)/2 + 1;
+                    for (size_t i =0 ;i < original_dimensions[0];i++){
+                        auto ii = i >= even_len_x ? (i-even_len_x) *2 + 1:  i * 2;
+                        for (size_t j =0 ;j < original_dimensions[1];j++){
+                            auto jj =  j >= even_len_y ? (j-even_len_y) *2 + 1:  j * 2;
+                            for (size_t k =0 ;k < original_dimensions[2];k++){
+                                
+                                auto kk =  k >= even_len_z ? (k-even_len_z) *2 + 1:  k * 2;
+                                dec_data[ii*original_dim_offsets[0]+jj*original_dim_offsets[1]+kk] = test[i*original_dim_offsets[0]+j*original_dim_offsets[1]+k];
+
+                            }
+                        }
+                    }
+                }
+                 delete []test;
+                 timer.stop("Scatter2");
                 
             }
             else{
@@ -138,9 +183,9 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             bool use_gather_scatter = (stride == 1) && (N <= 3) && (max_dim >=35); //todo: try different conditions
             
             if(use_gather_scatter){//cannot use blocked interp here
-                Timer timer(true);
-                gather(data, stride);
-                timer.stop("Gather");
+                //Timer timer(true);
+                //gather(data, stride);
+                //timer.stop("Gather");
 
                 timer.start();
                 T * test = new T[conf.num];
@@ -165,14 +210,14 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                 timer.stop("Gather2");
                 
                 interpolation_gathered(
-                        tedt, interpolators[interp_id],
+                        test, interpolators[interp_id],
                         [&](size_t idx, T &d, T pred) {
                             quant_inds[quant_index++] = (quantizer.quantize_and_overwrite(d, pred));
                         },
                         direction_sequence_id, stride);
-                timer.start();
-                scatter(data, stride);
-                timer.stop("Scatter");
+               // timer.start();
+                //scatter(data, stride);
+               // timer.stop("Scatter");
                 timer.start();
                 if(N==3){
                     
