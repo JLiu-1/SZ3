@@ -215,7 +215,6 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         num_elements = 1;
         interp_level = -1;
 	    bool use_anchor = false;
-        size_t max_dim = 1;
         for (uint i = 0; i < N; i++) {
             max_dim = std::max(max_dim, original_dimensions[i]);
             if (interp_level < ceil(log2(original_dimensions[i]))) {
@@ -252,7 +251,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         buffer = new T [max_dim * column_num];
         size_t alignment = 32;  // 256 bits
         size_t alloc_chunks = (max_dim * sizeof(T) + 31) / alignment;
-        aligned_buf_bytes = alignment * alloc_chunks;
+        auto aligned_buf_bytes = alignment * alloc_chunks;
 
         aligned_buffer = new T [aligned_buf_bytes / sizeof (T)];
     }
@@ -381,12 +380,12 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         else{
             size_t buffer_idx = 0;
             for(size_t i = 0;i < original_dimensions[N - 1];i += stride)
-                buffer[buffer_idx++] = * (pos + i); 
+                buffer[buffer_idx++] = * (data + i); 
             auto col_len = (original_dimensions[N - 1] - 1) / stride + 1;
             gather_base(buffer, col_len, aligned_buffer);
             buffer_idx = 0;
             for(size_t i = 0;i < original_dimensions[N - 1];i+= stride) 
-                * (pos + i) = aligned_buffer[buffer_idx++];
+                * (data + i) = aligned_buffer[buffer_idx++];
         }
 
 
@@ -403,12 +402,12 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         else{
             size_t buffer_idx = 0;
             for(size_t i = 0;i < original_dimensions[N - 1];i += stride)
-                buffer[buffer_idx++] = * (pos + i); 
+                buffer[buffer_idx++] = * (data + i); 
             auto col_len = (original_dimensions[N - 1] - 1) / stride + 1;
             scatter_base(buffer, col_len, aligned_buffer);
             buffer_idx = 0;
             for(size_t i = 0;i < original_dimensions[N - 1];i+= stride) 
-                * (pos + i) = aligned_buffer[buffer_idx++];
+                * (data + i) = aligned_buffer[buffer_idx++];
         }
 
 
@@ -443,7 +442,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
         //dim0. Currently, only 1 column per iter. 
         for(size_t j = 0;j < original_dimensions[N-1];j += stride){
-            auto pos = data +  k;
+            auto pos = data  +  j;
             size_t buffer_idx = 0;
             //just 1 column
             for(size_t i = 0;i < original_dimensions[N-2];i += stride)
@@ -485,7 +484,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
         //dim0. Currently, only 1 column per iter. 
         for(size_t j = 0;j < original_dimensions[N-1];j += stride){
-            auto pos = data +  k;
+            auto pos = data +  j;
             size_t buffer_idx = 0;
             //just 1 column
             for(size_t i = 0;i < original_dimensions[N-2];i += stride)
@@ -530,7 +529,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                     std::copy(aligned_buffer, aligned_buffer + col_len, buffer_pos);
                 }
                 for(size_t i = 0; i < original_dimensions[0]; i += stride){
-                    buffer_idx = 0;
+                     size_t buffer_idx = 0;
                     for(size_t kk = 0;kk < col_count * stride;kk += stride){
                         * (pos + i * original_dim_offsets[0] + kk) = buffer[(buffer_idx++) * col_len + i];
                     }
@@ -570,7 +569,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                     std::copy(aligned_buffer, aligned_buffer + col_len, buffer_pos);
                 }
                 for(size_t i = 0; i < original_dimensions[0]; i += stride){
-                    buffer_idx = 0;
+                    size_t buffer_idx = 0;
                     for(size_t kk = 0;kk < col_count * stride;kk += stride){
                         * (pos + i * original_dim_offsets[0] + kk) = buffer[(buffer_idx++) * col_len + i];
                     }
@@ -913,14 +912,15 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             pred_d = buffer;
             quantize_func(d - buffer, *d, interp_quad_1(*pred_d, *(pred_d + 1), *(pred_d + 2)));
 
-            d = buffer + (even_len * 2 - 1) * stride;
-            pred_d = buffer + (even_len - 1) * stride;
+            d = buffer + (even_len * 2 - 1) ;
+            pred_d = buffer + (even_len - 1);
             quantize_func(d - buffer, *d, interp_quad_2(*(pred_d - 2), *(pred_d - 1), *pred_d));
             if (len % 2 == 0) {
                 d += stride;
                 quantize_func(d - buffer, *d, interp_quad_3(*(pred_d - 2), *(pred_d - 1), *pred_d));
             }
         }
+        return predict_error;
        
         
     }
@@ -992,7 +992,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
     template <class QuantizeFunc>
     double interpolation_gathered_2d(T * data,const size_t stride, const std::string &interp_func,
-                            QuantizeFunc &&quantize_func, direction) {
+                            QuantizeFunc &&quantize_func, const int direction) {
 
         double predict_error = 0;
         size_t len_x = (original_dimensions[N - 2] - 1) / stride + 1;
@@ -1041,7 +1041,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
     template <class QuantizeFunc>
     double interpolation_gathered_3d(T * data,const size_t stride, const std::string &interp_func,
-                            QuantizeFunc &&quantize_func, direction) {
+                            QuantizeFunc &&quantize_func, const int direction) {
 
         double predict_error = 0;
 
@@ -1115,7 +1115,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                         interpolation_gathered_base(buffer_pos,len_x,interp_func,quantize_func);
                     }
                     for(size_t i = 0; i < original_dimensions[N-3]; i += stride){
-                        buffer_idx = 0;
+                        size_t buffer_idx = 0;
                         for(size_t kk = 0;kk < col_count * stride;kk += stride){
                             * (pos + i * offset_x + kk) = buffer[(buffer_idx++) * len_x + i];
                         }
@@ -1214,7 +1214,8 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
     Quantizer quantizer;
     size_t num_elements;
     const int column_num = 64 / sizeof(T);
-    T * buffer, aligned_buffer;
+    size_t max_dim = 1;
+    T * buffer, *aligned_buffer;
 
     std::array<size_t, N> original_dimensions;
     std::array<size_t, N> original_dim_offsets;
