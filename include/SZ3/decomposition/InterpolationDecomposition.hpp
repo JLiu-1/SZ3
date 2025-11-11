@@ -936,7 +936,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         if (stride2x < column_num || len < 16){//no buffer needed
            
             size_t even_len = len - len / 2;
-            size_t odd_len = len / 2;
+            //size_t odd_len = len / 2;
             if (interp_func == "linear" || len < 5) {
                 // if (pb == PB_predict_overwrite) {
                 auto d = data + even_len * stride, pred_d = data;
@@ -998,9 +998,9 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         size_t len_x = (original_dimensions[N - 2] - 1) / stride + 1;
         size_t len_y = (original_dimensions[N - 1] - 1) / stride + 1;
         size_t even_len_x = len_x - len_x / 2;
-        size_t odd_len_x = len_x / 2;
+        //size_t odd_len_x = len_x / 2;
         size_t even_len_y = len_y - len_y / 2;
-        size_t odd_len_y = len_y / 2;
+        //size_t odd_len_y = len_y / 2;
 
         if(direction == 0){//slow (x) first
             for(size_t j = 0;j < even_len_y; j ++){
