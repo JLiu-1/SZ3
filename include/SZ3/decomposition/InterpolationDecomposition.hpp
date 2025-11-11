@@ -141,6 +141,29 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                 Timer timer(true);
                 gather(data, stride);
                 timer.stop("Gather");
+
+                timer.start();
+                
+                if(N==3){
+                    T * test = new T[conf.num];
+                    auto even_len_x =  (original_dimensions[0] - 1)/2 + 1;
+                    auto even_len_y =  (original_dimensions[1] - 1)/2 + 1;
+                    auto even_len_z =  (original_dimensions[2] - 1)/2 + 1;
+                    for (size_t i =0 ;i < original_dimensions[0];i++){
+                        auto ii = i % 2 == 0 ? i /2 : even_len_x + i/2;
+                        for (size_t j =0 ;j < original_dimensions[1];j++){
+                            auto jj = j % 2 == 0 ? j /2 : even_len_y + j/2;
+                            for (size_t k =0 ;k < original_dimensions[2];k++){
+                                
+                                auto kk = k % 2 == 0 ? k /2 : even_len_z + k/2;
+                                test[ii*original_dim_offsets[0]+jj*original_dim_offsets[1]+kk] = data[i*original_dim_offsets[0]+j*original_dim_offsets[1]+k];
+
+                            }
+                        }
+                    }
+                }
+                timer.stop("Gather2");
+                delete []test;
                 interpolation_gathered(
                         data, interpolators[interp_id],
                         [&](size_t idx, T &d, T pred) {
