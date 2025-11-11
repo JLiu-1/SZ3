@@ -884,7 +884,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         double predict_error = 0;
        
         size_t even_len = len - len / 2;
-        size_t odd_len = len / 2;
+        //size_t odd_len = len / 2;
         if (interp_func == "linear" || len < 5) {
             // if (pb == PB_predict_overwrite) {
             auto d = buffer + even_len, pred_d = buffer;
@@ -916,7 +916,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             pred_d = buffer + (even_len - 1);
             quantize_func(d - buffer, *d, interp_quad_2(*(pred_d - 2), *(pred_d - 1), *pred_d));
             if (len % 2 == 0) {
-                d += stride;
+                d += 1;
                 quantize_func(d - buffer, *d, interp_quad_3(*(pred_d - 2), *(pred_d - 1), *pred_d));
             }
         }
@@ -927,7 +927,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
 
     template <class QuantizeFunc>
-    double interpolation_gathered_1d(T * data,const size_t stride, const std::string &interp_func,
+    double interpolation_gathered_1D(T * data,const size_t stride, const std::string &interp_func,
                             QuantizeFunc &&quantize_func) {
 
         double predict_error = 0;
@@ -991,7 +991,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
 
     template <class QuantizeFunc>
-    double interpolation_gathered_2d(T * data,const size_t stride, const std::string &interp_func,
+    double interpolation_gathered_2D(T * data,const size_t stride, const std::string &interp_func,
                             QuantizeFunc &&quantize_func, const int direction) {
 
         double predict_error = 0;
@@ -1015,13 +1015,13 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
             for(size_t i = 0;i < len_x;i ++){
                 auto pos = data + i * stride * original_dim_offsets[N-2];
-                interpolation_gathered_1d(pos, stride, interp_func, quantize_func);
+                interpolation_gathered_1D(pos, stride, interp_func, quantize_func);
             }
         }
         else{//fast (y) first
             for(size_t i = 0;i < even_len_x;i ++){
                 auto pos = data + i * stride * original_dim_offsets[N-2];
-                interpolation_gathered_1d(pos, stride, interp_func, quantize_func);
+                interpolation_gathered_1D(pos, stride, interp_func, quantize_func);
             }
 
             for(size_t j = 0;j < len_y; j ++){
@@ -1040,7 +1040,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
 
     template <class QuantizeFunc>
-    double interpolation_gathered_3d(T * data,const size_t stride, const std::string &interp_func,
+    double interpolation_gathered_3D(T * data,const size_t stride, const std::string &interp_func,
                             QuantizeFunc &&quantize_func, const int direction) {
 
         double predict_error = 0;
@@ -1076,7 +1076,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                         interpolation_gathered_base(buffer_pos,len_x,interp_func,quantize_func);
                     }
                     for(size_t i = 0; i < original_dimensions[N-3]; i += stride){
-                        buffer_idx = 0;
+                        size_t buffer_idx = 0;
                         for(size_t kk = 0;kk < col_count * stride;kk += stride){
                             * (pos + i * offset_x + kk) = buffer[(buffer_idx++) * len_x + i];
                         }
@@ -1192,11 +1192,11 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                          size_t stride = 1) {
         assert (N <= 3);
         if constexpr (N == 1) {  
-            return interpolation_gathered_1d(data, stride, interp_func, quantize_func);
+            return interpolation_gathered_1D(data, stride, interp_func, quantize_func);
         } else if constexpr (N == 2) {  
-            return interpolation_gathered_2d(data, stride, interp_func, quantize_func, direction);
+            return interpolation_gathered_2D(data, stride, interp_func, quantize_func, direction);
         } else if constexpr (N == 3) {  // new API (for faster speed)
-            return interpolation_gathered_3d(data, stride, interp_func, quantize_func, direction);
+            return interpolation_gathered_3D(data, stride, interp_func, quantize_func, direction);
         } else {
             throw std::runtime_error("Unsupported dimension in Gathered Interpolation");
         }
@@ -1213,7 +1213,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
     double max_error;
     Quantizer quantizer;
     size_t num_elements;
-    const int column_num = 64 / sizeof(T);
+    const size_t column_num = 64 / sizeof(T);
     size_t max_dim = 1;
     T * buffer, *aligned_buffer;
 
