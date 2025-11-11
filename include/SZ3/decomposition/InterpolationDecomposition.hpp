@@ -162,8 +162,9 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                         }
                     }
                 }
-                timer.stop("Gather2");
                 delete []test;
+                timer.stop("Gather2");
+                
                 interpolation_gathered(
                         data, interpolators[interp_id],
                         [&](size_t idx, T &d, T pred) {
