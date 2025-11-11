@@ -162,11 +162,10 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                         }
                     }
                 }
-                delete []test;
                 timer.stop("Gather2");
                 
                 interpolation_gathered(
-                        data, interpolators[interp_id],
+                        tedt, interpolators[interp_id],
                         [&](size_t idx, T &d, T pred) {
                             quant_inds[quant_index++] = (quantizer.quantize_and_overwrite(d, pred));
                         },
@@ -174,6 +173,28 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                 timer.start();
                 scatter(data, stride);
                 timer.stop("Scatter");
+                timer.start();
+                if(N==3){
+                    
+                    auto even_len_x =  (original_dimensions[0] - 1)/2 + 1;
+                    auto even_len_y =  (original_dimensions[1] - 1)/2 + 1;
+                    auto even_len_z =  (original_dimensions[2] - 1)/2 + 1;
+                    for (size_t i =0 ;i < original_dimensions[0];i++){
+                        auto ii = i >= even_len_x ? (i-even_len_x) *2 + 1:  i * 2;
+                        for (size_t j =0 ;j < original_dimensions[1];j++){
+                            auto jj =  j >= even_len_y ? (j-even_len_y) *2 + 1:  j * 2;
+                            for (size_t k =0 ;k < original_dimensions[2];k++){
+                                
+                                auto kk =  k >= even_len_z ? (k-even_len_z) *2 + 1:  k * 2;
+                                data[ii*original_dim_offsets[0]+jj*original_dim_offsets[1]+kk] = test[i*original_dim_offsets[0]+j*original_dim_offsets[1]+k];
+
+                            }
+                        }
+                    }
+                }
+                 delete []test;
+                 timer.stop("Scatter2");
+
 
             }
             else{
