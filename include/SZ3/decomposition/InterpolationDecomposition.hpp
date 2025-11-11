@@ -136,14 +136,18 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             size_t stride = 1U << (level - 1);
             bool use_gather_scatter = (stride == 1) && (N <= 3) && (max_dim >=35); //todo: try different conditions
             if(use_gather_scatter){//cannot use blocked interp here
+                Timer timer(true);
                 gather(data, stride);
+                timer.stop("Gather");
                 interpolation_gathered(
                         data, interpolators[interp_id],
                         [&](size_t idx, T &d, T pred) {
                             quant_inds[quant_index++] = (quantizer.quantize_and_overwrite(d, pred));
                         },
                         direction_sequence_id, stride);
+                timer.start();
                 scatter(data, stride);
+                timer.stop("Scatter");
 
             }
             else{
