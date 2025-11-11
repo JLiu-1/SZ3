@@ -143,9 +143,9 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                 timer.stop("Gather");
 
                 timer.start();
-                
+                T * test = new T[conf.num];
                 if(N==3){
-                    T * test = new T[conf.num];
+                    
                     auto even_len_x =  (original_dimensions[0] - 1)/2 + 1;
                     auto even_len_y =  (original_dimensions[1] - 1)/2 + 1;
                     auto even_len_z =  (original_dimensions[2] - 1)/2 + 1;
