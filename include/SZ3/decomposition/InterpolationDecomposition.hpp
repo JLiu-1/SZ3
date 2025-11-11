@@ -136,7 +136,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             size_t stride = 1U << (level - 1);
 
             bool use_gather_scatter = (stride == 1) && (N <= 3) && (max_dim >=35); //todo: try different conditions
-            std::cout<<stride<<" "<<use_gather_scatter<<std::endl;
+            
             if(use_gather_scatter){//cannot use blocked interp here
                 Timer timer(true);
                 gather(data, stride);
