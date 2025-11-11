@@ -56,7 +56,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             if(use_gather_scatter){
                 //gather(dec_data, stride);
 
-                timer.start();
+                Timer timer(true);
                 T * test = new T[conf.num];
                 if(N==3){
                     
@@ -187,7 +187,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                 //gather(data, stride);
                 //timer.stop("Gather");
 
-                timer.start();
+                Timer timer(true);
                 T * test = new T[conf.num];
                 if(N==3){
                     
