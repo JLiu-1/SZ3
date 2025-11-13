@@ -458,7 +458,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                 __m256d vc = _mm256_loadu_pd(c + i);
                 __m256d vd = _mm256_loadu_pd(d + i);
 
-                __m256 sum = _mm256_add_pd(vb, vc); 
+                __m256d sum = _mm256_add_pd(vb, vc); 
                  sum = _mm256_mul_pd(sum, nine); 
                  sum = _mm256_sub_pd(sum, va); 
                 sum = _mm256_sub_pd(sum, vd); 
