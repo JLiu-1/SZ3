@@ -402,6 +402,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                     }
                 }
             }
+            std::cout<<quant_inds_vec_post.size()<<std::endl;
 
 
         }
