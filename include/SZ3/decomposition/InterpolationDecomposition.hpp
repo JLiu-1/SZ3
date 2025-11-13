@@ -482,7 +482,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                                               const std::string &interp_func, QuantizeFunc &&quantize_func) {
         assert(direction==0);
         for (size_t i = 0; i < N; i++) {
-            if (end_idx[i] <= begin_idx[i]) return 0;
+            if (end_idx[i] < begin_idx[i]) return 0;
         }
         size_t math_begin_idx = begin_idx[direction], math_end_idx = end_idx[direction];
         size_t n = (math_end_idx - math_begin_idx) / math_stride + 1;
