@@ -238,7 +238,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
                 //postfix
 
-            if(N==3){
+            if(N==3 and stride <=2){
 
                 size_t stride2x = stride * 2;
                 
