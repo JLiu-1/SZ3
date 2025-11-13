@@ -88,8 +88,9 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
         init();
         std::vector<int> quant_inds_vec(num_elements);
-        std::vector<int>  quant_inds_speck(num_elements);
+        std::vector<int>  quant_inds_speck_vec(num_elements);
         quant_inds = quant_inds_vec.data();
+        quant_inds_speck = quant_inds_speck_vec.data();
         double eb = quantizer.get_eb();
         if (anchor_stride == 0) {  // check whether to use anchor points
             quant_inds[quant_index++] = quantizer.quantize_and_overwrite(*data, 0);  // no
@@ -138,7 +139,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                 interpolation(
                     data, block.get_global_index(), end_idx, interpolators[interp_id],
                     [&](size_t idx, T &d, T pred) {
-                        quant_inds[quant_index++] = (quantizer.quantize_and_overwrite(d, pred);quant_inds_speck[calc_speck_index(idx)] = quant_inds[quant_index-1]);
+                        quant_inds[quant_index++] = quantizer.quantize_and_overwrite(d, pred);quant_inds_speck[calc_speck_index(idx)] = quant_inds[quant_index-1];
                     },
                     direction_sequence_id, stride);
             }
@@ -146,7 +147,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         quantizer.set_eb(eb);
         quantizer.postcompress_data();
         if (conf.num > 1000000)
-            SZ3::writefile<int>("sz3_quant_bins_speck.test", quant_inds_speck.data(), quant_inds_speck.size());
+            SZ3::writefile<int>("sz3_quant_bins_speck.test", quant_inds_speck_vec.data(), quant_inds_speck_vec.size());
         return quant_inds_vec;
     }
 
@@ -201,7 +202,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             }
         }
         prefix_nums.resize(interp_level+1);
-        for(size_t level=0;i<interp_level;level++){
+        for(size_t level=0;level<interp_level;level++){
             std::array<size_t,N> prefix;
             size_t stride = 1U<<level;
             for(size_t i=0;i<N;i++){
@@ -516,6 +517,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
     uint blocksize;
     std::vector<std::string> interpolators = {"linear", "cubic"};
     int *quant_inds;
+    int *quant_inds_speck;
     size_t quant_index = 0;
     double max_error;
     Quantizer quantizer;
