@@ -73,13 +73,13 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             }
 
             //postfix
-            if(N==3){
+            if(N==3 and stride <=2){
 
 
                 size_t stride2x = stride * 2;
                 double q_unit = 0.01;
 
-                int raw_block_size = 1;//or 8 * stride
+                int raw_block_size = 8;//or 8 * stride
                 int block_size = raw_block_size - raw_block_size % stride;
                 if (block_size<=stride){
                     q_unit = 0.05 * cur_eb;
@@ -243,7 +243,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                 size_t stride2x = stride * 2;
                 
 
-                int raw_block_size = 1;//or 8 * stride
+                int raw_block_size = 8;//or 8 * stride
                 int block_size = raw_block_size - raw_block_size % stride;
 
                 if (block_size<=stride){
@@ -263,7 +263,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                                 //    std::cout<<x<<" "<<y<<" "<<z<<" "<<ori_data[idx]<<" "<<data[idx]<<std::endl;
                                 //}
                                 data[idx]+=q_unit*fix_q;
-                                //std::cout<<fix<<" "<<ori_data[idx]-data[idx]<<std::endl;
+                                std::cout<<fix<<" "<<ori_data[idx]-data[idx]<<std::endl;
 
                                 quant_inds_vec_post.push_back(fix_q + q_center);
                             }
