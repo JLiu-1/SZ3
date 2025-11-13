@@ -468,7 +468,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             }
         }
 
-        for (; i < N; i++) {
+        for (; i < len; i++) {
             p[i] = (-a[i] + T(9) * b[i] + T(9) * c[i] - d[i]) / T(16);
         }
 
