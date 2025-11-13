@@ -182,7 +182,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         auto ori_data = std::vector<T>(data, data + conf.num);
         std::vector<int> quant_inds_vec(num_elements);
         quant_inds = quant_inds_vec.data();
-        std::vector<int> quant_inds_vec_post(num_elements);
+        std::vector<int> quant_inds_vec_post;
         double eb = quantizer.get_eb();
         if (anchor_stride == 0) {  // check whether to use anchor points
             quant_inds[quant_index++] = quantizer.quantize_and_overwrite(*data, 0);  // no
@@ -402,11 +402,11 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                     }
                 }
             }
-            std::cout<<quant_inds_vec_post.size()<<std::endl;
+            //std::cout<<quant_inds_vec_post.size()<<std::endl;
 
 
         }
-        std::cout<<quant_inds_vec.size()<<std::endl;
+        //std::cout<<quant_inds_vec.size()<<std::endl;
         std::cout<<quant_inds_vec_post.size()<<std::endl;
         quant_inds_vec.reserve(quant_inds_vec.size() + quant_inds_vec_post.size());
         quant_inds_vec.insert(quant_inds_vec.end(), std::make_move_iterator(quant_inds_vec_post.begin()), std::make_move_iterator(quant_inds_vec_post.end()));
