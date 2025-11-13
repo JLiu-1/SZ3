@@ -241,7 +241,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         size_t speck_x=0,speck_y=0,speck_z=0;
         for(size_t level = interp_level-1; level >=0;level--){
             size_t stride = 1U<<level;
-            if(x % stride == 0){
+            if(x & (stride-1) == 0){
                 if(level ==interp_level-1)
                     speck_x = x / stride;
                 else{
@@ -252,7 +252,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         }
          for(size_t level = interp_level-1; level >=0;level--){
             size_t stride = 1U<<level;
-            if(y % stride == 0){
+            if(y & (stride-1) == 0){
                 if(level ==interp_level-1)
                     speck_y = y/ stride;
                 else{
@@ -263,7 +263,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         }
          for(size_t level = interp_level-1; level >=0;level--){
             size_t stride = 1U<<level;
-            if(z % stride == 0){
+            if(z & (stride-1) == 0){
                 if(level ==interp_level-1)
                     speck_z = z / stride;
                 else{
