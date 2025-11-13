@@ -291,12 +291,12 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                                             ori_mean += ori;
 
                                             if(dec>0){
-                                                a_max = std::min(a_max,(ori+eb)/dec);
-                                                a_min = std::max(a_min,(ori-eb)/dec);
+                                                a_max = std::min(a_max,(ori+cur_eb)/dec);
+                                                a_min = std::max(a_min,(ori-cur_eb)/dec);
                                             }
                                             else if(dec<0){
-                                                a_max = std::min(a_max,(ori-eb)/dec);
-                                                a_min = std::max(a_min,(ori+eb)/dec);
+                                                a_max = std::min(a_max,(ori-cur_eb)/dec);
+                                                a_min = std::max(a_min,(ori+cur_eb)/dec);
                                             }
                                             ele_num++;
                                         }
@@ -363,7 +363,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                     for(int x_start=0; x_start+block_size <=conf.dims[0];x_start+=block_size){
                         for(int y_start=0; y_start+block_size <=conf.dims[1];y_start+=block_size){
                             for(int z_start=0; z_start+block_size <=conf.dims[2];z_start+=block_size){
-                                double upfix_max = 2 * eb, downfix_min = -2 * eb;
+                                double upfix_max = 2 * cur_eb, downfix_min = -2 * cur_eb;
                                 double agg_err = 0.0;
                                 size_t ele_num = 0;
                                 for(int x = x_start; x < x_start + block_size ; x+=stride){
@@ -374,8 +374,8 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                                             size_t idx = x * offset_x + y * offset_y + z;
                                             agg_err += ori_data[idx] - data[idx];
 
-                                            upfix_max = std::min(upfix_max,ori_data[idx] + eb - data[idx]);
-                                            downfix_min = std::max(downfix_min, ori_data[idx] - eb - data[idx]);
+                                            upfix_max = std::min(upfix_max,ori_data[idx] + cur_eb - data[idx]);
+                                            downfix_min = std::max(downfix_min, ori_data[idx] - cur_eb - data[idx]);
                                             ele_num++;
                                         }
                                     }
