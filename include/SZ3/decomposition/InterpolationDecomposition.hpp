@@ -273,9 +273,9 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             }
         }
         if(speck_x < 8 && speck_y <12 && speck_z <12)
+             std::cout<<x<<" "<<y<<" "<<z<<" "<<speck_x<<" "<<speck_y<<" "<<speck_z<<std::endl;
         //if(x %32 ==0 &&y %32 ==0 &&z %32 ==0)
-            std::cout<<x<<" "<<y<<" "<<z<<" "<<speck_x<<" "<<speck_y<<" "<<speck_z<<std::endl;
-        if(speck_x < 8 && speck_y <12 && speck_z <12)
+           
         return speck_x * original_dim_offsets[0] + speck_y * original_dim_offsets[1] + speck_z;
 
     }
