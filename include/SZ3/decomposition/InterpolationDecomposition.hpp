@@ -534,9 +534,9 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         using Tag = typename QF::tag;  // CompressTag or DecompressTag
 
         constexpr bool is_compress =
-            std::is_same_v<Tag, detail::CompressTag>;
+            std::is_same_v<Tag, CompressTag>;
         constexpr bool is_decompress =
-            std::is_same_v<Tag, detail::DecompressTag>;
+            std::is_same_v<Tag, DecompressTag>;
         std::cout<<is_compress<<std::endl;
 
 
@@ -707,9 +707,9 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         using Tag = typename QF::tag;  // CompressTag or DecompressTag
 
         constexpr bool is_compress =
-            std::is_same_v<Tag, detail::CompressTag>;
+            std::is_same_v<Tag, CompressTag>;
         constexpr bool is_decompress =
-            std::is_same_v<Tag, detail::DecompressTag>;
+            std::is_same_v<Tag, DecompressTag>;
         std::cout<<is_compress<<std::endl;
         for (size_t i = 0; i < N; i++) {
             if (end_idx[i] < begin_idx[i]) return 0;
