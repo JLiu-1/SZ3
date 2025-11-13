@@ -3,7 +3,7 @@
 
 #include <cmath>
 #include <cstring>
-
+#include <immintrin.h>
 #include "Decomposition.hpp"
 #include "SZ3/def.hpp"
 #include "SZ3/quantizer/Quantizer.hpp"
@@ -13,6 +13,8 @@
 #include "SZ3/utils/Iterator.hpp"
 #include "SZ3/utils/MemoryUtil.hpp"
 #include "SZ3/utils/Timer.hpp"
+
+
 
 namespace SZ3 {
 template <class T, uint N, class Quantizer>
@@ -87,6 +89,11 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         eb_beta = conf.interpBeta;
 
         init();
+        interp_buffer_1 = new T[max_dim];
+        interp_buffer_2 = new T[max_dim];
+        interp_buffer_3 = new T[max_dim];
+        interp_buffer_4 = new T[max_dim];
+        pred_buffer = new T[max_dim];
         std::vector<int> quant_inds_vec(num_elements);
         quant_inds = quant_inds_vec.data();
         double eb = quantizer.get_eb();
@@ -143,6 +150,11 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         }
         quantizer.set_eb(eb);
         quantizer.postcompress_data();
+        delete [] interp_buffer_1;
+        delete [] interp_buffer_2;
+        delete [] interp_buffer_3;
+        delete [] interp_buffer_4;
+        delete [] pred_buffer;
         return quant_inds_vec;
     }
 
@@ -179,15 +191,18 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         assert((anchor_stride & anchor_stride - 1) == 0 && "Anchor stride should be 0 or 2's exponentials");
         num_elements = 1;
         interp_level = -1;
-	bool use_anchor = false;
+	    bool use_anchor = false;
+        size_t max_dim = 1;
         for (uint i = 0; i < N; i++) {
             if (interp_level < ceil(log2(original_dimensions[i]))) {
                 interp_level = static_cast<int>(ceil(log2(original_dimensions[i])));
             }
-	    if (original_dimensions[i] > anchor_stride)
-	        use_anchor = true;
+    	    if (original_dimensions[i] > anchor_stride)
+    	        use_anchor = true;
             num_elements *= original_dimensions[i];
+            max_dim = std::max(max_dim,original_dimensions[i]);
         }
+
         if (!use_anchor)
             anchor_stride = 0;
         if (anchor_stride > 0) {
@@ -400,6 +415,220 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         }
         return predict_error;
     }
+    
+    void avx_interp_cubic(const T * a,const T * b,const T * c,const T * d,T * p, const size_t &len){
+         constexpr bool is_float  = std::is_same_v<T, float>;
+    constexpr bool is_double = std::is_same_v<T, double>;
+
+    size_t i = 0;
+
+    if constexpr (is_float) {
+        const size_t step = 8;
+        const __m256 nine  = _mm256_set1_ps(9.0f);
+        const __m256 factor = _mm256_set1_ps(1.0f / 16.0f);
+
+        for (; i + step <= N; i += step) {
+            __m256 va = _mm256_loadu_ps(a + i);
+            __m256 vb = _mm256_loadu_ps(b + i);
+            __m256 vc = _mm256_loadu_ps(c + i);
+            __m256 vd = _mm256_loadu_ps(d + i);
+
+            __m256 term_b = _mm256_mul_ps(vb, nine);
+            __m256 term_c = _mm256_mul_ps(vc, nine);
+
+            __m256 sum = _mm256_sub_ps(term_b, va);   // -a + 9*b
+            sum = _mm256_add_ps(sum, term_c);         // -a + 9*b + 9*c
+            sum = _mm256_sub_ps(sum, vd);             // -a + 9*b + 9*c - d
+            sum = _mm256_mul_ps(sum, factor);         // /16
+
+            _mm256_storeu_ps(p + i, sum);
+        }
+    }
+    else if constexpr (is_double) {
+        const size_t step = 4;
+        const __m256d nine  = _mm256_set1_pd(9.0);
+        const __m256d factor = _mm256_set1_pd(1.0 / 16.0);
+
+        for (; i + step <= N; i += step) {
+            __m256d va = _mm256_loadu_pd(a + i);
+            __m256d vb = _mm256_loadu_pd(b + i);
+            __m256d vc = _mm256_loadu_pd(c + i);
+            __m256d vd = _mm256_loadu_pd(d + i);
+
+            __m256d term_b = _mm256_mul_pd(vb, nine);
+            __m256d term_c = _mm256_mul_pd(vc, nine);
+
+            __m256d sum = _mm256_sub_pd(term_b, va);   // -a + 9*b
+            sum = _mm256_add_pd(sum, term_c);          // -a + 9*b + 9*c
+            sum = _mm256_sub_pd(sum, vd);              // -a + 9*b + 9*c - d
+            sum = _mm256_mul_pd(sum, factor);          // /16
+
+            _mm256_storeu_pd(p + i, sum);
+        }
+    }
+
+    for (; i < N; i++) {
+        p[i] = (-a[i] + T(9) * b[i] + T(9) * c[i] - d[i]) / T(16);
+    }
+
+
+    }
+
+    template <class QuantizeFunc>
+    double interpolation_1d_simd_3d_x(T *data, const std::array<size_t, N> &begin_idx,
+                                              const std::array<size_t, N> &end_idx, const size_t &direction,
+                                              std::array<size_t, N> &strides, const size_t &math_stride,
+                                              const std::string &interp_func, QuantizeFunc &&quantize_func) {
+        assert(direction==0);
+        for (size_t i = 0; i < N; i++) {
+            if (end_idx[i] <= begin_idx[i]) return 0;
+        }
+        size_t math_begin_idx = begin_idx[direction], math_end_idx = end_idx[direction];
+        size_t n = (math_end_idx - math_begin_idx) / math_stride + 1;
+        if (n <= 1) {
+            return 0;
+        }
+        double predict_error = 0.0;
+        size_t offset = 0;
+        size_t stride = math_stride * original_dim_offsets[direction];
+        std::array<size_t, N> begins, ends, dim_offsets;
+        for (size_t i = 0; i < N; i++) {
+            begins[i] = 0;
+            ends[i] = end_idx[i] - begin_idx[i] + 1;
+            dim_offsets[i] = original_dim_offsets[i];
+            offset += original_dim_offsets[i] * begin_idx[i];
+        }
+        dim_offsets[direction] = stride;
+        size_t stride2x = 2 * stride;
+        if (interp_func == "linear") {
+            begins[direction] = 1;
+            ends[direction] = n - 1;
+            strides[direction] = 2;
+            foreach
+                <T, N>(data, offset, begins, ends, strides, dim_offsets,
+                       [&](T *d) { quantize_func(d - data, *d, interp_linear(*(d - stride), *(d + stride))); });
+            if (n % 2 == 0) {
+                begins[direction] = n - 1;
+                ends[direction] = n;
+                foreach
+                    <T, N>(data, offset, begins, ends, strides, dim_offsets, [&](T *d) {
+                        if (n < 3)
+                            quantize_func(d - data, *d, *(d - stride));
+                        else
+                            quantize_func(d - data, *d, interp_linear1(*(d - stride2x), *(d - stride)));
+                    });
+            }
+        } else {
+            size_t stride3x = 3 * stride;
+            size_t i_start = 3;
+            begins[direction] = i_start;
+            ends[direction] = (n >= 3) ? (n - 3) : 0;
+            strides[direction] = 2;
+            size_t vector_len = (ends[2]-begin[2]-1)/strides[2] + 1;
+
+           
+            for (size_t j = begins[1]; j < ends[1]; j += strides[1]) {
+                auto cur_buffer_1 = interp_buffer_1;
+                auto cur_buffer_2 = interp_buffer_2;
+                auto cur_buffer_3 = interp_buffer_3;
+                auto cur_buffer_4 = interp_buffer_4; 
+                
+
+                    size_t buffer_idx = 0;
+                    
+                    for(size_t i = begins[0]; i < ends[0]; i += strides[0]){
+                        auto cur_ij_offset = offset + i * dim_offsets[0] + j * dim_offsets[1];
+                        if( i == begins[0]){
+                            for (size_t k = begins[2]; k < ends[2]; k += strides[2]) {
+                                auto cur_offset =  cur_ij_offset + k;
+                                cur_buffer_1[buffer_idx] = data[cur_offset - 3 * dim_offsets[0]];
+                                cur_buffer_2[buffer_idx] = data[cur_offset - dim_offsets[0]];
+                                cur_buffer_3[buffer_idx] = data[cur_offset + dim_offsets[0]];
+                                cur_buffer_4[buffer_idx] = data[cur_offset + 3 * dim_offsets[0]];
+                                buffer_idx++;
+
+                            }
+                        }
+                        else{
+                            auto temp_buffer = cur_buffer_1;
+                            cur_buffer_1 = cur_buffer_2;
+                            cur_buffer_2 = cur_buffer_3;
+                            cur_buffer_3 = cur_buffer_4;
+                            cur_buffer_4 = temp_buffer;
+
+                            buffer_idx = 0;
+                            for (size_t k = begins[2]; k < ends[2]; k += strides[2]) {
+                                auto cur_offset =  cur_ij_offset + 3 * dim_offsets[0] + k;
+                                cur_buffer_4[buffer_idx++] = data[cur_offset];
+
+                            }
+                        }
+                       
+                        avx_interp_cubic(cur_buffer_1,cur_buffer_2,cur_buffer_3,cur_buffer_4,pred_buffer, vector_len);
+                        buffer_idx = 0;
+                        for (size_t k = begins[2]; k < ends[2]; k += strides[2]){
+                            auto pred = pred_buffer[buffer_idx++];
+                            auto d = data + cur_ij_offset + k;
+                            quantize_func(d - data, *d,pred);
+
+                        }
+                        
+                    }
+
+
+                }
+            }
+            
+
+
+
+            foreach
+                <T, N>(data, offset, begins, ends, strides, dim_offsets, [&](T *d) {
+                    quantize_func(d - data, *d,
+                                  interp_cubic(*(d - stride3x), *(d - stride), *(d + stride), *(d + stride3x)));
+                });
+            std::vector<size_t> boundaries;
+            boundaries.push_back(1);
+            if (n % 2 == 1 && n > 3) {
+                boundaries.push_back(n - 2);
+            }
+            if (n % 2 == 0 && n > 4) {
+                boundaries.push_back(n - 3);
+            }
+            if (n % 2 == 0 && n > 2) {
+                boundaries.push_back(n - 1);
+            }
+            for (auto boundary : boundaries) {
+                begins[direction] = boundary;
+                ends[direction] = boundary + 1;
+                foreach
+                    <T, N>(data, offset, begins, ends, strides, dim_offsets, [&](T *d) {
+                        if (boundary >= 3) {
+                            if (boundary + 3 < n)
+                                quantize_func(
+                                    d - data, *d,
+                                    interp_cubic(*(d - stride3x), *(d - stride), *(d + stride), *(d + stride3x)));
+                            else if (boundary + 1 < n)
+                                quantize_func(d - data, *d,
+                                              interp_quad_2(*(d - stride3x), *(d - stride), *(d + stride)));
+                            else
+                                quantize_func(d - data, *d, interp_linear1(*(d - stride3x), *(d - stride)));
+                        } else {
+                            if (boundary + 3 < n)
+                                quantize_func(d - data, *d,
+                                              interp_quad_1(*(d - stride), *(d + stride), *(d + stride3x)));
+                            else if (boundary + 1 < n)
+                                quantize_func(d - data, *d, interp_linear(*(d - stride), *(d + stride)));
+                            else
+                                quantize_func(d - data, *d, *(d - stride));
+                        }
+                    });
+            }
+        }
+        return predict_error;
+    }
+
+
 
     template <class QuantizeFunc>
     double interpolation(T *data, std::array<size_t, N> begin, std::array<size_t, N> end,
@@ -437,15 +666,19 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                 begin_idx[dims[i]] = (begin[dims[i]] ? begin[dims[i]] + stride2x : 0);
                 strides[dims[i]] = stride2x;
             }
+            if(N==3 &&stride == 1 && dims[0] ==0)
+                predict_error += interpolation_1d_simd_3d_x(data, begin_idx, end_idx, dims[0], strides, stride, interp_func, quantize_func);
+            else
+                predict_error += interpolation_1d_fastest_dim_first(data, begin_idx, end_idx, dims[0], strides, stride, interp_func, quantize_func);
 
-            predict_error += interpolation_1d_fastest_dim_first(data, begin_idx, end_idx, dims[0], strides, stride,
-                                                                interp_func, quantize_func);
             for (uint i = 1; i < N; i++) {
                 begin_idx[dims[i]] = begin[dims[i]];
                 begin_idx[dims[i - 1]] = (begin[dims[i - 1]] ? begin[dims[i - 1]] + stride : 0);
                 strides[dims[i - 1]] = stride;
-                predict_error += interpolation_1d_fastest_dim_first(data, begin_idx, end_idx, dims[i], strides, stride,
-                                                                    interp_func, quantize_func);
+                if(N==3 &&stride == 1 && dims[i] == 0)
+                    predict_error += interpolation_1d_simd_3d_x(data, begin_idx, end_idx, dims[0], strides, stride, interp_func, quantize_func);
+                else
+                    predict_error += interpolation_1d_fastest_dim_first(data, begin_idx, end_idx, dims[0], strides, stride, interp_func, quantize_func);
             }
             return predict_error;
         } else {
@@ -470,6 +703,9 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
     double eb_alpha = -1;
     double eb_beta = -1;
     double eb_ratio = 0.5;  // To be deprecated
+    size_t AVX_256_parallelism = 32 / sizeof(T);
+
+    T *interp_buffer_1,*interp_buffer_2,*interp_buffer_3,*interp_buffer_4,,*pred_buffer;
 };
 
 template <class T, uint N, class Quantizer>
