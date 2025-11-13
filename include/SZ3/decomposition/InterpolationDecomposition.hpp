@@ -550,7 +550,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                             cur_buffer_2[buffer_idx] = data[cur_offset - stride];
                             cur_buffer_3[buffer_idx] = data[cur_offset + stride];
                             cur_buffer_4[buffer_idx] = data[cur_offset +  stride3x];
-                            buffer_idx++;
+                            //buffer_idx++;
 
                         }
                     }
@@ -565,7 +565,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                         buffer_idx = 0;
                         for (size_t k = begins[2]; k < ends[2]; k += strides[2]) {
                             auto cur_offset =  cur_ij_offset + stride3x + k;
-                            cur_buffer_4[buffer_idx++] = data[cur_offset];
+                            cur_buffer_4[buffer_idx] = data[cur_offset];
 
                         }
                     }
@@ -573,7 +573,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                     avx_interp_cubic(cur_buffer_1,cur_buffer_2,cur_buffer_3,cur_buffer_4,pred_buffer, vector_len);
                     buffer_idx = 0;
                     for (size_t k = begins[2]; k < ends[2]; k += strides[2]){
-                        auto pred = pred_buffer[buffer_idx++];
+                        auto pred = pred_buffer[buffer_idx];
                         auto d = data + cur_ij_offset + k;
                         quantize_func(d - data, *d,pred);
 
