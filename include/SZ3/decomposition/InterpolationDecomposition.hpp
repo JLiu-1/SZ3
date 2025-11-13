@@ -89,11 +89,12 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         eb_beta = conf.interpBeta;
 
         init();
-        interp_buffer_1 = new T[max_dim];
-        interp_buffer_2 = new T[max_dim];
-        interp_buffer_3 = new T[max_dim];
-        interp_buffer_4 = new T[max_dim];
-        pred_buffer = new T[max_dim];
+        auto buffer_len = max_dim + AVX_256_parallelism - max_dim % AVX_256_parallelism
+        interp_buffer_1 = new T[buffer_len];
+        interp_buffer_2 = new T[buffer_len];
+        interp_buffer_3 = new T[buffer_len];
+        interp_buffer_4 = new T[buffer_len];
+        pred_buffer = new T[buffer_len];
         std::cout<<max_dim<<std::endl;
         std::vector<int> quant_inds_vec(num_elements);
         quant_inds = quant_inds_vec.data();
@@ -429,7 +430,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             const __m256 nine  = _mm256_set1_ps(9.0f);
             const __m256 factor = _mm256_set1_ps(1.0f / 16.0f);
 
-            for (; i + step <= len; i += step) {
+            for (; i  < len; i += step) {
                 __m256 va = _mm256_loadu_ps(a + i);
                 __m256 vb = _mm256_loadu_ps(b + i);
                 __m256 vc = _mm256_loadu_ps(c + i);
@@ -452,7 +453,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             const __m256d nine  = _mm256_set1_pd(9.0);
             const __m256d factor = _mm256_set1_pd(1.0 / 16.0);
 
-            for (; i + step <= len; i += step) {
+            for (; i  < len; i += step) {
                 __m256d va = _mm256_loadu_pd(a + i);
                 __m256d vb = _mm256_loadu_pd(b + i);
                 __m256d vc = _mm256_loadu_pd(c + i);
@@ -469,10 +470,10 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                 _mm256_storeu_pd(p + i, sum);
             }
         }
-
+        /*
         for (; i < len; i++) {
             p[i] = (-a[i] + T(9) * b[i] + T(9) * c[i] - d[i]) / T(16);
-        }
+        }*/
 
 
     }
