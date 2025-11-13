@@ -94,6 +94,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         interp_buffer_3 = new T[max_dim];
         interp_buffer_4 = new T[max_dim];
         pred_buffer = new T[max_dim];
+        std::cout<<max_dim<<std::endl;
         std::vector<int> quant_inds_vec(num_elements);
         quant_inds = quant_inds_vec.data();
         double eb = quantizer.get_eb();
