@@ -50,7 +50,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             interp_level--;
         }
         
-        DecompressOp op{quantizer, quant_inds, quant_index};
+        DecompressOp op{quantizer, this->quant_inds, quant_index};
         for (int level = interp_level; level > 0 && level <= interp_level; level--) {
             // set level-wise error bound
             if (eb_alpha < 0) {
