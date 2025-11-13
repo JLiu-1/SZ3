@@ -208,7 +208,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             for(size_t i=0;i<N;i++){
                 prefix[i] = (original_dimensions[i] - 1) / stride + 1;
             }
-            prefix_nums[i]=prefix;
+            prefix_nums[level]=prefix;
 
         }
 
