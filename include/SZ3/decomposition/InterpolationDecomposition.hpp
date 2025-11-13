@@ -17,6 +17,11 @@
 
 
 namespace SZ3 {
+
+    struct CompressTag {};
+struct DecompressTag {};
+
+
 template <class T, uint N, class Quantizer>
 class InterpolationDecomposition : public concepts::DecompositionInterface<T, int, N> {
    public:
@@ -45,7 +50,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             interp_level--;
         }
         
-
+        DecompressOp op{quantizer, quant_inds, quant_index};
         for (int level = interp_level; level > 0 && level <= interp_level; level--) {
             // set level-wise error bound
             if (eb_alpha < 0) {
@@ -77,8 +82,8 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                 }
                 interpolation(
                     dec_data, block.get_global_index(), end_idx, interpolators[interp_id],
-                    [&](size_t idx, T &d, T pred) { d = quantizer.recover(pred, quant_inds[quant_index++]);},
-                    direction_sequence_id, stride,false);
+                    op,
+                    direction_sequence_id, stride);
             }
         }
         quantizer.postdecompress_data();
@@ -120,7 +125,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             build_anchor_grid(data);  // losslessly saving anchor points
             interp_level--;
         }
-
+        CompressOp op{quantizer, quant_inds, quant_index};
         for (int level = interp_level; level > 0 && level <= interp_level; level--) {
             double cur_eb = eb;
             // set level-wise error bound
@@ -159,10 +164,8 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
                 interpolation(
                     data, block.get_global_index(), end_idx, interpolators[interp_id],
-                    [&](size_t idx, T &d, T pred) {
-                        quant_inds[quant_index++] = (quantizer.quantize_and_overwrite(d, pred));
-                    },
-                    direction_sequence_id, stride,true);
+                    op,
+                    direction_sequence_id, stride);
             }
         }
         quantizer.set_eb(eb);
@@ -202,6 +205,34 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
     std::pair<int, int> get_out_range() override { return quantizer.get_out_range(); }
 
    private:
+
+    struct CompressOp {
+        Quantizer &quantizer;
+        int *quant_inds;
+        size_t &quant_index;
+
+        using tag = CompressTag;   
+        void operator()(size_t idx, T &d, T pred) const {
+            // compress 路径：量化 + 写 quant_inds
+            quant_inds[quant_index++] = quantizer.quantize_and_overwrite(d, pred);
+        }
+    };
+
+    struct DecompressOp {
+        Quantizer &quantizer;
+        int *quant_inds;
+        size_t &quant_index;
+
+        using tag = DecompressTag;
+
+        void operator()(size_t idx, T &d, T pred) const {
+            // decompress 路径：从 quant_inds 恢复
+            d = quantizer.recover(pred, quant_inds[quant_index++]);
+        }
+    };
+
+
+
     void init() {
         quant_index = 0;
         assert(blocksize % 2 == 0 && "Interpolation block size should be even numbers");
@@ -493,12 +524,22 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
     }
 
-    template <bool is_compress,class QuantizeFunc >
+    template <class QuantizeFunc>
     double interpolation_1d_simd_3d_x(T *data, const std::array<size_t, N> &begin_idx,
                                               const std::array<size_t, N> &end_idx, const size_t &direction,
                                               std::array<size_t, N> &strides, const size_t &math_stride,
                                               const std::string &interp_func, QuantizeFunc &&quantize_func) {
         assert(direction==0);
+        using QF  = std::decay_t<QuantizeFunc>;
+        using Tag = typename QF::tag;  // CompressTag or DecompressTag
+
+        constexpr bool is_compress =
+            std::is_same_v<Tag, detail::CompressTag>;
+        constexpr bool is_decompress =
+            std::is_same_v<Tag, detail::DecompressTag>;
+        std::cout<<is_compress<<std::endl;
+
+
         for (size_t i = 0; i < N; i++) {
             if (end_idx[i] < begin_idx[i]) return 0;
         }
@@ -601,7 +642,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
                         pred_buffer [buffer_idx++] = data[cur_ij_offset + k];
                     
-                    avx_cubic_interp_quantize_overwrite(cur_buffer_1,cur_buffer_2,cur_buffer_3,cur_buffer_4,pred_buffer, vector_len);
+                    //avx_cubic_interp_quantize_overwrite(cur_buffer_1,cur_buffer_2,cur_buffer_3,cur_buffer_4,pred_buffer, vector_len);
                     buffer_idx = 0;
                     for (size_t k = begins[2]; k < ends[2]; k += strides[2]){
                         auto pred = pred_buffer[buffer_idx++];
@@ -655,12 +696,21 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         return predict_error;
     }
 
-    template < bool is_compress,class QuantizeFunc>
+    template <class QuantizeFunc>
     double interpolation_1d_simd_3d_y(T *data, const std::array<size_t, N> &begin_idx,
                                               const std::array<size_t, N> &end_idx, const size_t &direction,
                                               std::array<size_t, N> &strides, const size_t &math_stride,
                                               const std::string &interp_func, QuantizeFunc &&quantize_func) {
         assert(direction==1);
+
+        using QF  = std::decay_t<QuantizeFunc>;
+        using Tag = typename QF::tag;  // CompressTag or DecompressTag
+
+        constexpr bool is_compress =
+            std::is_same_v<Tag, detail::CompressTag>;
+        constexpr bool is_decompress =
+            std::is_same_v<Tag, detail::DecompressTag>;
+        std::cout<<is_compress<<std::endl;
         for (size_t i = 0; i < N; i++) {
             if (end_idx[i] < begin_idx[i]) return 0;
         }
@@ -819,7 +869,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
     template <class QuantizeFunc>
     double interpolation(T *data, std::array<size_t, N> begin, std::array<size_t, N> end,
                          const std::string &interp_func, QuantizeFunc &&quantize_func, const int direction,
-                         size_t stride = 1, bool is_compress = true) {
+                         size_t stride = 1) {
         if constexpr (N == 1) {  // old API
             return interpolation_1d(data, begin[0], end[0], stride, interp_func, quantize_func);
         } else if constexpr (N == 2) {  // old API
@@ -852,18 +902,10 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                 begin_idx[dims[i]] = (begin[dims[i]] ? begin[dims[i]] + stride2x : 0);
                 strides[dims[i]] = stride2x;
             }
-            if(N==3 &&stride<=2  && dims[0] ==0){
-                if(is_compress)
-                    predict_error += interpolation_1d_simd_3d_x<true>(data, begin_idx, end_idx, dims[0], strides, stride, interp_func, quantize_func);
-                else
-                    predict_error += interpolation_1d_simd_3d_x<false>(data, begin_idx, end_idx, dims[0], strides, stride, interp_func, quantize_func);
-             }
-            else if(N==3 &&stride <=2  && dims[0] ==1){
-                if(is_compress)
-                    predict_error += interpolation_1d_simd_3d_y<true>(data, begin_idx, end_idx, dims[0], strides, stride, interp_func, quantize_func);
-                else
-                    predict_error += interpolation_1d_simd_3d_y<false>(data, begin_idx, end_idx, dims[0], strides, stride, interp_func, quantize_func);
-            }
+            if(N==3 &&stride<=2  && dims[0] ==0)
+                predict_error += interpolation_1d_simd_3d_x(data, begin_idx, end_idx, dims[0], strides, stride, interp_func, quantize_func);
+            else if(N==3 &&stride <=2  && dims[0] ==0)
+                predict_error += interpolation_1d_simd_3d_y(data, begin_idx, end_idx, dims[0], strides, stride, interp_func, quantize_func);
             else
                 predict_error += interpolation_1d_fastest_dim_first(data, begin_idx, end_idx, dims[0], strides, stride, interp_func, quantize_func);
 
@@ -871,18 +913,10 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                 begin_idx[dims[i]] = begin[dims[i]];
                 begin_idx[dims[i - 1]] = (begin[dims[i - 1]] ? begin[dims[i - 1]] + stride : 0);
                 strides[dims[i - 1]] = stride;
-                if(N==3 &&stride <=2 && dims[i] == 0){
-                    if(is_compress)
-                        predict_error += interpolation_1d_simd_3d_x<true>(data, begin_idx, end_idx, dims[i], strides, stride, interp_func, quantize_func);
-                    else
-                        predict_error += interpolation_1d_simd_3d_x<false>(data, begin_idx, end_idx, dims[i], strides, stride, interp_func, quantize_func);
-                    }
-                else if(N==3 &&stride <=2 && dims[i] == 1){
-                    if(is_compress)
-                        predict_error += interpolation_1d_simd_3d_y<true>(data, begin_idx, end_idx, dims[i], strides, stride, interp_func, quantize_func);
-                    else
-                        predict_error += interpolation_1d_simd_3d_y<false>(data, begin_idx, end_idx, dims[i], strides, stride, interp_func, quantize_func);
-                }
+                if(N==3 &&stride <=2 && dims[i] == 0)
+                    predict_error += interpolation_1d_simd_3d_x(data, begin_idx, end_idx, dims[i], strides, stride, interp_func, quantize_func);
+                else if(N==3 &&stride <=2 && dims[i] == 1)
+                    predict_error += interpolation_1d_simd_3d_y(data, begin_idx, end_idx, dims[i], strides, stride, interp_func, quantize_func);
                 else
                     predict_error += interpolation_1d_fastest_dim_first(data, begin_idx, end_idx, dims[i], strides, stride, interp_func, quantize_func);
             }
