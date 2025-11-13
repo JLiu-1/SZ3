@@ -551,8 +551,9 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                             buffer_idx++;
 
                         }
+                        std::cout<<buffer_idx<<std::endl;
                     }
-                    std::cout<<buffer_idx<<std::endl;
+                    
                     else{
                         auto temp_buffer = cur_buffer_1;
                         cur_buffer_1 = cur_buffer_2;
