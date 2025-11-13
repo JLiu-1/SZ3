@@ -94,7 +94,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         interp_buffer_3 = new T[max_dim];
         interp_buffer_4 = new T[max_dim];
         pred_buffer = new T[max_dim];
-        //std::cout<<max_dim<<std::endl;
+        std::cout<<max_dim<<std::endl;
         std::vector<int> quant_inds_vec(num_elements);
         quant_inds = quant_inds_vec.data();
         double eb = quantizer.get_eb();
@@ -418,7 +418,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
     }
     
     void avx_interp_cubic(const T * a,const T * b,const T * c,const T * d,T * p, const size_t &len){
-        assert(len <= max_dim);
+       // assert(len <= max_dim);
          constexpr bool is_float  = std::is_same_v<T, float>;
         constexpr bool is_double = std::is_same_v<T, double>;
 
@@ -435,13 +435,14 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                 __m256 vc = _mm256_loadu_ps(c + i);
                 __m256 vd = _mm256_loadu_ps(d + i);
 
-                __m256 term_b = _mm256_mul_ps(vb, nine);
-                __m256 term_c = _mm256_mul_ps(vc, nine);
+                 __m256 sum = _mm256_add_ps(vb, vc); 
+                 sum = _mm256_mul_ps(sum, nine); 
+                 sum = _mm256_sub_ps(sum, va); 
+                sum = _mm256_sub_ps(sum, vd); 
 
-                __m256 sum = _mm256_sub_ps(term_b, va);   // -a + 9*b
-                sum = _mm256_add_ps(sum, term_c);         // -a + 9*b + 9*c
-                sum = _mm256_sub_ps(sum, vd);             // -a + 9*b + 9*c - d
-                sum = _mm256_mul_ps(sum, factor);         // /16
+               
+                      
+                sum = _mm256_mul_ps(sum, factor);        
 
                 _mm256_storeu_ps(p + i, sum);
             }
@@ -457,14 +458,14 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                 __m256d vc = _mm256_loadu_pd(c + i);
                 __m256d vd = _mm256_loadu_pd(d + i);
 
-                __m256d term_b = _mm256_mul_pd(vb, nine);
-                __m256d term_c = _mm256_mul_pd(vc, nine);
+                __m256 sum = _mm256_add_pd(vb, vc); 
+                 sum = _mm256_mul_pd(sum, nine); 
+                 sum = _mm256_sub_pd(sum, va); 
+                sum = _mm256_sub_pd(sum, vd); 
 
-                __m256d sum = _mm256_sub_pd(term_b, va);   // -a + 9*b
-                sum = _mm256_add_pd(sum, term_c);          // -a + 9*b + 9*c
-                sum = _mm256_sub_pd(sum, vd);              // -a + 9*b + 9*c - d
-                sum = _mm256_mul_pd(sum, factor);          // /16
-
+               
+                      
+                sum = _mm256_mul_pd(sum, factor);    
                 _mm256_storeu_pd(p + i, sum);
             }
         }
@@ -551,7 +552,6 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                             buffer_idx++;
 
                         }
-                        std::cout<<buffer_idx<<std::endl;
                     }
                     
                     else{
@@ -567,7 +567,6 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                             cur_buffer_4[buffer_idx++] = data[cur_offset];
 
                         }
-                         std::cout<<buffer_idx<<std::endl;
                     }
                     
                     avx_interp_cubic(cur_buffer_1,cur_buffer_2,cur_buffer_3,cur_buffer_4,pred_buffer, vector_len);
@@ -578,7 +577,6 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                         quantize_func(d - data, *d,pred);
 
                     }
-                     std::cout<<buffer_idx<<std::endl;
                     
                 }
             }
