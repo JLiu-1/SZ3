@@ -183,6 +183,49 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         assert((anchor_stride & anchor_stride - 1) == 0 && "Anchor stride should be 0 or 2's exponentials");
         num_elements = 1;
         interp_level = -1;
+	bool use_anchor = false;
+        for (uint i = 0; i < N; i++) {
+            if (interp_level < ceil(log2(original_dimensions[i]))) {
+                interp_level = static_cast<int>(ceil(log2(original_dimensions[i])));
+            }
+	    if (original_dimensions[i] > anchor_stride)
+	        use_anchor = true;
+            num_elements *= original_dimensions[i];
+        }
+        if (!use_anchor)
+            anchor_stride = 0;
+        if (anchor_stride > 0) {
+            int max_interpolation_level = static_cast<int>(log2(anchor_stride)) + 1;
+            if (max_interpolation_level <= interp_level) {
+                interp_level = max_interpolation_level;
+            }
+        }
+        prefix_nums.resize(interp_level+1);
+        for(size_t level=0;i<interp_level;level++){
+            std::array<size_t,N> prefix;
+            size_t stride = 1U<<level;
+            for(size_t i=0;i<N;i++){
+                prefix[i] = (original_dimensions[i] - 1) / stride + 1;
+            }
+            prefix_nums[i]=prefix;
+
+        }
+
+        original_dim_offsets[N - 1] = 1;
+        for (int i = N - 2; i >= 0; i--) {
+            original_dim_offsets[i] = original_dim_offsets[i + 1] * original_dimensions[i + 1];
+        }
+
+        dim_sequences = std::vector<std::array<int, N>>();
+        auto sequence = std::array<int, N>();
+        for (uint i = 0; i < N; i++) {
+            sequence[i] = i;
+        }
+        do {
+            dim_sequences.push_back(sequence);
+        } while (std::next_permutation(sequence.begin(), sequence.end()));
+    }
+
     size_t calc_speck_index(size_t idx){
         if constexpr (N!=3)
             return 0;
@@ -225,48 +268,6 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         }
         return speck_x * original_dim_offsets[0] + speck_y * original_dim_offsets[1] + speck_z;
 
-    }
-	bool use_anchor = false;
-        for (uint i = 0; i < N; i++) {
-            if (interp_level < ceil(log2(original_dimensions[i]))) {
-                interp_level = static_cast<int>(ceil(log2(original_dimensions[i])));
-            }
-	    if (original_dimensions[i] > anchor_stride)
-	        use_anchor = true;
-            num_elements *= original_dimensions[i];
-        }
-        if (!use_anchor)
-            anchor_stride = 0;
-        if (anchor_stride > 0) {
-            int max_interpolation_level = static_cast<int>(log2(anchor_stride)) + 1;
-            if (max_interpolation_level <= interp_level) {
-                interp_level = max_interpolation_level;
-            }
-        }
-        prefix_nums.resize(interp_level+1);
-        for(size_t level=0;i<interp_level;level++){
-            std::array<size_t,N> prefix;
-            size_t stride = 1U<<level;
-            for(size_t i=0;i<N;i++){
-                prefix[i] = (original_dimensions[i] - 1) / stride + 1;
-            }
-            prefix_nums[i]=prefix;
-
-        }
-
-        original_dim_offsets[N - 1] = 1;
-        for (int i = N - 2; i >= 0; i--) {
-            original_dim_offsets[i] = original_dim_offsets[i + 1] * original_dimensions[i + 1];
-        }
-
-        dim_sequences = std::vector<std::array<int, N>>();
-        auto sequence = std::array<int, N>();
-        for (uint i = 0; i < N; i++) {
-            sequence[i] = i;
-        }
-        do {
-            dim_sequences.push_back(sequence);
-        } while (std::next_permutation(sequence.begin(), sequence.end()));
     }
 
     void build_anchor_grid(T *data) {  // store anchor points. steplength: anchor_stride on each dimension
