@@ -193,7 +193,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         num_elements = 1;
         interp_level = -1;
 	    bool use_anchor = false;
-        size_t max_dim = 1;
+        max_dim = 1;
         for (uint i = 0; i < N; i++) {
             if (interp_level < ceil(log2(original_dimensions[i]))) {
                 interp_level = static_cast<int>(ceil(log2(original_dimensions[i])));
