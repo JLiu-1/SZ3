@@ -30,6 +30,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
         this->quant_inds = quant_inds.data();
         double eb = quantizer.get_eb();
+        visited.resize(num_elements);
 
         if (anchor_stride == 0) {                                               // check whether used anchor points
             *dec_data = quantizer.recover(0, this->quant_inds[quant_index++]);  // no anchor points
@@ -37,6 +38,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             recover_anchor_grid(dec_data);  // recover anchor points
             interp_level--;
         }
+        
 
         for (int level = interp_level; level > 0 && level <= interp_level; level--) {
             // set level-wise error bound
@@ -69,7 +71,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                 }
                 interpolation(
                     dec_data, block.get_global_index(), end_idx, interpolators[interp_id],
-                    [&](size_t idx, T &d, T pred) { d = quantizer.recover(pred, quant_inds[quant_index++]); },
+                    [&](size_t idx, T &d, T pred) { d = quantizer.recover(pred, quant_inds[quant_index++]);visited[idx]=1;},
                     direction_sequence_id, stride);
             }
         }
@@ -97,8 +99,10 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         pred_buffer = new T[buffer_len];
         std::cout<<max_dim<<std::endl;
         std::vector<int> quant_inds_vec(num_elements);
+        visited.resize(num_elements);
         quant_inds = quant_inds_vec.data();
         double eb = quantizer.get_eb();
+
         if (anchor_stride == 0) {  // check whether to use anchor points
             quant_inds[quant_index++] = quantizer.quantize_and_overwrite(*data, 0);  // no
         } else {
@@ -145,7 +149,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                 interpolation(
                     data, block.get_global_index(), end_idx, interpolators[interp_id],
                     [&](size_t idx, T &d, T pred) {
-                        quant_inds[quant_index++] = (quantizer.quantize_and_overwrite(d, pred));
+                        quant_inds[quant_index++] = (quantizer.quantize_and_overwrite(d, pred);visited[idx]=1);
                     },
                     direction_sequence_id, stride);
             }
@@ -235,7 +239,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         std::fill(strides.begin(), strides.end(), anchor_stride);
         foreach
             <T, N>(data, 0, begins, original_dimensions, strides, original_dim_offsets,
-                   [&](T *d) { quant_inds[quant_index++] = quantizer.force_save_unpred(*d); });
+                   [&](T *d) { quant_inds[quant_index++] = quantizer.force_save_unpred(*d);visited[d-data]=1; });
     }
 
     void recover_anchor_grid(T *data) {  // recover anchor points. steplength: anchor_stride on each dimension
@@ -245,7 +249,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         foreach
             <T, N>(data, 0, begins, original_dimensions, strides, original_dim_offsets, [&](T *d) {
                 *d = quantizer.recover_unpred();
-                quant_index++;
+                quant_index++;visited[d-data]=1;
             });
     }
 
@@ -502,12 +506,12 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             dim_offsets[i] = original_dim_offsets[i];
             offset += original_dim_offsets[i] * begin_idx[i];
         }
-        //dim_offsets[direction] = stride;
+        dim_offsets[direction] = stride;
         size_t stride2x = 2 * stride;
         if (interp_func == "linear") {
             begins[direction] = 1;
             ends[direction] = n - 1;
-            strides[direction] = 2 * math_stride;
+            strides[direction] = 2;
             foreach
                 <T, N>(data, offset, begins, ends, strides, dim_offsets,
                        [&](T *d) { quantize_func(d - data, *d, interp_linear(*(d - stride), *(d + stride))); });
@@ -541,15 +545,14 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                
                 
                 for(size_t i = begins[0]; i < ends[0]; i += strides[0]){
-                    if(i<3)
-                        std::cout<<"!!!"<<std::endl;
+
                     auto cur_ij_offset = offset + i * dim_offsets[0] + j * dim_offsets[1];
                     size_t buffer_idx = 0;
                     if( i == begins[0]){
                         for (size_t k = begins[2]; k < ends[2]; k += strides[2]) {
                             auto cur_offset =  cur_ij_offset + k;
-                            if (cur_offset+ stride3x>=num_elements or cur_offset < stride3x)
-                               std::cout<<i<<" "<<j<<" "<<k<<std::endl;
+                            if (visited[cur_offset- stride3x]==0 or visited[cur_offset+ stride3x]==0)
+                               std::cout<<"e1 "<<i<<" "<<j<<" "<<k<<" "<<stride3x<<std::endl;
                            cur_buffer_1[buffer_idx] = data[cur_offset -  stride3x];
                            //cur_buffer_1[buffer_idx] = data[0];
                             cur_buffer_2[buffer_idx] = data[cur_offset - stride];
@@ -557,7 +560,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                           cur_buffer_3[buffer_idx] = data[cur_offset + stride];
                            //cur_buffer_3[buffer_idx] = data[0];
                             cur_buffer_4[buffer_idx] = data[cur_offset +  stride3x];
-                            //cur_buffer_4[buffer_idx] = data[0];
+                          //  cur_buffer_4[buffer_idx] = data[0];
                             buffer_idx++;
 
                         }
@@ -573,9 +576,9 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                         buffer_idx = 0;
                         for (size_t k = begins[2]; k < ends[2]; k += strides[2]) {
                             auto cur_offset =  cur_ij_offset + stride3x + k;
-
-                            if (cur_offset>=num_elements)
-                               std::cout<<i<<" "<<j<<" "<<k<<std::endl;
+                            if (visited[cur_offset]==0 )
+                               std::cout<<"e2 "<<i<<" "<<j<<" "<<k<<" "<<cur_offset<<std::endl;
+                           
                            cur_buffer_4[buffer_idx++] = data[cur_offset];
 
                             //cur_buffer_4[buffer_idx++] = data[0];
@@ -716,6 +719,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
     size_t max_dim = 1;
 
     T *interp_buffer_1,*interp_buffer_2,*interp_buffer_3,*interp_buffer_4,*pred_buffer;
+    std::vector<int> visited;
 };
 
 template <class T, uint N, class Quantizer>
