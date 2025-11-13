@@ -574,9 +574,9 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
                             if (cur_offset>=num_elements)
                                std::cout<<i<<" "<<j<<" "<<k<<std::endl;
-                           cur_buffer_4[buffer_idx++] = data[cur_offset];
+                           //cur_buffer_4[buffer_idx++] = data[cur_offset];
 
-                            //cur_buffer_4[buffer_idx++] = data[0];
+                            cur_buffer_4[buffer_idx++] = data[0];
 
                         }
                     }
