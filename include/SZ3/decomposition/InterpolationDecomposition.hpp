@@ -543,10 +543,10 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                     if( i == begins[0]){
                         for (size_t k = begins[2]; k < ends[2]; k += strides[2]) {
                             auto cur_offset =  cur_ij_offset + k;
-                            cur_buffer_1[buffer_idx] = data[cur_offset - 3 * stride];
-                            cur_buffer_2[buffer_idx] = data[cur_offset - stride];
-                            cur_buffer_3[buffer_idx] = data[cur_offset + stride];
-                            cur_buffer_4[buffer_idx] = data[cur_offset + 3 * stride];
+                            cur_buffer_1[buffer_idx] = data[cur_offset -  stride3x];
+                            cur_buffer_2[buffer_idx] = data[cur_offset - stridex];
+                            cur_buffer_3[buffer_idx] = data[cur_offset + stridex];
+                            cur_buffer_4[buffer_idx] = data[cur_offset +  stride3x];
                             buffer_idx++;
 
                         }
@@ -560,7 +560,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
                         buffer_idx = 0;
                         for (size_t k = begins[2]; k < ends[2]; k += strides[2]) {
-                            auto cur_offset =  cur_ij_offset + 3 * stride + k;
+                            auto cur_offset =  cur_ij_offset + stride3x + k;
                             cur_buffer_4[buffer_idx++] = data[cur_offset];
 
                         }
