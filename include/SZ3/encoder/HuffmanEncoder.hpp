@@ -103,6 +103,7 @@ class HuffmanEncoder : public concepts::EncoderInterface<T> {
             throw std::invalid_argument("Huffman bins should not be empty");
         }
          std::cout<<"h2"<<std::endl;
+         std::cout<<num_bin<<" "<<bins[0]<<std::endl;
         init(bins, num_bin);
          std::cout<<"h3"<<std::endl;
         for (unsigned int i = 0; i < huffmanTree->stateNum; i++)
