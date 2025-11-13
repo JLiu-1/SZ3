@@ -183,7 +183,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         assert((anchor_stride & anchor_stride - 1) == 0 && "Anchor stride should be 0 or 2's exponentials");
         num_elements = 1;
         interp_level = -1;
-    void calc_speck_index(size_t idx){
+    size_t calc_speck_index(size_t idx){
         if constexpr (N!=3)
             return 0;
         size_t x = idx / original_dim_offsets[0];
