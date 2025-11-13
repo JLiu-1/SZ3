@@ -263,6 +263,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                                 //    std::cout<<x<<" "<<y<<" "<<z<<" "<<ori_data[idx]<<" "<<data[idx]<<std::endl;
                                 //}
                                 data[idx]+=q_unit*fix_q;
+                                std::cout<<fix<<" "<<ori_data[idx]-data[idx]<<std::endl;
 
                                 quant_inds_vec_post.push_back(fix_q + q_center);
                             }
