@@ -58,13 +58,13 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
         
         auto cmpSize = lossless.compress(buffer, buffer_pos - buffer, cmpData, cmpCap);
         free(buffer);
-        std::cout<<"compress ended."<<std::endl; 
+        //std::cout<<"compress ended."<<std::endl; 
 
         return cmpSize;
     }
 
     T *decompress(const Config &conf, uchar const *cmpData, size_t cmpSize, T *decData) override {
-        std::cout<<"dec star."<<std::endl; 
+        //std::cout<<"dec star."<<std::endl; 
         uchar *buffer = nullptr;
         size_t bufferSize = 0;
         lossless.decompress(cmpData, cmpSize, buffer, bufferSize);
