@@ -450,7 +450,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             const __m256d nine  = _mm256_set1_pd(9.0);
             const __m256d factor = _mm256_set1_pd(1.0 / 16.0);
 
-            for (; i + step <= N; i += step) {
+            for (; i + step <= len; i += step) {
                 __m256d va = _mm256_loadu_pd(a + i);
                 __m256d vb = _mm256_loadu_pd(b + i);
                 __m256d vc = _mm256_loadu_pd(c + i);
