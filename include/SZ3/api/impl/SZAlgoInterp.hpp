@@ -33,6 +33,7 @@ template <class T, uint N>
 void SZ_decompress_Interp(const Config &conf, const uchar *cmpData, size_t cmpSize, T *decData) {
     assert(conf.cmprAlgo == ALGO_INTERP);
     auto cmpDataPos = cmpData;
+    std::cout<<"decomp started"<<std::endl; 
     auto sz = make_compressor_sz_generic<T, N>(
         make_decomposition_interpolation<T, N>(conf, LinearQuantizer<T>(conf.absErrorBound, conf.quantbinCnt / 2)),
         HuffmanEncoder<int>(), Lossless_zstd());
