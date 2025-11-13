@@ -219,7 +219,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                 //scatter(data, stride);
                // timer.stop("Scatter");
                 timer.start();
-                if(N==3){
+                if(N==3 and stride != 1){
                     
                     auto even_len_x =  (original_dimensions[0] - 1)/2 + 1;
                     auto even_len_y =  (original_dimensions[1] - 1)/2 + 1;
