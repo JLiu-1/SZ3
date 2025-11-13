@@ -73,7 +73,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             }
 
             //postfix
-            if(N==3 and stride <=1){
+            if(N==3){
 
 
                 size_t stride2x = stride * 2;
@@ -100,7 +100,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                     }
                    
                 }
-                else{
+                else if (stride ==1 ){
                      
                     size_t offset_x = original_dim_offsets[0], offset_y = original_dim_offsets[1];
                     int q_center = conf.quantbinCnt / 2;
@@ -238,7 +238,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
                 //postfix
 
-            if(N==3 and stride <=1){
+            if(N==3 ){
 
                 size_t stride2x = stride * 2;
                 
@@ -272,7 +272,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                    
                 }
                 //int ele_num = block_size * block_size * block_size;
-                else{
+                else  if (stride ==1 ){
                     
                     double q_unit = 0.01;
                     size_t offset_x = original_dim_offsets[0], offset_y = original_dim_offsets[1];
