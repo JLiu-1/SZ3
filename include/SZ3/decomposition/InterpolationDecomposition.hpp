@@ -464,7 +464,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         return predict_error;
     }
     
-    void avx_interp_cubic(const T * a,const T * b,const T * c,const T * d,T * p, const size_t &len){
+    void avx_cubic_interp_quantize_overwrite(const T * a,const T * b,const T * c,const T * d,T * buf, int64_t * q_inds, const size_t &len){
        // assert(len <= max_dim);
          constexpr bool is_float  = std::is_same_v<T, float>;
         constexpr bool is_double = std::is_same_v<T, double>;
@@ -486,10 +486,70 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                  sum = _mm256_mul_ps(sum, nine); 
                  sum = _mm256_sub_ps(sum, va); 
                 sum = _mm256_sub_ps(sum, vd); 
+                __m256 vpred = _mm256_mul_ps(sum, factor);      
+                __m256 vori = _mm256_loadu_ps(buf + i);  
+                __m256 vdiff = _mm256_sub_ps(vori, vpred); 
+                auto eb = quantizer.get_eb();
+                __m256 veb = _mm256_set1_ps(eb);
+                __m256 ebrec = _mm256_set1_ps(1.0f/eb);
+
+                _mm256_storeu_ps(p + i, sum);
+            }
+        }
+        else if constexpr (is_double) {
+            const size_t step = 4;
+            const __m256d nine  = _mm256_set1_pd(9.0);
+            const __m256d factor = _mm256_set1_pd(1.0 / 16.0);
+
+            for (; i  < len; i += step) {
+                __m256d va = _mm256_loadu_pd(a + i);
+                __m256d vb = _mm256_loadu_pd(b + i);
+                __m256d vc = _mm256_loadu_pd(c + i);
+                __m256d vd = _mm256_loadu_pd(d + i);
+
+                __m256d sum = _mm256_add_pd(vb, vc); 
+                 sum = _mm256_mul_pd(sum, nine); 
+                 sum = _mm256_sub_pd(sum, va); 
+                sum = _mm256_sub_pd(sum, vd); 
 
                
                       
-                sum = _mm256_mul_ps(sum, factor);        
+                sum = _mm256_mul_pd(sum, factor);    
+                _mm256_storeu_pd(p + i, sum);
+            }
+        }
+        /*
+        for (; i < len; i++) {
+            p[i] = (-a[i] + T(9) * b[i] + T(9) * c[i] - d[i]) / T(16);
+        }*/
+
+
+    }
+
+    void avx_cubic_interp_recover(const T * a,const T * b,const T * c,const T * d,T * buf, int * q_inds,const size_t &len){
+       // assert(len <= max_dim);
+         constexpr bool is_float  = std::is_same_v<T, float>;
+        constexpr bool is_double = std::is_same_v<T, double>;
+
+        size_t i = 0;
+
+        if constexpr (is_float) {
+            const size_t step = 8;
+            const __m256 nine  = _mm256_set1_ps(9.0f);
+            const __m256 factor = _mm256_set1_ps(1.0f / 16.0f);
+
+            for (; i  < len; i += step) {
+                __m256 va = _mm256_loadu_ps(a + i);
+                __m256 vb = _mm256_loadu_ps(b + i);
+                __m256 vc = _mm256_loadu_ps(c + i);
+                __m256 vd = _mm256_loadu_ps(d + i);
+
+                 __m256 sum = _mm256_add_ps(vb, vc); 
+                 sum = _mm256_mul_ps(sum, nine); 
+                 sum = _mm256_sub_ps(sum, va); 
+                sum = _mm256_sub_ps(sum, vd); 
+                __m256 vpred = _mm256_mul_ps(sum, factor);      
+                __m256 vori = _mm256_loadu_ps(buf + i);  
 
                 _mm256_storeu_ps(p + i, sum);
             }
@@ -537,7 +597,6 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             std::is_same_v<Tag, CompressTag>;
         constexpr bool is_decompress =
             std::is_same_v<Tag, DecompressTag>;
-        std::cout<<is_compress<<std::endl;
 
 
         for (size_t i = 0; i < N; i++) {
@@ -642,7 +701,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
                         pred_buffer [buffer_idx++] = data[cur_ij_offset + k];
                     
-                    //avx_cubic_interp_quantize_overwrite(cur_buffer_1,cur_buffer_2,cur_buffer_3,cur_buffer_4,pred_buffer, vector_len);
+                    avx_cubic_interp_quantize_overwrite(cur_buffer_1,cur_buffer_2,cur_buffer_3,cur_buffer_4,pred_buffer, vector_len);
                     buffer_idx = 0;
                     for (size_t k = begins[2]; k < ends[2]; k += strides[2]){
                         auto pred = pred_buffer[buffer_idx++];
@@ -710,7 +769,6 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             std::is_same_v<Tag, CompressTag>;
         constexpr bool is_decompress =
             std::is_same_v<Tag, DecompressTag>;
-        std::cout<<is_compress<<std::endl;
         for (size_t i = 0; i < N; i++) {
             if (end_idx[i] < begin_idx[i]) return 0;
         }
