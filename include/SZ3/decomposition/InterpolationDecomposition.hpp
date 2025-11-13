@@ -108,7 +108,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         interp_buffer_3 = new T[buffer_len];
         interp_buffer_4 = new T[buffer_len];
         pred_buffer = new T[buffer_len];
-        std::cout<<max_dim<<std::endl;
+        //std::cout<<max_dim<<std::endl;
         std::vector<int> quant_inds_vec(num_elements);
         //visited.resize(num_elements);
         quant_inds = quant_inds_vec.data();
@@ -651,6 +651,165 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         return predict_error;
     }
 
+    template <class QuantizeFunc>
+    double interpolation_1d_simd_3d_y(T *data, const std::array<size_t, N> &begin_idx,
+                                              const std::array<size_t, N> &end_idx, const size_t &direction,
+                                              std::array<size_t, N> &strides, const size_t &math_stride,
+                                              const std::string &interp_func, QuantizeFunc &&quantize_func) {
+        assert(direction==1);
+        for (size_t i = 0; i < N; i++) {
+            if (end_idx[i] < begin_idx[i]) return 0;
+        }
+        size_t math_begin_idx = begin_idx[direction], math_end_idx = end_idx[direction];
+        size_t n = (math_end_idx - math_begin_idx) / math_stride + 1;
+        if (n <= 1) {
+            return 0;
+        }
+        double predict_error = 0.0;
+        size_t offset = 0;
+        size_t stride = math_stride * original_dim_offsets[direction];
+        std::array<size_t, N> begins, ends, dim_offsets;
+        for (size_t i = 0; i < N; i++) {
+            begins[i] = 0;
+            ends[i] = end_idx[i] - begin_idx[i] + 1;
+            dim_offsets[i] = original_dim_offsets[i];
+            offset += original_dim_offsets[i] * begin_idx[i];
+        }
+        dim_offsets[direction] = stride;
+        size_t stride2x = 2 * stride;
+        if (interp_func == "linear") {
+            begins[direction] = 1;
+            ends[direction] = n - 1;
+            strides[direction] = 2;
+            foreach
+                <T, N>(data, offset, begins, ends, strides, dim_offsets,
+                       [&](T *d) { quantize_func(d - data, *d, interp_linear(*(d - stride), *(d + stride))); });
+            if (n % 2 == 0) {
+                begins[direction] = n - 1;
+                ends[direction] = n;
+                foreach
+                    <T, N>(data, offset, begins, ends, strides, dim_offsets, [&](T *d) {
+                        if (n < 3)
+                            quantize_func(d - data, *d, *(d - stride));
+                        else
+                            quantize_func(d - data, *d, interp_linear1(*(d - stride2x), *(d - stride)));
+                    });
+            }
+        } else {
+            size_t stride3x = 3 * stride;
+            size_t i_start = 3;
+            begins[direction] = i_start;
+            ends[direction] = (n >= 3) ? (n - 3) : 0;
+            strides[direction] = 2;
+            size_t vector_len = ends[2] > begins[2] ? (ends[2]-begins[2]-1)/strides[2] + 1 : 0;
+
+           
+            for (size_t i = begins[0]; i < ends[0]; i += strides[0]) {
+                auto cur_buffer_1 = interp_buffer_1;
+                auto cur_buffer_2 = interp_buffer_2;
+                auto cur_buffer_3 = interp_buffer_3;
+                auto cur_buffer_4 = interp_buffer_4; 
+                
+
+               
+                
+                for(size_t j = begins[1]; j < ends[1]; j += strides[1]){
+
+                    auto cur_ij_offset = offset + i * dim_offsets[0] + j * dim_offsets[1];
+                    size_t buffer_idx = 0;
+                    if( j == begins[1]){
+                        for (size_t k = begins[2]; k < ends[2]; k += strides[2]) {
+                            auto cur_offset =  cur_ij_offset + k;
+                            //if (visited[cur_offset- stride3x]==0 or visited[cur_offset+ stride3x]==0)
+                            //   std::cout<<"e1 "<<i<<" "<<j<<" "<<k<<" "<<stride3x<<std::endl;
+                           cur_buffer_1[buffer_idx] = data[cur_offset -  stride3x];
+                           //cur_buffer_1[buffer_idx] = data[0];
+                            cur_buffer_2[buffer_idx] = data[cur_offset - stride];
+                           // cur_buffer_2[buffer_idx] = data[0];
+                          cur_buffer_3[buffer_idx] = data[cur_offset + stride];
+                           //cur_buffer_3[buffer_idx] = data[0];
+                            cur_buffer_4[buffer_idx] = data[cur_offset +  stride3x];
+                          //  cur_buffer_4[buffer_idx] = data[0];
+                            buffer_idx++;
+
+                        }
+                    }
+                    
+                    else{
+                        auto temp_buffer = cur_buffer_1;
+                        cur_buffer_1 = cur_buffer_2;
+                        cur_buffer_2 = cur_buffer_3;
+                        cur_buffer_3 = cur_buffer_4;
+                        cur_buffer_4 = temp_buffer;
+
+                        buffer_idx = 0;
+                        for (size_t k = begins[2]; k < ends[2]; k += strides[2]) {
+                            auto cur_offset =  cur_ij_offset + stride3x + k;
+                           // if (visited[cur_offset]==0 )
+                            //   std::cout<<"e2 "<<i<<" "<<j<<" "<<k<<" "<<cur_offset<<std::endl;
+                           
+                           cur_buffer_4[buffer_idx++] = data[cur_offset];
+
+                            //cur_buffer_4[buffer_idx++] = data[0];
+
+                        }
+                    }
+                    
+                    avx_interp_cubic(cur_buffer_1,cur_buffer_2,cur_buffer_3,cur_buffer_4,pred_buffer, vector_len);
+                    buffer_idx = 0;
+                    for (size_t k = begins[2]; k < ends[2]; k += strides[2]){
+                        auto pred = pred_buffer[buffer_idx++];
+                        auto d = data + cur_ij_offset + k;
+                      // if (d-data < 0 || d-data>=num_elements)
+                      //      std::cout<<i<<" "<<j<<" "<<k<<std::endl;
+                        quantize_func(d - data, *d,pred);
+
+                    }
+                    
+                }
+            }
+            std::vector<size_t> boundaries;
+            boundaries.push_back(1);
+            if (n % 2 == 1 && n > 3) {
+                boundaries.push_back(n - 2);
+            }
+            if (n % 2 == 0 && n > 4) {
+                boundaries.push_back(n - 3);
+            }
+            if (n % 2 == 0 && n > 2) {
+                boundaries.push_back(n - 1);
+            }
+            for (auto boundary : boundaries) {
+                begins[direction] = boundary;
+                ends[direction] = boundary + 1;
+                foreach
+                    <T, N>(data, offset, begins, ends, strides, dim_offsets, [&](T *d) {
+                        if (boundary >= 3) {
+                            if (boundary + 3 < n)
+                                quantize_func(
+                                    d - data, *d,
+                                    interp_cubic(*(d - stride3x), *(d - stride), *(d + stride), *(d + stride3x)));
+                            else if (boundary + 1 < n)
+                                quantize_func(d - data, *d,
+                                              interp_quad_2(*(d - stride3x), *(d - stride), *(d + stride)));
+                            else
+                                quantize_func(d - data, *d, interp_linear1(*(d - stride3x), *(d - stride)));
+                        } else {
+                            if (boundary + 3 < n)
+                                quantize_func(d - data, *d,
+                                              interp_quad_1(*(d - stride), *(d + stride), *(d + stride3x)));
+                            else if (boundary + 1 < n)
+                                quantize_func(d - data, *d, interp_linear(*(d - stride), *(d + stride)));
+                            else
+                                quantize_func(d - data, *d, *(d - stride));
+                        }
+                    });
+            }
+        }
+        return predict_error;
+    }
+
+
 
 
     template <class QuantizeFunc>
@@ -691,6 +850,8 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             }
             if(N==3 &&stride == 1 && dims[0] ==0)
                 predict_error += interpolation_1d_simd_3d_x(data, begin_idx, end_idx, dims[0], strides, stride, interp_func, quantize_func);
+            else if(N==3 &&stride == 1 && dims[0] ==0)
+                predict_error += interpolation_1d_simd_3d_y(data, begin_idx, end_idx, dims[0], strides, stride, interp_func, quantize_func);
             else
                 predict_error += interpolation_1d_fastest_dim_first(data, begin_idx, end_idx, dims[0], strides, stride, interp_func, quantize_func);
 
@@ -700,6 +861,8 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                 strides[dims[i - 1]] = stride;
                 if(N==3 &&stride == 1 && dims[i] == 0)
                     predict_error += interpolation_1d_simd_3d_x(data, begin_idx, end_idx, dims[i], strides, stride, interp_func, quantize_func);
+                else if(N==3 &&stride == 1 && dims[i] == 1)
+                    predict_error += interpolation_1d_simd_3d_y(data, begin_idx, end_idx, dims[i], strides, stride, interp_func, quantize_func);
                 else
                     predict_error += interpolation_1d_fastest_dim_first(data, begin_idx, end_idx, dims[i], strides, stride, interp_func, quantize_func);
             }
