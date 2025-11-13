@@ -257,6 +257,9 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                                 size_t idx = x * offset_x + y * offset_y + z;
                                 T fix = ori_data[idx]-data[idx];
                                 int fix_q =(int)(fix/q_unit);
+                                if(fix_q > 1000000){
+                                    std::cout<<x<<" "<<y<<" "<<z<<" "<<ori_data[idx]<<" "data[idx]<<std::endl;
+                                }
 
                                 quant_inds_vec_post.push_back(fix_q + q_center);
                             }
