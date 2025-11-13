@@ -79,7 +79,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                 double q_unit = 0.01;
 
                 int raw_block_size = 8;//or 8 * stride
-                int block_size = raw_bloc_ksize - raw_block_size % stride;
+                int block_size = raw_block_size - raw_block_size % stride;
                 if (block_size==0)
                     block_size = stride;
 
