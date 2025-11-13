@@ -19,7 +19,7 @@ size_t SZ_compress_Interp(Config &conf, T *data, uchar *cmpData, size_t cmpCap) 
     assert(conf.cmprAlgo == ALGO_INTERP);
     calAbsErrorBound(conf, data);
     if (conf.interpAnchorStride < 0) {  // set default anchor stride
-        std::array<size_t, 4> anchor_strides = {4096, 128, 32, 16};
+        std::array<size_t, 4> anchor_strides = {4096, 128, 8, 16};
         conf.interpAnchorStride = anchor_strides[N - 1];
     }
    // std::cout<<"start"<<std::endl;
