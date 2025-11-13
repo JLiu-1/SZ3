@@ -572,7 +572,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                         for (size_t k = begins[2]; k < ends[2]; k += strides[2]) {
                             auto cur_offset =  cur_ij_offset + stride3x + k;
 
-                            if (cur_offset>num_elements)
+                            if (cur_offset>=num_elements)
                                std::cout<<i<<" "<<j<<" "<<k<<std::endl;
                            cur_buffer_4[buffer_idx++] = data[cur_offset];
 
