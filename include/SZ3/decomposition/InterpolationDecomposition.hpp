@@ -39,19 +39,19 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
         for (int level = interp_level; level > 0 && level <= interp_level; level--) {
             // set level-wise error bound
+            double cur_eb = eb;
             if (eb_alpha < 0) {
                 if (level >= 3) {
-                    quantizer.set_eb(eb * eb_ratio);
-                } else {
-                    quantizer.set_eb(eb);
-                }
+                    cur_eb = eb * eb_ratio;
+                } 
             } else if (eb_alpha >= 1) {
                 double cur_ratio = pow(eb_alpha, level - 1);
                 if (cur_ratio > eb_beta) {
                     cur_ratio = eb_beta;
                 }
-                quantizer.set_eb(eb / cur_ratio);
+                cur_eb = eb / cur_ratio;
             }
+            quantizer.set_eb(cur_eb);
             size_t stride = 1U << (level - 1);
             auto interp_block_size = blocksize * stride;
             auto inter_block_range = std::make_shared<multi_dimensional_range<T, N>>(
@@ -79,11 +79,10 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                 double q_unit = 0.01;
 
                 int raw_block_size = 8;//or 8 * stride
-                int block_size = raw_blocksize - raw_blocksize % stride;
+                int block_size = raw_bloc_ksize - raw_block_size % stride;
                 if (block_size==0)
                     block_size = stride;
 
-                int block_size = 8;
                 size_t offset_x = original_dim_offsets[0], offset_y = original_dim_offsets[1];
                 int q_center = conf.quantbinCnt / 2;
                 for(int x_start=0; x_start+block_size <=conf.dims[0];x_start+=block_size){
@@ -179,9 +178,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             if (eb_alpha < 0) {
                 if (level >= 3) {
                     cur_eb = eb * eb_ratio;
-                } else {
-                    cur_eb = eb;
-                }
+                } 
             } else if (eb_alpha >= 1) {
                 double cur_ratio = pow(eb_alpha, level - 1);
                 if (cur_ratio > eb_beta) {
@@ -226,7 +223,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                 double q_unit = 0.01;
 
                 int raw_block_size = 8;//or 8 * stride
-                int block_size = raw_blocksize - raw_blocksize % stride;
+                int block_size = raw_block_size - raw_block_size % stride;
                 if (block_size==0)
                     block_size = stride;
                 //int ele_num = block_size * block_size * block_size;
@@ -324,6 +321,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                         for(int z_start=0; z_start+block_size <=conf.dims[2];z_start+=block_size){
                             double upfix_max = 2 * eb, downfix_min = -2 * eb;
                             double agg_err = 0.0;
+                            size_t ele_num = 0;
                             for(int x = x_start; x < x_start + block_size ; x+=stride){
                                 for(int y = y_start; y < y_start + block_size ; y+=stride){
                                     for(int z = z_start; z < z_start + block_size ; z+=stride){
@@ -334,6 +332,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
                                         upfix_max = std::min(upfix_max,ori_data[idx] + eb - data[idx]);
                                         downfix_min = std::max(downfix_min, ori_data[idx] - eb - data[idx]);
+                                        ele_num++;
                                     }
                                 }
                             }
