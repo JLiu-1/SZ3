@@ -504,7 +504,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         auto even_len = len - odd_len;
 
         if(even_len < 2)
-            p[even_len] = (buf[0])
+            p[even_len] = (buf[0]);
 
         else if(even_len < 3)
             p[even_len] = interp_linear(buf[0], buf[1]);
@@ -538,7 +538,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             const __m256d factor = _mm256_set1_pd(1.0 / 16.0);
 
             for (; i + 3 < len; i += step) {
-                __m256d va = _mm256_loadu_pd(buff + i);
+                __m256d va = _mm256_loadu_pd(buf + i);
                 __m256d vb = _mm256_loadu_pd(buf + i + 1);
                 __m256d vc = _mm256_loadu_pd(buf + i + 2);
                 __m256d vd = _mm256_loadu_pd(buf + i + 3);
@@ -956,19 +956,19 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                     size_t even_len = n - n/2;
                         
                     for (size_t k = 0; k < n; k += 1) {
-                        auto cur_offset = cur_offset + k * dim_offsets[2];
+                        auto cur_offset = cur_ij_offset + k * dim_offsets[2];
                         cur_buffer[(k%2)*even_len + k/2] = data[cur_offset];
                     }
                     
                     avx_interp_cubic_1D(cur_buffer,pred_buffer, vector_len);
-                    size_t idx_start = 1;
+                    size_t cur_idx = 1;
                     for (size_t k = even_len; k < n; k ++){
                         auto pred = pred_buffer[k];
-                        auto d = data + cur_ij_offset + (idx_start) * dim_offsets[2];
+                        auto d = data + cur_ij_offset + (cur_idx) * dim_offsets[2];
                       // if (d-data < 0 || d-data>=num_elements)
                       //      std::cout<<i<<" "<<j<<" "<<k<<std::endl;
                         quantize_func(d - data, *d,pred);
-                        idx+=2;
+                        cur_idx+=2;
 
                     }
                     
