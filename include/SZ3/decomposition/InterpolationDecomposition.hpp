@@ -75,60 +75,79 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             //postfix
             if(N==3){
 
+
                 size_t stride2x = stride * 2;
                 double q_unit = 0.01;
 
                 int raw_block_size = 8;//or 8 * stride
                 int block_size = raw_block_size - raw_block_size % stride;
-                if (block_size==0)
-                    block_size = stride;
-
-                size_t offset_x = original_dim_offsets[0], offset_y = original_dim_offsets[1];
-                int q_center = conf.quantbinCnt / 2;
-                for(int x_start=0; x_start+block_size <=conf.dims[0];x_start+=block_size){
-                    for(int y_start=0; y_start+block_size <=conf.dims[1];y_start+=block_size){
-                        for(int z_start=0; z_start+block_size <=conf.dims[2];z_start+=block_size){
-                           
-                            int fix_q = quant_inds_post[quant_index++] - q_center;
-                            double a = 1.0 + fix_q * q_unit;
-                            for(int x = x_start; x < x_start + block_size ; x+=stride){
-                                for(int y = y_start; y < y_start + block_size ; y+=stride){
-                                    for(int z = z_start; z < z_start + block_size ; z+=stride){
-                                        if( x % stride2x == 0 &&  y % stride2x == 0 &&  z % stride2x == 0)
-                                            continue;
-                                        size_t idx = x * offset_x + y * offset_y + z;
-                                        dec_data[idx] *= a;
-                                    }
-                                }
+                if (block_size<=stride){
+                    double q_unit = 0.05 * cur_eb;
+                    int q_center = conf.quantbinCnt / 2;
+                    size_t offset_x = original_dim_offsets[0], offset_y = original_dim_offsets[1];
+                    //point-wise double-quantization
+                    for(int x=0; x<=conf.dims[0];x+=stride){
+                        for(int y=0; y <=conf.dims[1];y+=stride){
+                            for(int z=0; z<=conf.dims[2];z+=stride){
+                                if( x % stride2x == 0 &&  y % stride2x == 0 &&  z % stride2x == 0)
+                                    continue;
+                                size_t idx = x * offset_x + y * offset_y + z;
+                                int fix_q = quant_inds_post[quant_index++] - q_center;
+                                double fix = fix_q * q_unit;
+                                dec_data[idx] += fix;
                             }
-
                         }
                     }
+                   
                 }
-
-                
-                q_unit = 0.05 * cur_eb;
-
-               // int block_size = 8;
-                //size_t offset_x = original_dim_offsets[0], offset_y = original_dim_offsets[1];
-               // int q_center = conf.quantbinCnt / 2;
-                //size_t fq_idx = conf.num;
-                for(int x_start=0; x_start+block_size <=conf.dims[0];x_start+=block_size){
-                    for(int y_start=0; y_start+block_size <=conf.dims[1];y_start+=block_size){
-                        for(int z_start=0; z_start+block_size <=conf.dims[2];z_start+=block_size){
-                            int fix_q = quant_inds_post[quant_index++] - q_center;
-                            double fix = fix_q * q_unit;
-                            for(int x = x_start; x < x_start + block_size ; x+=stride){
-                                for(int y = y_start; y < y_start + block_size ; y+=stride){
-                                    for(int z = z_start; z < z_start + block_size ; z+=stride){
-                                        if( x % stride2x == 0 &&  y % stride2x == 0 &&  z % stride2x == 0)
-                                            continue;
-                                        size_t idx = x * offset_x + y * offset_y + z;
-                                        dec_data[idx] += fix;
+                else{
+                    size_t offset_x = original_dim_offsets[0], offset_y = original_dim_offsets[1];
+                    int q_center = conf.quantbinCnt / 2;
+                    for(int x_start=0; x_start+block_size <=conf.dims[0];x_start+=block_size){
+                        for(int y_start=0; y_start+block_size <=conf.dims[1];y_start+=block_size){
+                            for(int z_start=0; z_start+block_size <=conf.dims[2];z_start+=block_size){
+                               
+                                int fix_q = quant_inds_post[quant_index++] - q_center;
+                                double a = 1.0 + fix_q * q_unit;
+                                for(int x = x_start; x < x_start + block_size ; x+=stride){
+                                    for(int y = y_start; y < y_start + block_size ; y+=stride){
+                                        for(int z = z_start; z < z_start + block_size ; z+=stride){
+                                            if( x % stride2x == 0 &&  y % stride2x == 0 &&  z % stride2x == 0)
+                                                continue;
+                                            size_t idx = x * offset_x + y * offset_y + z;
+                                            dec_data[idx] *= a;
+                                        }
                                     }
                                 }
-                            }
 
+                            }
+                        }
+                    }
+
+                    
+                    q_unit = 0.05 * cur_eb;
+
+                   // int block_size = 8;
+                    //size_t offset_x = original_dim_offsets[0], offset_y = original_dim_offsets[1];
+                   // int q_center = conf.quantbinCnt / 2;
+                    //size_t fq_idx = conf.num;
+                    for(int x_start=0; x_start+block_size <=conf.dims[0];x_start+=block_size){
+                        for(int y_start=0; y_start+block_size <=conf.dims[1];y_start+=block_size){
+                            for(int z_start=0; z_start+block_size <=conf.dims[2];z_start+=block_size){
+                                int fix_q = quant_inds_post[quant_index++] - q_center;
+                                double fix = fix_q * q_unit;
+                                for(int x = x_start; x < x_start + block_size ; x+=stride){
+                                    for(int y = y_start; y < y_start + block_size ; y+=stride){
+                                        for(int z = z_start; z < z_start + block_size ; z+=stride){
+                                            if( x % stride2x == 0 &&  y % stride2x == 0 &&  z % stride2x == 0)
+                                                continue;
+                                            size_t idx = x * offset_x + y * offset_y + z;
+                                            dec_data[idx] += fix;
+                                        }
+                                    }
+                                }
+
+                            }
                         }
                     }
                 }
@@ -220,145 +239,165 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             if(N==3){
 
                 size_t stride2x = stride * 2;
-                double q_unit = 0.01;
+                
 
                 int raw_block_size = 8;//or 8 * stride
                 int block_size = raw_block_size - raw_block_size % stride;
 
-                if (block_size==0)
-                    block_size = stride;
-                std::cout<<stride<<" "<<block_size<<std::endl;
-                //int ele_num = block_size * block_size * block_size;
-                size_t offset_x = original_dim_offsets[0], offset_y = original_dim_offsets[1];
-                int q_center = conf.quantbinCnt / 2;
-                for(int x_start=0; x_start+block_size <=conf.dims[0];x_start+=block_size){
-                    for(int y_start=0; y_start+block_size <=conf.dims[1];y_start+=block_size){
-                        for(int z_start=0; z_start+block_size <=conf.dims[2];z_start+=block_size){
-                            double mean = 0.0, ori_mean = 0.0;
-
-                            double a_min = 0, a_max = 2.0;
-                            size_t ele_num = 0;
-                            for(int x = x_start; x < x_start + block_size ; x+=stride){
-                                for(int y = y_start; y < y_start + block_size ; y+=stride){
-                                    for(int z = z_start; z < z_start + block_size ; z+=stride){
-                                        if( x % stride2x == 0 &&  y % stride2x == 0 &&  z % stride2x == 0)
-                                            continue;
-                                        size_t idx = x * offset_x + y * offset_y + z;
-                                        double ori = ori_data[idx], dec = data[idx];
-                                        mean += dec;
-                                        ori_mean += ori;
-
-                                        if(dec>0){
-                                            a_max = std::min(a_max,(ori+eb)/dec);
-                                            a_min = std::max(a_min,(ori-eb)/dec);
-                                        }
-                                        else if(dec<0){
-                                            a_max = std::min(a_max,(ori-eb)/dec);
-                                            a_min = std::max(a_min,(ori+eb)/dec);
-                                        }
-                                        ele_num++;
-                                    }
-                                }
+                if (block_size<=stride){
+                    double q_unit = 0.05 * cur_eb;
+                    int q_center = conf.quantbinCnt / 2;
+                    size_t offset_x = original_dim_offsets[0], offset_y = original_dim_offsets[1];
+                    //point-wise double-quantization
+                    for(int x=0; x<=conf.dims[0];x+=stride){
+                        for(int y=0; y <=conf.dims[1];y+=stride){
+                            for(int z=0; z<=conf.dims[2];z+=stride){
+                                if( x % stride2x == 0 &&  y % stride2x == 0 &&  z % stride2x == 0)
+                                    continue;
+                                size_t idx = x * offset_x + y * offset_y + z;
+                                T fix = ori_data[idx]-data[idx];
+                                int fix_q =(int)(fix/q_unit);
+                                quant_inds_vec_post.push_back(fix_q + q_center);
                             }
-
-                            mean /= ele_num;
-                            ori_mean /= ele_num;
-                            double dec_std=0.0, ori_std = 0.0;
-
-                            for(int x = x_start; x < x_start + block_size ; x+=stride){
-                                for(int y = y_start; y < y_start + block_size ; y+=stride){
-                                    for(int z = z_start; z < z_start + block_size ; z+=stride){
-                                        if( x % stride2x == 0 &&  y % stride2x == 0 &&  z % stride2x == 0)
-                                            continue;
-                                        size_t idx = x * offset_x + y * offset_y + z;
-                                        double ori = ori_data[idx], dec = data[idx];
-                                        dec_std += (dec-mean) * (dec-mean);
-                                        ori_std += (ori-ori_mean) * (ori-ori_mean);
-                                    }
-                                }
-                            }
-                            dec_std = std::sqrt(dec_std);
-                            ori_std = std::sqrt(ori_std);
-
-                            double a = dec_std !=0 ? ori_std/dec_std : 1.0;
-                            if (a_max>=a_min){
-                                a = std::max(a,a_max);
-                                a = std::min(a,a_min);
-                            }
-                            else{
-                                a = 1.0;
-                            }
-
-                            double fix = a - 1.0;
-                            int fix_q =(int)(fix/q_unit);
-                            a = 1.0 + fix_q * q_unit;
-                            quant_inds_vec_post.push_back(fix_q + q_center);
-                            for(int x = x_start; x < x_start + block_size ; x+=stride){
-                                for(int y = y_start; y < y_start + block_size ; y+=stride){
-                                    for(int z = z_start; z < z_start + block_size ; z+=stride){
-                                        if( x % stride2x == 0 &&  y % stride2x == 0 &&  z % stride2x == 0)
-                                            continue;
-                                        size_t idx = x * offset_x + y * offset_y + z;
-                                        data[idx] *= a;
-                                    }
-                                }
-                            }
-
                         }
                     }
+                   
                 }
+                //int ele_num = block_size * block_size * block_size;
+                else{
+                    double q_unit = 0.01;
+                    size_t offset_x = original_dim_offsets[0], offset_y = original_dim_offsets[1];
+                    int q_center = conf.quantbinCnt / 2;
+                    for(int x_start=0; x_start+block_size <=conf.dims[0];x_start+=block_size){
+                        for(int y_start=0; y_start+block_size <=conf.dims[1];y_start+=block_size){
+                            for(int z_start=0; z_start+block_size <=conf.dims[2];z_start+=block_size){
+                                double mean = 0.0, ori_mean = 0.0;
+
+                                double a_min = 0, a_max = 2.0;
+                                size_t ele_num = 0;
+                                for(int x = x_start; x < x_start + block_size ; x+=stride){
+                                    for(int y = y_start; y < y_start + block_size ; y+=stride){
+                                        for(int z = z_start; z < z_start + block_size ; z+=stride){
+                                            if( x % stride2x == 0 &&  y % stride2x == 0 &&  z % stride2x == 0)
+                                                continue;
+                                            size_t idx = x * offset_x + y * offset_y + z;
+                                            double ori = ori_data[idx], dec = data[idx];
+                                            mean += dec;
+                                            ori_mean += ori;
+
+                                            if(dec>0){
+                                                a_max = std::min(a_max,(ori+eb)/dec);
+                                                a_min = std::max(a_min,(ori-eb)/dec);
+                                            }
+                                            else if(dec<0){
+                                                a_max = std::min(a_max,(ori-eb)/dec);
+                                                a_min = std::max(a_min,(ori+eb)/dec);
+                                            }
+                                            ele_num++;
+                                        }
+                                    }
+                                }
+                                if(ele_num==0)
+
+                                mean /= ele_num;
+                                ori_mean /= ele_num;
+                                double dec_std=0.0, ori_std = 0.0;
+
+                                for(int x = x_start; x < x_start + block_size ; x+=stride){
+                                    for(int y = y_start; y < y_start + block_size ; y+=stride){
+                                        for(int z = z_start; z < z_start + block_size ; z+=stride){
+                                            if( x % stride2x == 0 &&  y % stride2x == 0 &&  z % stride2x == 0)
+                                                continue;
+                                            size_t idx = x * offset_x + y * offset_y + z;
+                                            double ori = ori_data[idx], dec = data[idx];
+                                            dec_std += (dec-mean) * (dec-mean);
+                                            ori_std += (ori-ori_mean) * (ori-ori_mean);
+                                        }
+                                    }
+                                }
+                                dec_std = std::sqrt(dec_std);
+                                ori_std = std::sqrt(ori_std);
+
+                                double a = dec_std !=0 ? ori_std/dec_std : 1.0;
+                                if (a_max>=a_min){
+                                    a = std::max(a,a_max);
+                                    a = std::min(a,a_min);
+                                }
+                                else{
+                                    a = 1.0;
+                                }
+
+                                double fix = a - 1.0;
+                                int fix_q =(int)(fix/q_unit);
+                                a = 1.0 + fix_q * q_unit;
+                                quant_inds_vec_post.push_back(fix_q + q_center);
+                                for(int x = x_start; x < x_start + block_size ; x+=stride){
+                                    for(int y = y_start; y < y_start + block_size ; y+=stride){
+                                        for(int z = z_start; z < z_start + block_size ; z+=stride){
+                                            if( x % stride2x == 0 &&  y % stride2x == 0 &&  z % stride2x == 0)
+                                                continue;
+                                            size_t idx = x * offset_x + y * offset_y + z;
+                                            data[idx] *= a;
+                                        }
+                                    }
+                                }
+
+                            }
+                        }
+                    }
 
 
 
 
                 
-                q_unit = 0.05 * cur_eb;
+                    q_unit = 0.05 * cur_eb;
 
-                //int block_size = 8;
-                //int ele_num = block_size * block_size * block_size;
-                //size_t offset_x = original_dim_offsets[0], offset_y = original_dim_offsets[1];
-                //int q_center = conf.quantbinCnt / 2;
-                for(int x_start=0; x_start+block_size <=conf.dims[0];x_start+=block_size){
-                    for(int y_start=0; y_start+block_size <=conf.dims[1];y_start+=block_size){
-                        for(int z_start=0; z_start+block_size <=conf.dims[2];z_start+=block_size){
-                            double upfix_max = 2 * eb, downfix_min = -2 * eb;
-                            double agg_err = 0.0;
-                            size_t ele_num = 0;
-                            for(int x = x_start; x < x_start + block_size ; x+=stride){
-                                for(int y = y_start; y < y_start + block_size ; y+=stride){
-                                    for(int z = z_start; z < z_start + block_size ; z+=stride){
-                                        if( x % stride2x == 0 &&  y % stride2x == 0 &&  z % stride2x == 0)
-                                            continue;
-                                        size_t idx = x * offset_x + y * offset_y + z;
-                                        agg_err += ori_data[idx] - data[idx];
+                    //int block_size = 8;
+                    //int ele_num = block_size * block_size * block_size;
+                    //size_t offset_x = original_dim_offsets[0], offset_y = original_dim_offsets[1];
+                    //int q_center = conf.quantbinCnt / 2;
+                    for(int x_start=0; x_start+block_size <=conf.dims[0];x_start+=block_size){
+                        for(int y_start=0; y_start+block_size <=conf.dims[1];y_start+=block_size){
+                            for(int z_start=0; z_start+block_size <=conf.dims[2];z_start+=block_size){
+                                double upfix_max = 2 * eb, downfix_min = -2 * eb;
+                                double agg_err = 0.0;
+                                size_t ele_num = 0;
+                                for(int x = x_start; x < x_start + block_size ; x+=stride){
+                                    for(int y = y_start; y < y_start + block_size ; y+=stride){
+                                        for(int z = z_start; z < z_start + block_size ; z+=stride){
+                                            if( x % stride2x == 0 &&  y % stride2x == 0 &&  z % stride2x == 0)
+                                                continue;
+                                            size_t idx = x * offset_x + y * offset_y + z;
+                                            agg_err += ori_data[idx] - data[idx];
 
-                                        upfix_max = std::min(upfix_max,ori_data[idx] + eb - data[idx]);
-                                        downfix_min = std::max(downfix_min, ori_data[idx] - eb - data[idx]);
-                                        ele_num++;
+                                            upfix_max = std::min(upfix_max,ori_data[idx] + eb - data[idx]);
+                                            downfix_min = std::max(downfix_min, ori_data[idx] - eb - data[idx]);
+                                            ele_num++;
+                                        }
                                     }
                                 }
-                            }
-                            double fix = agg_err / ele_num;
-                            if (fix>=0){
-                                fix = std::min(fix,upfix_max);
-                            }
-                            else{
-                                fix = std::max(fix,downfix_min);
-                            }
-                            int fix_q =(int)(fix/q_unit);
-                            fix = fix_q * q_unit;
-                            quant_inds_vec_post.push_back(fix_q+q_center);
-                            for(int x = x_start; x < x_start + block_size ; x+=stride){
-                                for(int y = y_start; y < y_start + block_size ; y+=stride){
-                                    for(int z = z_start; z < z_start + block_size ; z+=stride){
-                                        if( x % stride2x == 0 &&  y % stride2x == 0 &&  z % stride2x == 0)
-                                            continue;
-                                        size_t idx = x * offset_x + y * offset_y + z;
-                                        data[idx] += fix;
+                                double fix = agg_err / ele_num;
+                                if (fix>=0){
+                                    fix = std::min(fix,upfix_max);
+                                }
+                                else{
+                                    fix = std::max(fix,downfix_min);
+                                }
+                                int fix_q =(int)(fix/q_unit);
+                                fix = fix_q * q_unit;
+                                quant_inds_vec_post.push_back(fix_q+q_center);
+                                for(int x = x_start; x < x_start + block_size ; x+=stride){
+                                    for(int y = y_start; y < y_start + block_size ; y+=stride){
+                                        for(int z = z_start; z < z_start + block_size ; z+=stride){
+                                            if( x % stride2x == 0 &&  y % stride2x == 0 &&  z % stride2x == 0)
+                                                continue;
+                                            size_t idx = x * offset_x + y * offset_y + z;
+                                            data[idx] += fix;
+                                        }
                                     }
                                 }
-                            }
 
+                            }
                         }
                     }
                 }
