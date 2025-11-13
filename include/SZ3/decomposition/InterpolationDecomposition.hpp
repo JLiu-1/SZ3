@@ -224,6 +224,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
                 int raw_block_size = 8;//or 8 * stride
                 int block_size = raw_block_size - raw_block_size % stride;
+                std::cout<<stride<<" "<<block_size<<std::endl;
                 if (block_size==0)
                     block_size = stride;
                 //int ele_num = block_size * block_size * block_size;
