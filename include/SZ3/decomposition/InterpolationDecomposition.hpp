@@ -224,9 +224,10 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
                 int raw_block_size = 8;//or 8 * stride
                 int block_size = raw_block_size - raw_block_size % stride;
-                std::cout<<stride<<" "<<block_size<<std::endl;
+
                 if (block_size==0)
                     block_size = stride;
+                std::cout<<stride<<" "<<block_size<<std::endl;
                 //int ele_num = block_size * block_size * block_size;
                 size_t offset_x = original_dim_offsets[0], offset_y = original_dim_offsets[1];
                 int q_center = conf.quantbinCnt / 2;
