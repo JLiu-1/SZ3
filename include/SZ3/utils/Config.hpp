@@ -453,7 +453,7 @@ public:
     bool regression = true;
     bool regression2 = false;
     bool openmp = false;
-    int quantbinCnt = 65536;
+    int quantbinCnt = 32768;
     int blockSize = 0;
     uint8_t predDim = 0;         // not used now
     uint8_t dataType = SZ_FLOAT; // dataType is only used in HDF5 filter
