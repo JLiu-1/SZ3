@@ -534,59 +534,47 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                 auto cur_buffer_4 = interp_buffer_4; 
                 
 
-                    size_t buffer_idx = 0;
-                    
-                    for(size_t i = begins[0]; i < ends[0]; i += strides[0]){
-                        auto cur_ij_offset = offset + i * dim_offsets[0] + j * dim_offsets[1];
-                        if( i == begins[0]){
-                            for (size_t k = begins[2]; k < ends[2]; k += strides[2]) {
-                                auto cur_offset =  cur_ij_offset + k;
-                                cur_buffer_1[buffer_idx] = data[cur_offset - 3 * dim_offsets[0]];
-                                cur_buffer_2[buffer_idx] = data[cur_offset - dim_offsets[0]];
-                                cur_buffer_3[buffer_idx] = data[cur_offset + dim_offsets[0]];
-                                cur_buffer_4[buffer_idx] = data[cur_offset + 3 * dim_offsets[0]];
-                                buffer_idx++;
-
-                            }
-                        }
-                        else{
-                            auto temp_buffer = cur_buffer_1;
-                            cur_buffer_1 = cur_buffer_2;
-                            cur_buffer_2 = cur_buffer_3;
-                            cur_buffer_3 = cur_buffer_4;
-                            cur_buffer_4 = temp_buffer;
-
-                            buffer_idx = 0;
-                            for (size_t k = begins[2]; k < ends[2]; k += strides[2]) {
-                                auto cur_offset =  cur_ij_offset + 3 * dim_offsets[0] + k;
-                                cur_buffer_4[buffer_idx++] = data[cur_offset];
-
-                            }
-                        }
-                       
-                        avx_interp_cubic(cur_buffer_1,cur_buffer_2,cur_buffer_3,cur_buffer_4,pred_buffer, vector_len);
-                        buffer_idx = 0;
-                        for (size_t k = begins[2]; k < ends[2]; k += strides[2]){
-                            auto pred = pred_buffer[buffer_idx++];
-                            auto d = data + cur_ij_offset + k;
-                            quantize_func(d - data, *d,pred);
+                size_t buffer_idx = 0;
+                
+                for(size_t i = begins[0]; i < ends[0]; i += strides[0]){
+                    auto cur_ij_offset = offset + i * dim_offsets[0] + j * dim_offsets[1];
+                    if( i == begins[0]){
+                        for (size_t k = begins[2]; k < ends[2]; k += strides[2]) {
+                            auto cur_offset =  cur_ij_offset + k;
+                            cur_buffer_1[buffer_idx] = data[cur_offset - 3 * dim_offsets[0]];
+                            cur_buffer_2[buffer_idx] = data[cur_offset - dim_offsets[0]];
+                            cur_buffer_3[buffer_idx] = data[cur_offset + dim_offsets[0]];
+                            cur_buffer_4[buffer_idx] = data[cur_offset + 3 * dim_offsets[0]];
+                            buffer_idx++;
 
                         }
-                        
                     }
+                    else{
+                        auto temp_buffer = cur_buffer_1;
+                        cur_buffer_1 = cur_buffer_2;
+                        cur_buffer_2 = cur_buffer_3;
+                        cur_buffer_3 = cur_buffer_4;
+                        cur_buffer_4 = temp_buffer;
 
+                        buffer_idx = 0;
+                        for (size_t k = begins[2]; k < ends[2]; k += strides[2]) {
+                            auto cur_offset =  cur_ij_offset + 3 * dim_offsets[0] + k;
+                            cur_buffer_4[buffer_idx++] = data[cur_offset];
 
+                        }
+                    }
+                   
+                    avx_interp_cubic(cur_buffer_1,cur_buffer_2,cur_buffer_3,cur_buffer_4,pred_buffer, vector_len);
+                    buffer_idx = 0;
+                    for (size_t k = begins[2]; k < ends[2]; k += strides[2]){
+                        auto pred = pred_buffer[buffer_idx++];
+                        auto d = data + cur_ij_offset + k;
+                        quantize_func(d - data, *d,pred);
+
+                    }
+                    
                 }
             }
-            
-
-
-
-            foreach
-                <T, N>(data, offset, begins, ends, strides, dim_offsets, [&](T *d) {
-                    quantize_func(d - data, *d,
-                                  interp_cubic(*(d - stride3x), *(d - stride), *(d + stride), *(d + stride3x)));
-                });
             std::vector<size_t> boundaries;
             boundaries.push_back(1);
             if (n % 2 == 1 && n > 3) {
