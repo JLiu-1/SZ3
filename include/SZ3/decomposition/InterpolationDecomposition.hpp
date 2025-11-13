@@ -1025,7 +1025,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                     strides[0] = stride;
                     predict_error += interpolation_1d_simd_3d_y(data, begin_idx, end_idx, dims[1], strides, stride, interp_func, quantize_func);
                     begin_idx[2] = begin[2];
-                    begin_idx[1] = (begin[1] ? begin[1] + stride : 1);
+                    begin_idx[1] = (begin[1] ? begin[1] + stride : 0);
                     strides[1] = stride;
                     predict_error += interpolation_1d_fastest_dim_first(data, begin_idx, end_idx, dims[2], strides, stride, interp_func, quantize_func);
                 }
@@ -1036,7 +1036,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                     strides[2] = stride;
                     predict_error += interpolation_1d_simd_3d_y(data, begin_idx, end_idx, dims[1], strides, stride, interp_func, quantize_func);
                     begin_idx[0] = begin[0];
-                    begin_idx[1] = (begin[1] ? begin[1] + stride : 1);
+                    begin_idx[1] = (begin[1] ? begin[1] + stride : 0);
                     strides[1] = stride;
                     predict_error += interpolation_1d_simd_3d_x(data, begin_idx, end_idx, dims[2], strides, stride, interp_func, quantize_func);
                 }
