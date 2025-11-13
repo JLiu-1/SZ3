@@ -502,12 +502,12 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             dim_offsets[i] = original_dim_offsets[i];
             offset += original_dim_offsets[i] * begin_idx[i];
         }
-        dim_offsets[direction] = stride;
+        //dim_offsets[direction] = stride;
         size_t stride2x = 2 * stride;
         if (interp_func == "linear") {
             begins[direction] = 1;
             ends[direction] = n - 1;
-            strides[direction] = 2;
+            strides[direction] = 2 * math_stride;
             foreach
                 <T, N>(data, offset, begins, ends, strides, dim_offsets,
                        [&](T *d) { quantize_func(d - data, *d, interp_linear(*(d - stride), *(d + stride))); });
@@ -541,6 +541,8 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                
                 
                 for(size_t i = begins[0]; i < ends[0]; i += strides[0]){
+                    if(i<3)
+                        std::cout<<"!!!"<<std::endl;
                     auto cur_ij_offset = offset + i * dim_offsets[0] + j * dim_offsets[1];
                     size_t buffer_idx = 0;
                     if( i == begins[0]){
@@ -548,14 +550,14 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                             auto cur_offset =  cur_ij_offset + k;
                             if (cur_offset+ stride3x>=num_elements or cur_offset < stride3x)
                                std::cout<<i<<" "<<j<<" "<<k<<std::endl;
-                          // cur_buffer_1[buffer_idx] = data[cur_offset -  stride3x];
-                           cur_buffer_1[buffer_idx] = data[0];
+                           cur_buffer_1[buffer_idx] = data[cur_offset -  stride3x];
+                           //cur_buffer_1[buffer_idx] = data[0];
                             cur_buffer_2[buffer_idx] = data[cur_offset - stride];
                            // cur_buffer_2[buffer_idx] = data[0];
                           cur_buffer_3[buffer_idx] = data[cur_offset + stride];
                            //cur_buffer_3[buffer_idx] = data[0];
-                            //cur_buffer_4[buffer_idx] = data[cur_offset +  stride3x];
-                            cur_buffer_4[buffer_idx] = data[0];
+                            cur_buffer_4[buffer_idx] = data[cur_offset +  stride3x];
+                            //cur_buffer_4[buffer_idx] = data[0];
                             buffer_idx++;
 
                         }
@@ -574,7 +576,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
                             if (cur_offset>=num_elements)
                                std::cout<<i<<" "<<j<<" "<<k<<std::endl;
-                           //cur_buffer_4[buffer_idx++] = data[cur_offset];
+                           cur_buffer_4[buffer_idx++] = data[cur_offset];
 
                             //cur_buffer_4[buffer_idx++] = data[0];
 
