@@ -819,7 +819,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
     template <class QuantizeFunc>
     double interpolation(T *data, std::array<size_t, N> begin, std::array<size_t, N> end,
                          const std::string &interp_func, QuantizeFunc &&quantize_func, const int direction,
-                         size_t stride = 1, bool is_compress) {
+                         size_t stride = 1, bool is_compress = true) {
         if constexpr (N == 1) {  // old API
             return interpolation_1d(data, begin[0], end[0], stride, interp_func, quantize_func);
         } else if constexpr (N == 2) {  // old API
