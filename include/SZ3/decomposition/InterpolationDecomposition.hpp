@@ -33,7 +33,6 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             *dec_data = quantizer.recover(0, this->quant_inds[quant_index++]);  // no anchor points
         } else {
             recover_anchor_grid(dec_data);  // recover anchor points
-            interp_level;
         }
 
         for (int level = interp_level - 1; level > 0; level--) {
@@ -146,7 +145,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         quantizer.set_eb(eb);
         quantizer.postcompress_data();
         if (conf.num > 1000000)
-            SZ3::writefile<int>("sz3_quant_bins_speck.test", quant_inds_speck_vec.data(), quant_inds_speck_vec.size());
+            SZ3::writefile<int>("sz3_quant_bins_speck.test", quant_inds_vec.data(), quant_inds_vec.size());
         return quant_inds_vec;
     }
 
