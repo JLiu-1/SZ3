@@ -36,7 +36,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             recover_anchor_grid(dec_data);  // recover anchor points
             interp_level--;
         }
-
+        size_t post_quant_index=0;
         for (int level = interp_level; level > 0 && level <= interp_level; level--) {
             // set level-wise error bound
             double cur_eb = eb;
@@ -82,7 +82,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                 int raw_block_size = 8;//or 8 * stride
                 int block_size = raw_block_size - raw_block_size % stride;
                 if (block_size<=stride){
-                    double q_unit = 0.05 * cur_eb;
+                    q_unit = 0.05 * cur_eb;
                     int q_center = conf.quantbinCnt / 2;
                     size_t offset_x = original_dim_offsets[0], offset_y = original_dim_offsets[1];
                     //point-wise double-quantization
@@ -92,7 +92,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                                 if( x % stride2x == 0 &&  y % stride2x == 0 &&  z % stride2x == 0)
                                     continue;
                                 size_t idx = x * offset_x + y * offset_y + z;
-                                int fix_q = quant_inds_post[quant_index++] - q_center;
+                                int fix_q = quant_inds_post[post_quant_index++] - q_center;
                                 double fix = fix_q * q_unit;
                                 dec_data[idx] += fix;
                             }
@@ -107,7 +107,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                         for(int y_start=0; y_start+block_size <=conf.dims[1];y_start+=block_size){
                             for(int z_start=0; z_start+block_size <=conf.dims[2];z_start+=block_size){
                                
-                                int fix_q = quant_inds_post[quant_index++] - q_center;
+                                int fix_q = quant_inds_post[post_quant_index++] - q_center;
                                 double a = 1.0 + fix_q * q_unit;
                                 for(int x = x_start; x < x_start + block_size ; x+=stride){
                                     for(int y = y_start; y < y_start + block_size ; y+=stride){
@@ -134,7 +134,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                     for(int x_start=0; x_start+block_size <=conf.dims[0];x_start+=block_size){
                         for(int y_start=0; y_start+block_size <=conf.dims[1];y_start+=block_size){
                             for(int z_start=0; z_start+block_size <=conf.dims[2];z_start+=block_size){
-                                int fix_q = quant_inds_post[quant_index++] - q_center;
+                                int fix_q = quant_inds_post[post_quant_index++] - q_center;
                                 double fix = fix_q * q_unit;
                                 for(int x = x_start; x < x_start + block_size ; x+=stride){
                                     for(int y = y_start; y < y_start + block_size ; y+=stride){
