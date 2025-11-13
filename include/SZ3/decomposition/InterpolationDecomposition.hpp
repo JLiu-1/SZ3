@@ -853,9 +853,9 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                 strides[dims[i]] = stride2x;
             }
             if(N==3 &&stride<=2  && dims[0] ==0)
-                predict_error += interpolation_1d_simd_3d_x<is_compress>(data, begin_idx, end_idx, dims[0], strides, stride, interp_func, quantize_func, is_compress);
+                predict_error += interpolation_1d_simd_3d_x<is_compress>(data, begin_idx, end_idx, dims[0], strides, stride, interp_func, quantize_func);
             else if(N==3 &&stride <=2  && dims[0] ==0)
-                predict_error += interpolation_1d_simd_3d_y<is_compress>(data, begin_idx, end_idx, dims[0], strides, stride, interp_func, quantize_func, is_compress);
+                predict_error += interpolation_1d_simd_3d_y<is_compress>(data, begin_idx, end_idx, dims[0], strides, stride, interp_func, quantize_func);
             else
                 predict_error += interpolation_1d_fastest_dim_first(data, begin_idx, end_idx, dims[0], strides, stride, interp_func, quantize_func);
 
@@ -864,9 +864,9 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                 begin_idx[dims[i - 1]] = (begin[dims[i - 1]] ? begin[dims[i - 1]] + stride : 0);
                 strides[dims[i - 1]] = stride;
                 if(N==3 &&stride <=2 && dims[i] == 0)
-                    predict_error += interpolation_1d_simd_3d_x<is_compress>(data, begin_idx, end_idx, dims[i], strides, stride, interp_func, quantize_func, is_compress);
+                    predict_error += interpolation_1d_simd_3d_x<is_compress>(data, begin_idx, end_idx, dims[i], strides, stride, interp_func, quantize_func);
                 else if(N==3 &&stride <=2 && dims[i] == 1)
-                    predict_error += interpolation_1d_simd_3d_y<is_compress>(data, begin_idx, end_idx, dims[i], strides, stride, interp_func, quantize_func, is_compress);
+                    predict_error += interpolation_1d_simd_3d_y<is_compress>(data, begin_idx, end_idx, dims[i], strides, stride, interp_func, quantize_func);
                 else
                     predict_error += interpolation_1d_fastest_dim_first(data, begin_idx, end_idx, dims[i], strides, stride, interp_func, quantize_func);
             }
