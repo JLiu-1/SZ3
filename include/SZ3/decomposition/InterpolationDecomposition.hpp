@@ -526,7 +526,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             begins[direction] = i_start;
             ends[direction] = (n >= 3) ? (n - 3) : 0;
             strides[direction] = 2;
-            size_t vector_len = (ends[2]-begins[2]-1)/strides[2] + 1;
+            size_t vector_len = ends[2] > begins[2] ? (ends[2]-begins[2]-1)/strides[2] + 1 : 0;
 
            
             for (size_t j = begins[1]; j < ends[1]; j += strides[1]) {
