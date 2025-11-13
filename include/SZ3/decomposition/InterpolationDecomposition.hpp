@@ -33,10 +33,10 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             *dec_data = quantizer.recover(0, this->quant_inds[quant_index++]);  // no anchor points
         } else {
             recover_anchor_grid(dec_data);  // recover anchor points
-            interp_level--;
+            interp_level;
         }
 
-        for (int level = interp_level; level > 0 && level <= interp_level; level--) {
+        for (int level = interp_level - 1; level > 0; level--) {
             // set level-wise error bound
             if (eb_alpha < 0) {
                 if (level >= 3) {
@@ -97,10 +97,9 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             quant_inds_speck[0] = quant_inds[quant_index-1];
         } else {
             build_anchor_grid(data);  // losslessly saving anchor points
-            interp_level--;
         }
 
-        for (int level = interp_level; level > 0 && level <= interp_level; level--) {
+        for (int level = interp_level - 1; level > 0; level--) {
             double cur_eb = eb;
             // set level-wise error bound
             if (eb_alpha < 0) {
