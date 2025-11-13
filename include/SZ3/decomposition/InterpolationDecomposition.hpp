@@ -208,7 +208,9 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             for(size_t i=0;i<N;i++){
                 prefix[i] = (original_dimensions[i] - 1) / stride + 1;
             }
+            std::cout<<prefix[0]<<" "<<prefix[1]<<" "<<prefix[2]<<std::endl;
             prefix_nums[level]=prefix;
+
 
         }
 
@@ -225,6 +227,9 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         do {
             dim_sequences.push_back(sequence);
         } while (std::next_permutation(sequence.begin(), sequence.end()));
+
+        std::cout<<interp_level<<std::endl;
+
     }
 
     size_t calc_speck_index(size_t idx){
