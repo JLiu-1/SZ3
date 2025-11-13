@@ -22,10 +22,11 @@ size_t SZ_compress_Interp(Config &conf, T *data, uchar *cmpData, size_t cmpCap) 
         std::array<size_t, 4> anchor_strides = {4096, 128, 32, 16};
         conf.interpAnchorStride = anchor_strides[N - 1];
     }
-
+   // std::cout<<"start"<<std::endl;
     auto sz = make_compressor_sz_generic<T, N>(
         make_decomposition_interpolation<T, N>(conf, LinearQuantizer<T>(conf.absErrorBound, conf.quantbinCnt / 2)),
         HuffmanEncoder<int>(), Lossless_zstd());
+   // std::cout<<"end"<<std::endl;
     return sz->compress(conf, data, cmpData, cmpCap);
 }
 
