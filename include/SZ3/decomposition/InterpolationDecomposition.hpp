@@ -411,7 +411,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         quant_inds_vec.reserve(quant_inds_vec.size() + quant_inds_vec_post.size());
         quant_inds_vec.insert(quant_inds_vec.end(),quant_inds_vec_post.begin(), quant_inds_vec_post.end());
         quant_inds_vec_post.clear();
-        quant_inds_vec_post.shrink_to_fit();
+        //quant_inds_vec_post.shrink_to_fit();
         quantizer.set_eb(eb);
         quantizer.postcompress_data();
 
