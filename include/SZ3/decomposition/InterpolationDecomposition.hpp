@@ -86,9 +86,9 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                     int q_center = conf.quantbinCnt / 2;
                     size_t offset_x = original_dim_offsets[0], offset_y = original_dim_offsets[1];
                     //point-wise double-quantization
-                    for(int x=0; x<=conf.dims[0];x+=stride){
-                        for(int y=0; y <=conf.dims[1];y+=stride){
-                            for(int z=0; z<=conf.dims[2];z+=stride){
+                    for(int x=0; x<conf.dims[0];x+=stride){
+                        for(int y=0; y <conf.dims[1];y+=stride){
+                            for(int z=0; z<conf.dims[2];z+=stride){
                                 if( x % stride2x == 0 &&  y % stride2x == 0 &&  z % stride2x == 0)
                                     continue;
                                 size_t idx = x * offset_x + y * offset_y + z;
@@ -249,9 +249,9 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                     int q_center = conf.quantbinCnt / 2;
                     size_t offset_x = original_dim_offsets[0], offset_y = original_dim_offsets[1];
                     //point-wise double-quantization
-                    for(int x=0; x<=conf.dims[0];x+=stride){
-                        for(int y=0; y <=conf.dims[1];y+=stride){
-                            for(int z=0; z<=conf.dims[2];z+=stride){
+                    for(int x=0; x<conf.dims[0];x+=stride){
+                        for(int y=0; y<conf.dims[1];y+=stride){
+                            for(int z=0; z<conf.dims[2];z+=stride){
                                 if( x % stride2x == 0 &&  y % stride2x == 0 &&  z % stride2x == 0)
                                     continue;
                                 size_t idx = x * offset_x + y * offset_y + z;
