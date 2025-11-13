@@ -493,7 +493,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
     }
 
-    template <class QuantizeFunc, bool is_compress>
+    template <bool is_compress,class QuantizeFunc >
     double interpolation_1d_simd_3d_x(T *data, const std::array<size_t, N> &begin_idx,
                                               const std::array<size_t, N> &end_idx, const size_t &direction,
                                               std::array<size_t, N> &strides, const size_t &math_stride,
