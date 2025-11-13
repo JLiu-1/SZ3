@@ -364,6 +364,8 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
 
         }
+        std::cout<<quant_inds_vec.size()<<std::endl;
+        std::cout<<quant_inds_vec_post.size()<<std::endl;
         quant_inds_vec.reserve(quant_inds_vec.size() + quant_inds_vec_post.size());
         quant_inds_vec.insert(quant_inds_vec.end(), std::make_move_iterator(quant_inds_vec_post.begin()), std::make_move_iterator(quant_inds_vec_post.end()));
         quantizer.set_eb(eb);
