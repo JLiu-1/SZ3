@@ -655,7 +655,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         return predict_error;
     }
 
-    template <class QuantizeFunc, bool is_compress>
+    template < bool is_compress,class QuantizeFunc>
     double interpolation_1d_simd_3d_y(T *data, const std::array<size_t, N> &begin_idx,
                                               const std::array<size_t, N> &end_idx, const size_t &direction,
                                               std::array<size_t, N> &strides, const size_t &math_stride,
@@ -852,10 +852,18 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                 begin_idx[dims[i]] = (begin[dims[i]] ? begin[dims[i]] + stride2x : 0);
                 strides[dims[i]] = stride2x;
             }
-            if(N==3 &&stride<=2  && dims[0] ==0)
-                predict_error += interpolation_1d_simd_3d_x</*is_compress=*/is_compress>(data, begin_idx, end_idx, dims[0], strides, stride, interp_func, quantize_func);
-            else if(N==3 &&stride <=2  && dims[0] ==0)
-                predict_error += interpolation_1d_simd_3d_y</*is_compress=*/is_compress>(data, begin_idx, end_idx, dims[0], strides, stride, interp_func, quantize_func);
+            if(N==3 &&stride<=2  && dims[0] ==0){
+                if(is_compress)
+                    predict_error += interpolation_1d_simd_3d_x<true>(data, begin_idx, end_idx, dims[0], strides, stride, interp_func, quantize_func);
+                else
+                    predict_error += interpolation_1d_simd_3d_x<false>(data, begin_idx, end_idx, dims[0], strides, stride, interp_func, quantize_func);
+             }
+            else if(N==3 &&stride <=2  && dims[0] ==1){
+                if(is_compress)
+                    predict_error += interpolation_1d_simd_3d_y<true>(data, begin_idx, end_idx, dims[0], strides, stride, interp_func, quantize_func);
+                else
+                    predict_error += interpolation_1d_simd_3d_y<false>(data, begin_idx, end_idx, dims[0], strides, stride, interp_func, quantize_func);
+            }
             else
                 predict_error += interpolation_1d_fastest_dim_first(data, begin_idx, end_idx, dims[0], strides, stride, interp_func, quantize_func);
 
@@ -863,10 +871,18 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                 begin_idx[dims[i]] = begin[dims[i]];
                 begin_idx[dims[i - 1]] = (begin[dims[i - 1]] ? begin[dims[i - 1]] + stride : 0);
                 strides[dims[i - 1]] = stride;
-                if(N==3 &&stride <=2 && dims[i] == 0)
-                    predict_error += interpolation_1d_simd_3d_x</*is_compress=*/is_compress>(data, begin_idx, end_idx, dims[i], strides, stride, interp_func, quantize_func);
-                else if(N==3 &&stride <=2 && dims[i] == 1)
-                    predict_error += interpolation_1d_simd_3d_y<is_compress>(data, begin_idx, end_idx, dims[i], strides, stride, interp_func, quantize_func);
+                if(N==3 &&stride <=2 && dims[i] == 0){
+                    if(is_compress)
+                        predict_error += interpolation_1d_simd_3d_x<true>(data, begin_idx, end_idx, dims[i], strides, stride, interp_func, quantize_func);
+                    else
+                        predict_error += interpolation_1d_simd_3d_x<false>(data, begin_idx, end_idx, dims[i], strides, stride, interp_func, quantize_func);
+                    }
+                else if(N==3 &&stride <=2 && dims[i] == 1){
+                    if(is_compress)
+                        predict_error += interpolation_1d_simd_3d_y<true>(data, begin_idx, end_idx, dims[i], strides, stride, interp_func, quantize_func);
+                    else
+                        predict_error += interpolation_1d_simd_3d_y<false>(data, begin_idx, end_idx, dims[i], strides, stride, interp_func, quantize_func);
+                }
                 else
                     predict_error += interpolation_1d_fastest_dim_first(data, begin_idx, end_idx, dims[i], strides, stride, interp_func, quantize_func);
             }
