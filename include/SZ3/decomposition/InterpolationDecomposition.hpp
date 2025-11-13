@@ -535,10 +535,11 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                 auto cur_buffer_4 = interp_buffer_4; 
                 
 
-                size_t buffer_idx = 0;
+               
                 
                 for(size_t i = begins[0]; i < ends[0]; i += strides[0]){
                     auto cur_ij_offset = offset + i * dim_offsets[0] + j * dim_offsets[1];
+                    size_t buffer_idx = 0;
                     if( i == begins[0]){
                         for (size_t k = begins[2]; k < ends[2]; k += strides[2]) {
                             auto cur_offset =  cur_ij_offset + k;
