@@ -119,9 +119,6 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
             auto interp_block_size = blocksize * stride;
 
-            if(stride == 1)
-                interp_block_size = 100000;
-
             auto inter_block_range = std::make_shared<multi_dimensional_range<T, N>>(
                 data, std::begin(original_dimensions), std::end(original_dimensions), interp_block_size, 0);
 
