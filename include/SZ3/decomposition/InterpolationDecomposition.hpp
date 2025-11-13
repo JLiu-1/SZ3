@@ -79,7 +79,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                 size_t stride2x = stride * 2;
                 double q_unit = 0.01;
 
-                int raw_block_size = 8;//or 8 * stride
+                int raw_block_size = 1;//or 8 * stride
                 int block_size = raw_block_size - raw_block_size % stride;
                 if (block_size<=stride){
                     q_unit = 0.05 * cur_eb;
@@ -93,7 +93,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                                     continue;
                                 size_t idx = x * offset_x + y * offset_y + z;
                                 int fix_q = quant_inds_post[post_quant_index++] - q_center;
-                                double fix = fix_q * q_unit;
+                                T fix = fix_q * q_unit;
                                 dec_data[idx] += fix;
                             }
                         }
@@ -243,7 +243,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                 size_t stride2x = stride * 2;
                 
 
-                int raw_block_size = 8;//or 8 * stride
+                int raw_block_size = 1;//or 8 * stride
                 int block_size = raw_block_size - raw_block_size % stride;
 
                 if (block_size<=stride){
