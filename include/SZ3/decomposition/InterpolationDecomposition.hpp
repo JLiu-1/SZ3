@@ -493,7 +493,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
     }
 
-    void avx_interp_cubic_1D(const T * buf,T * p, const size_t &len){
+    void avx_interp_cubic_1D(const T * buf, T * p, const size_t &len){
        // assert(len <= max_dim);
          constexpr bool is_float  = std::is_same_v<T, float>;
         constexpr bool is_double = std::is_same_v<T, double>;
