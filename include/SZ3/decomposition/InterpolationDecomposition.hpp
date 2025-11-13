@@ -272,6 +272,8 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                 break;
             }
         }
+        if(x %32 ==0 &&y %32 ==0 &&z %32 ==0)
+            std::cout<<x<<" "y<<" "<<z<<" "<<speck_x<<" "<<speck_y<<speck_z<<std::endl;
         return speck_x * original_dim_offsets[0] + speck_y * original_dim_offsets[1] + speck_z;
 
     }
