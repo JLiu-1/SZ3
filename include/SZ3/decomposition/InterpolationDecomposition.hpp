@@ -274,7 +274,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         quantizer.postcompress_data();
         delete []buffer;
         delete []aligned_buffer;
-        std::cout<<quant_inds_vec.size()<<std::endl;
+        //std::cout<<quant_inds_vec.size()<<std::endl;
         return quant_inds_vec;
     }
 
