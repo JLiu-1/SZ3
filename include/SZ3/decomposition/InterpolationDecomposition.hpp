@@ -88,10 +88,12 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
         init();
         std::vector<int> quant_inds_vec(num_elements);
+        std::vector<int>  quant_inds_speck(num_elements);
         quant_inds = quant_inds_vec.data();
         double eb = quantizer.get_eb();
         if (anchor_stride == 0) {  // check whether to use anchor points
             quant_inds[quant_index++] = quantizer.quantize_and_overwrite(*data, 0);  // no
+            quant_inds_speck[0] = quant_inds[quant_index-1];
         } else {
             build_anchor_grid(data);  // losslessly saving anchor points
             interp_level--;
@@ -136,13 +138,15 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                 interpolation(
                     data, block.get_global_index(), end_idx, interpolators[interp_id],
                     [&](size_t idx, T &d, T pred) {
-                        quant_inds[quant_index++] = (quantizer.quantize_and_overwrite(d, pred));
+                        quant_inds[quant_index++] = (quantizer.quantize_and_overwrite(d, pred);quant_inds_speck[calc_speck_index(idx)] = quant_inds[quant_index-1]);
                     },
                     direction_sequence_id, stride);
             }
         }
         quantizer.set_eb(eb);
         quantizer.postcompress_data();
+        if (conf.num > 1000000)
+            SZ3::writefile<int>("sz3_quant_bins_speck.test", quant_inds_speck.data(), quant_inds_speck.size());
         return quant_inds_vec;
     }
 
@@ -179,6 +183,49 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         assert((anchor_stride & anchor_stride - 1) == 0 && "Anchor stride should be 0 or 2's exponentials");
         num_elements = 1;
         interp_level = -1;
+    void calc_speck_index(size_t idx){
+        if constexpr (N!=3)
+            return 0;
+        size_t x = idx / original_dim_offsets[0];
+        idx = idx % original_dim_offsets[0];
+        size_t y = idx / original_dim_offsets[1], z = idx % original_dim_offsets[1];
+        size_t speck_x=0,speck_y=0,speck_z=0;
+        for(size_t level = interp_level-1; level >=0;level--){
+            size_t stride = 1U<<level;
+            if(x % stride == 0){
+                if(level ==interp_level-1)
+                    speck_x = x / stride;
+                else{
+                    speck_x = prefix_nums[level] + (x-1)/stride - (x-1)/(stride*2);
+                }
+                break;
+            }
+        }
+         for(size_t level = interp_level-1; level >=0;level--){
+            size_t stride = 1U<<level;
+            if(y % stride == 0){
+                if(level ==interp_level-1)
+                    speck_y = y/ stride;
+                else{
+                    speck_y = prefix_nums[level] + (y-1)/stride - (y-1)/(stride*2);
+                }
+                break;
+            }
+        }
+         for(size_t level = interp_level-1; level >=0;level--){
+            size_t stride = 1U<<level;
+            if(z % stride == 0){
+                if(level ==interp_level-1)
+                    speck_z = z / stride;
+                else{
+                    speck_z = prefix_nums[level] + (z-1)/stride - (z-1)/(stride*2);
+                }
+                break;
+            }
+        }
+        return speck_x * original_dim_offsets[0] + speck_y * original_dim_offsets[1] + speck_z;
+
+    }
 	bool use_anchor = false;
         for (uint i = 0; i < N; i++) {
             if (interp_level < ceil(log2(original_dimensions[i]))) {
@@ -195,6 +242,16 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             if (max_interpolation_level <= interp_level) {
                 interp_level = max_interpolation_level;
             }
+        }
+        prefix_nums.resize(interp_level+1);
+        for(size_t level=0;i<interp_level;level++){
+            std::array<size_t,N> prefix;
+            size_t stride = 1U<<level;
+            for(size_t i=0;i<N;i++){
+                prefix[i] = (original_dimensions[i] - 1) / stride + 1;
+            }
+            prefix_nums[i]=prefix;
+
         }
 
         original_dim_offsets[N - 1] = 1;
@@ -218,7 +275,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         std::fill(strides.begin(), strides.end(), anchor_stride);
         foreach
             <T, N>(data, 0, begins, original_dimensions, strides, original_dim_offsets,
-                   [&](T *d) { quant_inds[quant_index++] = quantizer.force_save_unpred(*d); });
+                   [&](T *d) { quant_inds[quant_index++] = quantizer.force_save_unpred(*d); quant_inds_speck[calc_speck_index(d-data)] = 0; });
     }
 
     void recover_anchor_grid(T *data) {  // recover anchor points. steplength: anchor_stride on each dimension
@@ -470,6 +527,8 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
     double eb_alpha = -1;
     double eb_beta = -1;
     double eb_ratio = 0.5;  // To be deprecated
+
+    std::vector<std::array<size_t,N> > prefix_nums;
 };
 
 template <class T, uint N, class Quantizer>
