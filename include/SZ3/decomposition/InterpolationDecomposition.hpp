@@ -101,6 +101,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                    
                 }
                 else{
+                     /*
                     size_t offset_x = original_dim_offsets[0], offset_y = original_dim_offsets[1];
                     int q_center = conf.quantbinCnt / 2;
                     for(int x_start=0; x_start+block_size <=conf.dims[0];x_start+=block_size){
@@ -150,6 +151,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                             }
                         }
                     }
+                    */
                 }
                 
             }
@@ -270,6 +272,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                 }
                 //int ele_num = block_size * block_size * block_size;
                 else{
+                    /*
                     double q_unit = 0.01;
                     size_t offset_x = original_dim_offsets[0], offset_y = original_dim_offsets[1];
                     int q_center = conf.quantbinCnt / 2;
@@ -404,6 +407,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                             }
                         }
                     }
+                */
                 }
             }
         //    std::cout<<*std::max_element(quant_inds_vec_post.begin(), quant_inds_vec_post.end())<<std::endl;
