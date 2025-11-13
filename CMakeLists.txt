@@ -10,6 +10,7 @@ include(GNUInstallDirs)
 
 
 option(BUILD_SHARED_LIBS "build shared libraries by default" ON)
+option( ENABLE_AVX2 "Enable AVX2 instruction set compilation" ON )
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 if (MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
@@ -103,7 +104,15 @@ if (BUILD_MDZ)
     add_subdirectory(tools/mdz)
 endif ()
 
-
+if(ENABLE_AVX2)
+  message(STATUS "AVX2 compilation enabled.")
+  target_compile_options(${PROJECT_NAME} PRIVATE -mavx2 -mfma)
+  if(NOT CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    message(WARNING "Compiler '${CMAKE_CXX_COMPILER_ID}' might not explicitly support AVX2 flags. Please add them manually if needed.")
+  endif()
+else()
+  message(STATUS "AVX2 compilation disabled.")
+endif()
 install(TARGETS ${PROJECT_NAME}
         EXPORT SZ3Targets
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
