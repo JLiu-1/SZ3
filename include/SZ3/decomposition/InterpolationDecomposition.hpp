@@ -94,7 +94,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         interp_buffer_3 = new T[max_dim];
         interp_buffer_4 = new T[max_dim];
         pred_buffer = new T[max_dim];
-        std::cout<<max_dim<<std::endl;
+        //std::cout<<max_dim<<std::endl;
         std::vector<int> quant_inds_vec(num_elements);
         quant_inds = quant_inds_vec.data();
         double eb = quantizer.get_eb();
@@ -419,58 +419,58 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
     
     void avx_interp_cubic(const T * a,const T * b,const T * c,const T * d,T * p, const size_t &len){
          constexpr bool is_float  = std::is_same_v<T, float>;
-    constexpr bool is_double = std::is_same_v<T, double>;
+        constexpr bool is_double = std::is_same_v<T, double>;
 
-    size_t i = 0;
+        size_t i = 0;
 
-    if constexpr (is_float) {
-        const size_t step = 8;
-        const __m256 nine  = _mm256_set1_ps(9.0f);
-        const __m256 factor = _mm256_set1_ps(1.0f / 16.0f);
+        if constexpr (is_float) {
+            const size_t step = 8;
+            const __m256 nine  = _mm256_set1_ps(9.0f);
+            const __m256 factor = _mm256_set1_ps(1.0f / 16.0f);
 
-        for (; i + step <= N; i += step) {
-            __m256 va = _mm256_loadu_ps(a + i);
-            __m256 vb = _mm256_loadu_ps(b + i);
-            __m256 vc = _mm256_loadu_ps(c + i);
-            __m256 vd = _mm256_loadu_ps(d + i);
+            for (; i + step <= N; i += step) {
+                __m256 va = _mm256_loadu_ps(a + i);
+                __m256 vb = _mm256_loadu_ps(b + i);
+                __m256 vc = _mm256_loadu_ps(c + i);
+                __m256 vd = _mm256_loadu_ps(d + i);
 
-            __m256 term_b = _mm256_mul_ps(vb, nine);
-            __m256 term_c = _mm256_mul_ps(vc, nine);
+                __m256 term_b = _mm256_mul_ps(vb, nine);
+                __m256 term_c = _mm256_mul_ps(vc, nine);
 
-            __m256 sum = _mm256_sub_ps(term_b, va);   // -a + 9*b
-            sum = _mm256_add_ps(sum, term_c);         // -a + 9*b + 9*c
-            sum = _mm256_sub_ps(sum, vd);             // -a + 9*b + 9*c - d
-            sum = _mm256_mul_ps(sum, factor);         // /16
+                __m256 sum = _mm256_sub_ps(term_b, va);   // -a + 9*b
+                sum = _mm256_add_ps(sum, term_c);         // -a + 9*b + 9*c
+                sum = _mm256_sub_ps(sum, vd);             // -a + 9*b + 9*c - d
+                sum = _mm256_mul_ps(sum, factor);         // /16
 
-            _mm256_storeu_ps(p + i, sum);
+                _mm256_storeu_ps(p + i, sum);
+            }
         }
-    }
-    else if constexpr (is_double) {
-        const size_t step = 4;
-        const __m256d nine  = _mm256_set1_pd(9.0);
-        const __m256d factor = _mm256_set1_pd(1.0 / 16.0);
+        else if constexpr (is_double) {
+            const size_t step = 4;
+            const __m256d nine  = _mm256_set1_pd(9.0);
+            const __m256d factor = _mm256_set1_pd(1.0 / 16.0);
 
-        for (; i + step <= N; i += step) {
-            __m256d va = _mm256_loadu_pd(a + i);
-            __m256d vb = _mm256_loadu_pd(b + i);
-            __m256d vc = _mm256_loadu_pd(c + i);
-            __m256d vd = _mm256_loadu_pd(d + i);
+            for (; i + step <= N; i += step) {
+                __m256d va = _mm256_loadu_pd(a + i);
+                __m256d vb = _mm256_loadu_pd(b + i);
+                __m256d vc = _mm256_loadu_pd(c + i);
+                __m256d vd = _mm256_loadu_pd(d + i);
 
-            __m256d term_b = _mm256_mul_pd(vb, nine);
-            __m256d term_c = _mm256_mul_pd(vc, nine);
+                __m256d term_b = _mm256_mul_pd(vb, nine);
+                __m256d term_c = _mm256_mul_pd(vc, nine);
 
-            __m256d sum = _mm256_sub_pd(term_b, va);   // -a + 9*b
-            sum = _mm256_add_pd(sum, term_c);          // -a + 9*b + 9*c
-            sum = _mm256_sub_pd(sum, vd);              // -a + 9*b + 9*c - d
-            sum = _mm256_mul_pd(sum, factor);          // /16
+                __m256d sum = _mm256_sub_pd(term_b, va);   // -a + 9*b
+                sum = _mm256_add_pd(sum, term_c);          // -a + 9*b + 9*c
+                sum = _mm256_sub_pd(sum, vd);              // -a + 9*b + 9*c - d
+                sum = _mm256_mul_pd(sum, factor);          // /16
 
-            _mm256_storeu_pd(p + i, sum);
+                _mm256_storeu_pd(p + i, sum);
+            }
         }
-    }
 
-    for (; i < N; i++) {
-        p[i] = (-a[i] + T(9) * b[i] + T(9) * c[i] - d[i]) / T(16);
-    }
+        for (; i < N; i++) {
+            p[i] = (-a[i] + T(9) * b[i] + T(9) * c[i] - d[i]) / T(16);
+        }
 
 
     }
@@ -543,10 +543,10 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                     if( i == begins[0]){
                         for (size_t k = begins[2]; k < ends[2]; k += strides[2]) {
                             auto cur_offset =  cur_ij_offset + k;
-                            cur_buffer_1[buffer_idx] = data[cur_offset - 3 * dim_offsets[0]];
-                            cur_buffer_2[buffer_idx] = data[cur_offset - dim_offsets[0]];
-                            cur_buffer_3[buffer_idx] = data[cur_offset + dim_offsets[0]];
-                            cur_buffer_4[buffer_idx] = data[cur_offset + 3 * dim_offsets[0]];
+                            cur_buffer_1[buffer_idx] = data[cur_offset - 3 * stride];
+                            cur_buffer_2[buffer_idx] = data[cur_offset - stride];
+                            cur_buffer_3[buffer_idx] = data[cur_offset + stride];
+                            cur_buffer_4[buffer_idx] = data[cur_offset + 3 * stride];
                             buffer_idx++;
 
                         }
@@ -560,7 +560,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
                         buffer_idx = 0;
                         for (size_t k = begins[2]; k < ends[2]; k += strides[2]) {
-                            auto cur_offset =  cur_ij_offset + 3 * dim_offsets[0] + k;
+                            auto cur_offset =  cur_ij_offset + 3 * stride + k;
                             cur_buffer_4[buffer_idx++] = data[cur_offset];
 
                         }
