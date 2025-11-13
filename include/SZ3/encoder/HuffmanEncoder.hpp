@@ -98,13 +98,17 @@ class HuffmanEncoder : public concepts::EncoderInterface<T> {
      */
     void preprocess_encode(const T *bins, size_t num_bin, int stateNum) {
         nodeCount = 0;
+        std::cout<<"h1"<<std::endl;
         if (num_bin == 0) {
             throw std::invalid_argument("Huffman bins should not be empty");
         }
+         std::cout<<"h2"<<std::endl;
         init(bins, num_bin);
+         std::cout<<"h3"<<std::endl;
         for (unsigned int i = 0; i < huffmanTree->stateNum; i++)
             if (huffmanTree->code[i]) nodeCount++;
         nodeCount = nodeCount * 2 - 1;
+         std::cout<<"h4"<<std::endl;
     }
 
     // save the huffman Tree in the compressed data
