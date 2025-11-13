@@ -524,7 +524,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             begins[direction] = i_start;
             ends[direction] = (n >= 3) ? (n - 3) : 0;
             strides[direction] = 2;
-            size_t vector_len = (ends[2]-begin[2]-1)/strides[2] + 1;
+            size_t vector_len = (ends[2]-begins[2]-1)/strides[2] + 1;
 
            
             for (size_t j = begins[1]; j < ends[1]; j += strides[1]) {
@@ -692,8 +692,9 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
     double eb_beta = -1;
     double eb_ratio = 0.5;  // To be deprecated
     size_t AVX_256_parallelism = 32 / sizeof(T);
+    size_t max_dim = 1;
 
-    T *interp_buffer_1,*interp_buffer_2,*interp_buffer_3,*interp_buffer_4,,*pred_buffer;
+    T *interp_buffer_1,*interp_buffer_2,*interp_buffer_3,*interp_buffer_4,*pred_buffer;
 };
 
 template <class T, uint N, class Quantizer>
