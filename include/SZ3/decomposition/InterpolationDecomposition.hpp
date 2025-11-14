@@ -404,18 +404,21 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                                         auto cur_pos = data + offset, cur_pos_ori = ori_data + offset;
                                         size_t z = 0;
                                         for (; z + AVX_256_parallelism <= block_size; z += AVX_256_parallelism) {
-                                            //std::cout<<x<<" "<<y<<" "<<z<<" "<<offset+z<<std::endl;
+                                            std::cout<<x<<" "<<y<<" "<<z<<" "<<offset+z<<std::endl;
                                             __m256 v_x = _mm256_loadu_ps(cur_pos + z);
                                             __m256 v_y = _mm256_loadu_ps(cur_pos_ori + z);
+                                            std::cout<<"3.1"<<std::end;
                                             v_x = _mm256_mul_ps(v_x,v_a);
                                             v_x = _mm256_add_ps(v_x, v_b);
                                             v_y = _mm256_sub_ps(v_y, v_x);
                                             v_y = _mm256_andnot_ps(mask,v_y);
                                             v_max_abs_err = _mm256_max_ps(v_max_abs_err,v_y);
+                                            std::cout<<"3.2"<<std::end;
 
 
                                         }
                                         for (; z < block_size; ++z){
+                                            std::cout<<"3.3"<<std::end;
                                             max_abs_err_post_correction = std::max(max_abs_err_post_correction, std::abs(cur_pos_ori[z] - a * cur_pos[z] - b) );
                                         }
         
@@ -427,6 +430,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                                 for (size_t k = 0; k < AVX_256_parallelism; ++k){
                                     max_abs_err_post_correction = std::max(max_abs_err_post_correction, tmp_max[k]);
                                 }
+                                std::cout<<"3.5"<<std::end;
 
 
                                 if(max_abs_err_post_correction > eb){
