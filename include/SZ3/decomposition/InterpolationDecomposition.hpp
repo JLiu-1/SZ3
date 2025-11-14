@@ -572,7 +572,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                                 }
 
                                 double tmp_max[AVX_256_parallelism];
-                                _mm256_storeu_ps(tmp_max, v_max_abs_err);
+                                _mm256_storeu_pd(tmp_max, v_max_abs_err);
                                 for (size_t k = 0; k < AVX_256_parallelism; ++k){
                                     max_abs_err_post_correction = std::max(max_abs_err_post_correction, tmp_max[k]);
                                 }
