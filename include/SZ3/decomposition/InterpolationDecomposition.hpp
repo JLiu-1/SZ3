@@ -266,7 +266,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
         //postfix
         if(N==3){
-
+            std::cout<<quant_index<<std::endl;
 
             //size_t stride2x = stride * 2;
             double q_unit_a = 0.01;
@@ -282,7 +282,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             size_t num_blocks = 1;
             for(size_t i = 0; i < N ; i++)
                 num_blocks *= original_dimensions[i] / block_size;
-            
+            std::cout<<num_blocks<<std::endl;
 
             quant_inds_vec.resize(quant_inds_vec.size() + 2 * num_blocks);
             
@@ -407,18 +407,18 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                                             std::cout<<x<<" "<<y<<" "<<z<<" "<<offset+z<<std::endl;
                                             __m256 v_x = _mm256_loadu_ps(cur_pos + z);
                                             __m256 v_y = _mm256_loadu_ps(cur_pos_ori + z);
-                                            std::cout<<"3.1"<<std::endl;
+                                            //std::cout<<"3.1"<<std::endl;
                                             v_x = _mm256_mul_ps(v_x,v_a);
                                             v_x = _mm256_add_ps(v_x, v_b);
                                             v_y = _mm256_sub_ps(v_y, v_x);
                                             v_y = _mm256_andnot_ps(mask,v_y);
                                             v_max_abs_err = _mm256_max_ps(v_max_abs_err,v_y);
-                                            std::cout<<"3.2"<<std::endl;
+                                           // std::cout<<"3.2"<<std::endl;
 
 
                                         }
                                         for (; z < block_size; ++z){
-                                            std::cout<<"3.3"<<std::endl;
+                                           // std::cout<<"3.3"<<std::endl;
                                             max_abs_err_post_correction = std::max(max_abs_err_post_correction, std::abs(cur_pos_ori[z] - a * cur_pos[z] - b) );
                                         }
         
@@ -430,7 +430,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                                 for (size_t k = 0; k < AVX_256_parallelism; ++k){
                                     max_abs_err_post_correction = std::max(max_abs_err_post_correction, tmp_max[k]);
                                 }
-                                std::cout<<"3.5"<<std::endl;
+                                //std::cout<<"3.5"<<std::endl;
 
 
                                 if(max_abs_err_post_correction > eb){
@@ -439,7 +439,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
                                 }
                             }
-
+                            std::cout<<quant_index<<std::endl;
                             quant_inds [quant_index] = a_q;
                             quant_inds [quant_index + num_blocks] = b_q;
                             quant_index++;
