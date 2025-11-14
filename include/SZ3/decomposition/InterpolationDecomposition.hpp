@@ -103,9 +103,9 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             for(size_t i = 0; i < N ; i++)
                 num_blocks *= original_dimensions[i] / block_size;
             
-            for(int x_start=0; x_start+block_size <=conf.dims[0];x_start+=block_size){
-                for(int y_start=0; y_start+block_size <=conf.dims[1];y_start+=block_size){
-                    for(int z_start=0; z_start+block_size <=conf.dims[2];z_start+=block_size){
+            for(size_t x_start=0; x_start+block_size <=conf.dims[0];x_start+=block_size){
+                for(size_t y_start=0; y_start+block_size <=conf.dims[1];y_start+=block_size){
+                    for(size_t z_start=0; z_start+block_size <=conf.dims[2];z_start+=block_size){
 
                         int a_q = quant_inds[quant_index];
                         int b_q = quant_inds[quant_index +num_blocks];
@@ -119,8 +119,8 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
     
                             __m256 v_a = _mm256_set1_ps(a);
                             __m256 v_b = _mm256_set1_ps(b);
-                            for(int x = x_start; x < x_start + block_size ; x++){
-                                for(int y = y_start; y < y_start + block_size ; y++){
+                            for(size_t x = x_start; x < x_start + block_size ; x++){
+                                for(size_t y = y_start; y < y_start + block_size ; y++){
                                     auto offset = x * original_dim_offsets[0] + y * original_dim_offsets[1] + z_start;
                                     auto cur_pos = dec_data + offset;
                                     size_t z = 0;
@@ -146,8 +146,8 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                         else if constexpr (is_double){
                             __m256d v_a = _mm256_set1_pd(a);
                             __m256d v_b = _mm256_set1_pd(b);
-                            for(int x = x_start; x < x_start + block_size ; x++){
-                                for(int y = y_start; y < y_start + block_size ; y++){
+                            for(size_t x = x_start; x < x_start + block_size ; x++){
+                                for(size_t y = y_start; y < y_start + block_size ; y++){
                                     auto offset = x * original_dim_offsets[0] + y * original_dim_offsets[1] + z_start;
                                     auto cur_pos = dec_data + offset;
                                     size_t z = 0;
@@ -197,7 +197,8 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         eb_beta = conf.interpBeta;
 
         init();
-        auto ori_data = std::vector<T>(data, data + conf.num);
+        auto ori_data_vec = std::vector<T>(data, data + conf.num);
+        auto ori_data = ori_data.data();
         auto buffer_len = max_dim + 2 * AVX_256_parallelism - max_dim % AVX_256_parallelism;
         interp_buffer_1 = new T[buffer_len];
         interp_buffer_2 = new T[buffer_len];
@@ -287,17 +288,17 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
             quant_inds_vec.resize(quant_inds_vec.size() + 2 * num_blocks);
             
-            for(int x_start=0; x_start+block_size <=conf.dims[0];x_start+=block_size){
-                for(int y_start=0; y_start+block_size <=conf.dims[1];y_start+=block_size){
-                    for(int z_start=0; z_start+block_size <=conf.dims[2];z_start+=block_size){
+            for(size_t x_start=0; x_start+block_size <=conf.dims[0];x_start+=block_size){
+                for(size_t y_start=0; y_start+block_size <=conf.dims[1];y_start+=block_size){
+                    for(size_t z_start=0; z_start+block_size <=conf.dims[2];z_start+=block_size){
                         T mean = 0.0, ori_mean = 0.0;
                         constexpr bool is_float  = std::is_same_v<T, float>;
                         constexpr bool is_double = std::is_same_v<T, double>;
                         if constexpr (is_float){
                             __m256 vsum = _mm256_set1_ps(0.0f);
                             __m256 vsum_ori = _mm256_set1_ps(0.0f);
-                            for(int x = x_start; x < x_start + block_size ; x++){
-                                for(int y = y_start; y < y_start + block_size ; y++){
+                            for(size_t x = x_start; x < x_start + block_size ; x++){
+                                for(size_t y = y_start; y < y_start + block_size ; y++){
                                     auto offset = x * original_dim_offsets[0] + y * original_dim_offsets[1] + z_start;
                                     auto cur_pos = data + offset, cur_pos_ori = ori_data + offset;
                                     
@@ -338,8 +339,8 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                             __m256 v_x_mean = _mm256_set1_ps(mean);
                             __m256 v_y_mean = _mm256_set1_ps(ori_mean);
                             T sum_xx = T(0), sum_xy = T(0);
-                            for(int x = x_start; x < x_start + block_size ; x++){
-                                for(int y = y_start; y < y_start + block_size ; y++){
+                            for(size_t x = x_start; x < x_start + block_size ; x++){
+                                for(size_t y = y_start; y < y_start + block_size ; y++){
                                     auto offset = x * original_dim_offsets[0] + y * original_dim_offsets[1] + z_start;
                                     auto cur_pos = data + offset, cur_pos_ori = ori_data + offset;
                                     size_t z = 0;
@@ -439,8 +440,8 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
                         }
                         else if constexpr (is_double){
-                            for(int x = x_start; x < x_start + block_size ; x++){
-                                for(int y = y_start; y < y_start + block_size ; y++){
+                            for(size_t x = x_start; x < x_start + block_size ; x++){
+                                for(size_t y = y_start; y < y_start + block_size ; y++){
                                     auto offset = x * original_dim_offsets[0] + y * original_dim_offsets[1] + z_start;
                                         auto cur_pos = data + offset, cur_pos_ori = ori_data + offset;
                                         __m256d vsum = _mm256_set1_pd(0.0f);
@@ -491,8 +492,8 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                             __m256d v_x_mean = _mm256_set1_pd(mean);
                             __m256d v_y_mean = _mm256_set1_pd(ori_mean);
                             T sum_xx = T(0), sum_xy = T(0);
-                            for(int x = x_start; x < x_start + block_size ; x++){
-                                for(int y = y_start; y < y_start + block_size ; y++){
+                            for(size_t x = x_start; x < x_start + block_size ; x++){
+                                for(size_t y = y_start; y < y_start + block_size ; y++){
                                     auto offset = x * original_dim_offsets[0] + y * original_dim_offsets[1] + z_start;
                                     auto cur_pos = data + offset, cur_pos_ori = ori_data + offset;
                                     size_t z = 0;
@@ -546,8 +547,8 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                                 __m256d v_a = _mm256_set1_pd(a);
                                 __m256d v_b = _mm256_set1_pd(b);
                                 const __m256d mask = _mm256_set1_pd(-0.0d);    
-                                for(int x = x_start; x < x_start + block_size ; x++){
-                                    for(int y = y_start; y < y_start + block_size ; y++){
+                                for(size_t x = x_start; x < x_start + block_size ; x++){
+                                    for(size_t y = y_start; y < y_start + block_size ; y++){
                                         auto offset = x * original_dim_offsets[0] + y * original_dim_offsets[1] + z_start;
                                         auto cur_pos = data + offset, cur_pos_ori = ori_data + offset;
                                         size_t z = 0;
