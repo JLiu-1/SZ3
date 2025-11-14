@@ -281,8 +281,8 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             //std::cout<<quant_index<<std::endl;
 
             //size_t stride2x = stride * 2;
-            double q_unit_a = 0.025;
-            double q_unit_b = 0.1 * eb;
+            double q_unit_a = 0.05;
+            double q_unit_b = 0.05 * eb;
 
             //int raw_block_size = 8;//or 8 * stride
             //int block_size = raw_block_size - raw_block_size % stride;
