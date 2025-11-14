@@ -497,7 +497,7 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
             }
         }
 */  
-        Timer timer(true);
+        //Timer timer(true);
         size_t ui16_range= 1<<16;
         std::vector<size_t> frequencyList(ui16_range, 0);
         auto frenqencies = frequencyList.data();
@@ -531,7 +531,7 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
 
 
         int stateNum = max - offset + 2;
-        timer.stop("count");
+        //timer.stop("count");
         huffmanTree = createHuffmanTree(stateNum);
         // to produce the same huffman three on linux & win, we need to iterate through ordered_map in a fixed order
         
