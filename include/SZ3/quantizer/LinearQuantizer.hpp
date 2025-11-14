@@ -15,9 +15,9 @@ namespace SZ3 {
 template <class T>
 class LinearQuantizer : public concepts::QuantizerInterface<T, int> {
    public:
-    LinearQuantizer() : error_bound(1), error_bound_reciprocal(1), radius(32768) {}
+    LinearQuantizer() : error_bound(1), double_error_bound(2), error_bound_reciprocal(0.5), radius(32768) {}
 
-    LinearQuantizer(double eb, int r = 32768) : error_bound(eb), error_bound_reciprocal(1.0 / eb), radius(r) {
+    LinearQuantizer(double eb, int r = 32768) : error_bound(eb),double_error_bound(2*eb), double_error_bound_reciprocal(2.0 / eb), radius(r) {
         assert(eb != 0);
     }
 
