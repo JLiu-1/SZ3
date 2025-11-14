@@ -94,7 +94,7 @@ class LinearQuantizer : public concepts::QuantizerInterface<T, int> {
         if (uid_read != uid) {
             throw std::invalid_argument("LinearQuantizer uid mismatch");
         }
-        auto eb;
+        double eb;
         read(eb, c, remaining_length);
         set_eb(eb);
         read(this->radius, c, remaining_length);
