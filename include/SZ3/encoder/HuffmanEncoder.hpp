@@ -538,10 +538,10 @@ class HuffmanEncoder : public concepts::EncoderInterface<T> {
             }
         }
 */  
-        size_t ui16_range= 1<<16t;
+        size_t ui16_range= 1<<16;
         std::vector<size_t> frequencyList(ui16_range, 0);
         for (size_t i = 0; i < length; i++) {
-            auto k = s[i]
+            auto k = s[i];
             if (k > max) {
                 max = k;
             }
