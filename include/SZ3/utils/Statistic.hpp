@@ -40,11 +40,12 @@ T data_range(const T *data, size_t num) {
             vmin = _mm256_min_ps(vmin, v);
         }
 
-        float tmp_max[8], tmp_min[8];
+        float tmp_max[8];
+        float tmp_min[8];
         _mm256_storeu_ps(tmp_max, vmax);
         _mm256_storeu_ps(tmp_min, vmin);
 
-        float maxval = tmp[0], minval = tmp[0];
+        float maxval = tmp_max[0], minval = tmp_min[0];
         for (int k = 1; k < 8; ++k){
             maxval = std::max(maxval, tmp_max[k]);
             minval = std::min(minval, tmp_min[k]);
@@ -66,15 +67,16 @@ T data_range(const T *data, size_t num) {
 
         for (; i + 3 < num; i += 8) {
             __m256 v = _mm256_loadu_pd(data + i);
-            vmax = _mm256_max_ps(vmax, v);
-            vmin = _mm256_min_ps(vmin, v);
+            vmax = _mm256_max_pd(vmax, v);
+            vmin = _mm256_min_pd(vmin, v);
         }
 
-        double tmp_max[8], tmp_min[8];
+        double tmp_max[8];
+        double tmp_min[8];
         _mm256_storeu_pd(tmp_max, vmax);
         _mm256_storeu_pd(tmp_min, vmin);
 
-        double maxval = tmp[0], minval = tmp[0];
+        double maxval = tmp_max[0], minval = tmp_min[0];
         for (int k = 1; k < 4; ++k){
             maxval = std::max(maxval, tmp_max[k]);
             minval = std::min(minval, tmp_min[k]);
