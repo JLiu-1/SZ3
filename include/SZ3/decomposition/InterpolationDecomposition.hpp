@@ -292,9 +292,11 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                         T mean = 0.0, ori_mean = 0.0;
                         constexpr bool is_float  = std::is_same_v<T, float>;
                         constexpr bool is_double = std::is_same_v<T, double>;
+
                         if constexpr (is_float){
                             __m256 vsum = _mm256_set1_ps(0.0f);
                             __m256 vsum_ori = _mm256_set1_ps(0.0f);
+                            std::cout<<"p1"<<std::endl;
                             for(size_t x = x_start; x < x_start + block_size ; x++){
                                 for(size_t y = y_start; y < y_start + block_size ; y++){
                                     auto offset = x * original_dim_offsets[0] + y * original_dim_offsets[1] + z_start;
@@ -303,7 +305,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                                     size_t z = 0;
 
                                     for (; z + AVX_256_parallelism <= block_size; z += AVX_256_parallelism) {
-                                        std::cout<<x<<" "<<y<<" "<<z<<" "<<offset+z<<std::endl;
+                                        //std::cout<<x<<" "<<y<<" "<<z<<" "<<offset+z<<std::endl;
                                         __m256 v = _mm256_loadu_ps(cur_pos + z);
                                         __m256 v_ori = _mm256_loadu_ps(cur_pos_ori + z);
                                         vsum = _mm256_add_ps(vsum, v);
@@ -338,13 +340,14 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                             __m256 v_x_mean = _mm256_set1_ps(mean);
                             __m256 v_y_mean = _mm256_set1_ps(ori_mean);
                             T sum_xx = T(0), sum_xy = T(0);
+                            std::cout<<"p2"<<std::endl;
                             for(size_t x = x_start; x < x_start + block_size ; x++){
                                 for(size_t y = y_start; y < y_start + block_size ; y++){
                                     auto offset = x * original_dim_offsets[0] + y * original_dim_offsets[1] + z_start;
                                     auto cur_pos = data + offset, cur_pos_ori = ori_data + offset;
                                     size_t z = 0;
                                     for (; z + AVX_256_parallelism <= block_size; z += AVX_256_parallelism) {
-                                            std::cout<<x<<" "<<y<<" "<<z<<" "<<offset+z<<std::endl;
+                                          //  std::cout<<x<<" "<<y<<" "<<z<<" "<<offset+z<<std::endl;
                                         __m256 v_xx = _mm256_loadu_ps(cur_pos + z);
                                         __m256 v_xy = _mm256_loadu_ps(cur_pos_ori + z);
                                         v_xx = _mm256_sub_ps(v_xx,v_x_mean);
@@ -384,6 +387,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
                             a_q += quant_center;
                             b_q += quant_center;
+                            std::cout<<"p3"<<std::endl;
                             if(a_q < 0 || b_q < 0 || a_q >= 2 * quant_center || b_q >= 2 * quant_center){
                                 a_q = quant_center;
                                 b_q = quant_center;
@@ -400,7 +404,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                                         auto cur_pos = data + offset, cur_pos_ori = ori_data + offset;
                                         size_t z = 0;
                                         for (; z + AVX_256_parallelism <= block_size; z += AVX_256_parallelism) {
-                                                std::cout<<x<<" "<<y<<" "<<z<<" "<<offset+z<<std::endl;
+                                            //std::cout<<x<<" "<<y<<" "<<z<<" "<<offset+z<<std::endl;
                                             __m256 v_x = _mm256_loadu_ps(cur_pos + z);
                                             __m256 v_y = _mm256_loadu_ps(cur_pos_ori + z);
                                             v_x = _mm256_mul_ps(v_x,v_a);
