@@ -149,7 +149,7 @@ class HuffmanEncoder : public concepts::EncoderInterface<T> {
         int lackBits = 0;
         // int64_t totalBitSize = 0, maxBitSize = 0, bitSize21 = 0, bitSize32 = 0;
         for (i = 0; i < num_bin; i++) {
-            std::cout<<bins[i]<<std::endl;
+            //std::cout<<bins[i]<<std::endl;
             state = bins[i] - offset;
             bitSize = huffmanTree->cout[state];
 
@@ -557,9 +557,15 @@ class HuffmanEncoder : public concepts::EncoderInterface<T> {
         }
         for (int i = 0; i < ui16_range; i++) {
             if (frenqencies[i] != 0) {
+                offset = i;
+                break;
+            }
+
+        }
+        for (int i = ui16_range - 1; i >= 0 ; i--) {
+            if (frenqencies[i] != 0) {
                 max = i;
-                if(offset ==0)
-                    offset = i;
+                break;
             }
 
         }
