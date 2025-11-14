@@ -404,7 +404,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                                         auto cur_pos = data + offset, cur_pos_ori = ori_data + offset;
                                         size_t z = 0;
                                         for (; z + AVX_256_parallelism <= block_size; z += AVX_256_parallelism) {
-                                            std::cout<<x<<" "<<y<<" "<<z<<" "<<offset+z<<std::endl;
+                                            //std::cout<<x<<" "<<y<<" "<<z<<" "<<offset+z<<std::endl;
                                             __m256 v_x = _mm256_loadu_ps(cur_pos + z);
                                             __m256 v_y = _mm256_loadu_ps(cur_pos_ori + z);
                                             //std::cout<<"3.1"<<std::endl;
