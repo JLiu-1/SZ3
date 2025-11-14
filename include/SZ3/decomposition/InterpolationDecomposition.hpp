@@ -94,11 +94,10 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
             //int raw_block_size = 8;//or 8 * stride
             //int block_size = raw_block_size - raw_block_size % stride;
-            const size_t block_size = 8, block_ele_num = block_size * block_size *block_size;
+            const size_t block_size = 8;
             //const T idx_mean = block_size / T(2.0);
             auto quant_center = conf.quantbinCnt / 2;
             //size_t offset_x = original_dim_offsets[0], offset_y = original_dim_offsets[1];
-            int q_center = conf.quantbinCnt / 2;
             size_t num_blocks = 1;
             for(size_t i = 0; i < N ; i++)
                 num_blocks *= original_dimensions[i] / block_size;
@@ -461,7 +460,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                                         _mm256_storeu_pd(sum, vsum);
                                         _mm256_storeu_pd(sum_ori, vsum_ori);
 
-                                        for (int k = 0; k < AVX_256_parallelism; ++k){
+                                        for (size_t k = 0; k < AVX_256_parallelism; ++k){
                                             mean += sum[k];
                                             ori_mean += sum_ori[k];
                                         }
