@@ -364,12 +364,12 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                             }
                             float sum_xx_arr[AVX_256_parallelism];
                             float sum_xy_arr[AVX_256_parallelism];
-                            _mm256_storeu_ps(sum_xx_arr, vsum_xx);
-                            _mm256_storeu_ps(sum_xy_arr, vsum_xy);
+                            _mm256_storeu_ps(sum_xx_arr, v_sum_xx);
+                            _mm256_storeu_ps(sum_xy_arr, v_sum_xy);
                             
                             for (int k = 0; k < AVX_256_parallelism; ++k){
                                 sum_xx += sum_xx_arr[k];
-                                sum_xy += sum_xY_arr[k];
+                                sum_xy += sum_xy_arr[k];
                             }
 
                             a = sum_xy/sum_xx;
@@ -517,12 +517,12 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                             }
                             double sum_xx_arr[AVX_256_parallelism];
                             double sum_xy_arr[AVX_256_parallelism];
-                            _mm256_storeu_pd(sum_xx_arr, vsum_xx);
-                            _mm256_storeu_pd(sum_xy_arr, vsum_xy);
+                            _mm256_storeu_pd(sum_xx_arr, v_sum_xx);
+                            _mm256_storeu_pd(sum_xy_arr, v_sum_xy);
                             
                             for (int k = 0; k < AVX_256_parallelism; ++k){
                                 sum_xx += sum_xx_arr[k];
-                                sum_xy += sum_xY_arr[k];
+                                sum_xy += sum_xy_arr[k];
                             }
 
                             a = sum_xy/sum_xx;
