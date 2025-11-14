@@ -303,6 +303,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                                     size_t z = 0;
 
                                     for (; z + AVX_256_parallelism <= block_size; z += AVX_256_parallelism) {
+                                        std::cout<<x<<" "<<y<<" "<<z<<std::endl;
                                         __m256 v = _mm256_loadu_ps(cur_pos + z);
                                         __m256 v_ori = _mm256_loadu_ps(cur_pos_ori + z);
                                         vsum = _mm256_add_ps(vsum, v);
