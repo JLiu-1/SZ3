@@ -17,7 +17,7 @@ class LinearQuantizer : public concepts::QuantizerInterface<T, int> {
    public:
     LinearQuantizer() : error_bound(1), double_error_bound(2), double_error_bound_reciprocal(0.5), radius(32768) {}
 
-    LinearQuantizer(double eb, int r = 32768) : error_bound(eb),double_error_bound(2*eb), double_error_bound_reciprocal(2.0 / eb), radius(r) {
+    LinearQuantizer(double eb, int r = 32768) : error_bound(eb),double_error_bound(2*eb), double_error_bound_reciprocal(0.5 / eb), radius(r) {
         assert(eb != 0);
     }
 
@@ -26,7 +26,7 @@ class LinearQuantizer : public concepts::QuantizerInterface<T, int> {
     void set_eb(double eb) {
         error_bound = eb;
         double_error_bound = 2 * eb;
-        double_error_bound_reciprocal = 2.0 / eb;
+        double_error_bound_reciprocal = / double_error_bound;
     }
 
     std::pair<int, int> get_out_range() const override { return std::make_pair(0, radius * 2); }
