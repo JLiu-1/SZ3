@@ -960,7 +960,6 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                     }
                     
                     avx_interp_cubic_1D(cur_buffer,pred_buffer, n);
-                    #size_t cur_idx = 1;
                     for (size_t k = 0; k < odd_len; k ++){
                         auto pred = pred_buffer[k];
                         auto d = data + cur_ij_offset + (2 * k + 1) * dim_offsets[2];
