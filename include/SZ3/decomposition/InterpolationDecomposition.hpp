@@ -101,8 +101,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             int q_center = conf.quantbinCnt / 2;
             size_t num_blocks = 1;
             for(size_t i = 0; i < N ; i++)
-                num_blocks *= original_dimensions[i] / blocksize;
-            quant_inds_vec.resize(quant_inds_vec.size() + 2 * num_blocks);
+                num_blocks *= original_dimensions[i] / block_size;
             
             for(int x_start=0; x_start+block_size <=conf.dims[0];x_start+=block_size){
                 for(int y_start=0; y_start+block_size <=conf.dims[1];y_start+=block_size){
@@ -281,15 +280,17 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             //size_t offset_x = original_dim_offsets[0], offset_y = original_dim_offsets[1];
             int q_center = conf.quantbinCnt / 2;
             T a,b;
-            size_t num_blocks = 1;
+            size_t num_blocks = 1, ele_num = 1;
             for(size_t i = 0; i < N ; i++)
-                num_blocks *= original_dimensions[i] / blocksize;
+                num_blocks *= original_dimensions[i] / block_size;
+            
+
             quant_inds_vec.resize(quant_inds_vec.size() + 2 * num_blocks);
             
             for(int x_start=0; x_start+block_size <=conf.dims[0];x_start+=block_size){
                 for(int y_start=0; y_start+block_size <=conf.dims[1];y_start+=block_size){
                     for(int z_start=0; z_start+block_size <=conf.dims[2];z_start+=block_size){
-                        T mean = 0.0, T ori_mean = 0.0;
+                        T mean = 0.0, ori_mean = 0.0;
                         constexpr bool is_float  = std::is_same_v<T, float>;
                         constexpr bool is_double = std::is_same_v<T, double>;
                         if constexpr (is_float){
@@ -328,8 +329,8 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                                 ori_mean += sum_ori[k];
                             }
 
-                            mean /= ele_num;
-                            ori_mean /= ele_num;
+                            mean /= block_ele_num;
+                            ori_mean /= block_ele_num;
 
 
                             __m256 v_sum_xy = _mm256_set1_ps(0.0f);
@@ -481,8 +482,8 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                                 ori_mean += sum_ori[k];
                             }
 
-                            mean /= ele_num;
-                            ori_mean /= ele_num;
+                            mean /= block_ele_num;
+                            ori_mean /= block_ele_num;
 
 
                             __m256d v_sum_xy = _mm256_set1_pd(0.0f);
