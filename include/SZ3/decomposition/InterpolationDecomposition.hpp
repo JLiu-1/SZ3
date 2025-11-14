@@ -90,7 +90,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
             //size_t stride2x = stride * 2;
 
-
+            double q_unit_b = eb * q_unit_b_coeff;
             //int raw_block_size = 8;//or 8 * stride
             //int block_size = raw_block_size - raw_block_size % stride;
             const size_t block_size = 8;
@@ -278,7 +278,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         //postfix
         if(N==3){
             //std::cout<<quant_index<<std::endl;
-
+            double q_unit_b = eb * q_unit_b_coeff;
             //size_t stride2x = stride * 2;
             
 
@@ -1535,7 +1535,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
     size_t max_dim = 1;
 
     const double q_unit_a = 0.05;
-    const double q_unit_b = 0.025 * eb;
+    const double q_unit_b_coeff = 0.025;
 
     T *interp_buffer_1,*interp_buffer_2,*interp_buffer_3,*interp_buffer_4,*pred_buffer;
     //std::vector<int> visited;
