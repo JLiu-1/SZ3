@@ -192,7 +192,7 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
     void preprocess_decode() override {}
 
     // perform decoding
-    std::vector<T> decode(const uchar *&bytes, size_t targetLength) override {
+    /*std::vector<T> decode(const uchar *&bytes, size_t targetLength) override {
         node t = treeRoot;
         std::vector<T> out(targetLength);
         size_t i = 0, byteIndex = 0, count = 0;
@@ -220,6 +220,71 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
                 count++;
             }
         }
+        bytes += encodedLength;
+        return out;
+    }*/
+
+    std::vector<T> decode(const uchar *&bytes, size_t targetLength) override {
+        node root = treeRoot;
+        std::vector<T> out(targetLength);
+        size_t count = 0;
+
+        // 先读出 bitstream 的字节长度
+        size_t encodedLength = 0;
+        read(encodedLength, bytes);
+
+        node n = root;
+        if (n->t) {  // root->t==1 表示只有一个符号（常数）
+            T val = n->c + offset;
+            for (size_t i = 0; i < targetLength; ++i) {
+                out[i] = val;
+            }
+            // 注意：这里仍需把 bytes 向前挪 encodedLength 个字节，
+            //       虽然其实不会用到这些 bit
+            bytes += encodedLength;
+            return out;
+        }
+
+        const uchar *bitptr = bytes;     // 指向 bitstream 起始位置
+        size_t bytePos = 0;
+        size_t byteLimit = encodedLength;
+
+        if (byteLimit == 0) {
+            // 理论上不应该出现：有 targetLength>0 但 encodedLength=0
+            return out;
+        }
+
+        uchar curByte = bitptr[0];
+        int bitsLeft = 8;
+
+        // 遍历 bit，直到解出 targetLength 个符号或者没有更多 bit
+        while (count < targetLength && bytePos < byteLimit) {
+            // 取当前字节的最高 bit（MSB-first）
+            int bit = (curByte & 0x80u) != 0;
+            curByte <<= 1;
+            --bitsLeft;
+
+            // 走 Huffman 树
+            n = bit ? n->right : n->left;
+
+            if (n->t) {
+                // 叶子：输出符号并回到根
+                out[count++] = n->c + offset;
+                n = root;
+            }
+
+            // 当前字节 bit 用完了，读取下一个字节
+            if (bitsLeft == 0) {
+                ++bytePos;
+                if (bytePos >= byteLimit) {
+                    break;  // 没有更多 bit 了
+                }
+                curByte = bitptr[bytePos];
+                bitsLeft = 8;
+            }
+        }
+
+        // 消费掉 encodedLength 个字节
         bytes += encodedLength;
         return out;
     }
