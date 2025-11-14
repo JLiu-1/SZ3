@@ -430,7 +430,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                                 for (size_t k = 0; k < AVX_256_parallelism; ++k){
                                     max_abs_err_post_correction = std::max(max_abs_err_post_correction, tmp_max[k]);
                                 }
-                                std::cout<<"3.5"<<std::end;
+                                std::cout<<"3.5"<<std::endl;
 
 
                                 if(max_abs_err_post_correction > eb){
