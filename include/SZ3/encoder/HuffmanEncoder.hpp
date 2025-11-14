@@ -551,7 +551,7 @@ class HuffmanEncoder : public concepts::EncoderInterface<T> {
             if (k < offset) {
                 offset = k;
             }*/
-            frenqencies[s[i]] += 1;
+            frequencyList[s[i]] += 1;
         }
         for (int i = 0; i < ui16_range; i++) {
             if (frequencyList[i] != 0) {
