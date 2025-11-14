@@ -967,7 +967,6 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                       // if (d-data < 0 || d-data>=num_elements)
                       //      std::cout<<i<<" "<<j<<" "<<k<<std::endl;
                         quantize_func(d - data, *d,pred);
-                        cur_idx+=2;
 
                     }
                     
