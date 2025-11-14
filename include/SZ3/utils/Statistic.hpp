@@ -6,17 +6,100 @@
 #define SZ3_STATISTIC_HPP
 
 #include "Config.hpp"
+#include <immintrin.h>
+
 
 namespace SZ3 {
 template <class T>
 T data_range(const T *data, size_t num) {
-    T max = data[0];
-    T min = data[0];
-    for (size_t i = 1; i < num; i++) {
-        if (max < data[i]) max = data[i];
-        if (min > data[i]) min = data[i];
+
+    
+    if( num <= 16){
+        T max = data[0];
+        T min = data[0];
+        for (size_t i = 1; i < num; i++) {
+            if (max < data[i]) max = data[i];
+            if (min > data[i]) min = data[i];
+        }
+        return max - min;
+
     }
-    return max - min;
+
+    constexpr bool is_float  = std::is_same_v<T, float>;
+    constexpr bool is_double = std::is_same_v<T, double>;
+    if constexpr (is_float){
+        size_t i = 0;
+
+        __m256 vmax = _mm256_loadu_ps(data);
+        __m256 vmin = _mm256_loadu_ps(data);
+        i = 8;
+
+        for (; i + 7 < num; i += 8) {
+            __m256 v = _mm256_loadu_ps(data + i);
+            vmax = _mm256_max_ps(vmax, v);
+            vmin = _mm256_min_ps(vmin, v);
+        }
+
+        float tmp_max[8], tmp_min[8];
+        _mm256_storeu_ps(tmp_max, vmax);
+        _mm256_storeu_ps(tmp_min, vmin);
+
+        float maxval = tmp[0], minval = tmp[0];
+        for (int k = 1; k < 8; ++k){
+            maxval = std::max(maxval, tmp_max[k]);
+            minval = std::min(minval, tmp_min[k]);
+        }
+
+        for (; i < num; ++i){
+            maxval = std::max(maxval, data[i]);
+            minval = std::max(minval, data[i]);
+        }
+
+        return maxval - minval;
+    }
+    else if constexpr (is_double){
+        size_t i = 0;
+
+        __m256 vmax = _mm256_loadu_pd(data);
+        __m256 vmin = _mm256_loadu_pd(data);
+        i = 4;
+
+        for (; i + 3 < num; i += 8) {
+            __m256 v = _mm256_loadu_pd(data + i);
+            vmax = _mm256_max_ps(vmax, v);
+            vmin = _mm256_min_ps(vmin, v);
+        }
+
+        double tmp_max[8], tmp_min[8];
+        _mm256_storeu_pd(tmp_max, vmax);
+        _mm256_storeu_pd(tmp_min, vmin);
+
+        double maxval = tmp[0], minval = tmp[0];
+        for (int k = 1; k < 4; ++k){
+            maxval = std::max(maxval, tmp_max[k]);
+            minval = std::min(minval, tmp_min[k]);
+        }
+
+        for (; i < num; ++i){
+            maxval = std::max(maxval, data[i]);
+            minval = std::max(minval, data[i]);
+        }
+
+        return maxval  - minval;
+    }
+    else{
+        T max = data[0];
+        T min = data[0];
+        for (size_t i = 1; i < num; i++) {
+            if (max < data[i]) max = data[i];
+            if (min > data[i]) min = data[i];
+        }
+        return max - min;
+
+    }
+
+
+   
 }
 
 inline int factorial(int n) { return (n == 0) || (n == 1) ? 1 : n * factorial(n - 1); }
