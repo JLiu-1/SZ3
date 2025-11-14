@@ -310,7 +310,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                         if constexpr (is_float){
                             __m256 vsum = _mm256_set1_ps(0.0f);
                             __m256 vsum_ori = _mm256_set1_ps(0.0f);
-                            std::cout<<"p1"<<std::endl;
+                            //std::cout<<"p1"<<std::endl;
                             for(size_t x = x_start; x < x_start + block_size ; x++){
                                 for(size_t y = y_start; y < y_start + block_size ; y++){
                                     auto offset = x * original_dim_offsets[0] + y * original_dim_offsets[1] + z_start;
@@ -354,7 +354,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                             __m256 v_x_mean = _mm256_set1_ps(mean);
                             __m256 v_y_mean = _mm256_set1_ps(ori_mean);
                             T sum_xx = T(0), sum_xy = T(0);
-                            std::cout<<"p2"<<std::endl;
+                            //std::cout<<"p2"<<std::endl;
                             for(size_t x = x_start; x < x_start + block_size ; x++){
                                 for(size_t y = y_start; y < y_start + block_size ; y++){
                                     auto offset = x * original_dim_offsets[0] + y * original_dim_offsets[1] + z_start;
@@ -401,7 +401,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
                             a_q += quant_center;
                             b_q += quant_center;
-                            std::cout<<"p3"<<std::endl;
+                           // std::cout<<"p3"<<std::endl;
                             if(a_q < 0 || b_q < 0 || a_q >= 2 * quant_center || b_q >= 2 * quant_center){
                                 a_q = quant_center;
                                 b_q = quant_center;
@@ -453,7 +453,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
                                 }
                             }
-                            std::cout<<quant_index<<std::endl;
+                            //std::cout<<quant_index<<std::endl;
                             quant_inds [quant_index] = a_q;
                             quant_inds [quant_index + num_blocks] = b_q;
                             quant_index++;
