@@ -519,16 +519,29 @@ class HuffmanEncoder : public concepts::EncoderInterface<T> {
     void init(const T *s, size_t length) {
         T max = s[0];
         offset = s[0];  // offset is min
-
+/*
 #if (SZ3_USE_SKA_HASH) && (INTPTR_MAX == INT64_MAX)  // use ska for 64bit system
         ska::unordered_map<T, size_t> frequency;
 #else   // most likely 32bit system
         std::unordered_map<T, size_t> frequency;
 #endif  // INTPTR_MAX == INT64_MAX
+*/
 
+/*
+        for (const auto &kv : frequency) {
+            auto k = kv.first;
+            if (k > max) {
+                max = k;
+            }
+            if (k < offset) {
+                offset = k;
+            }
+        }
+*/  
+        size_t ui16_range= 1<<16t;
+        std::vector<size_t> frequencyList(ui16_range, 0);
         for (size_t i = 0; i < length; i++) {
-
-            auto k = s[i];
+            auto k = s[i]
             if (k > max) {
                 max = k;
             }
@@ -537,21 +550,14 @@ class HuffmanEncoder : public concepts::EncoderInterface<T> {
             }
             frequency[s[i]] += 1;
         }
-        /*
-        for (const auto &kv : frequency) {
-            auto k = kv.first;
-            
-        }*/
+
 
         int stateNum = max - offset + 2;
         huffmanTree = createHuffmanTree(stateNum);
 
         // to produce the same huffman three on linux & win, we need to iterate through ordered_map in a fixed order
-        std::vector<size_t> frequencyList(stateNum, 0);
-        for (const auto &kv : frequency) {
-            frequencyList[kv.first - offset] = kv.second;
-        }
-        for (int i = 0; i < stateNum; i++) {
+        
+        for (int i = 0; i < ui16_range; i++) {
             if (frequencyList[i] != 0) {
                 qinsert(new_node(frequencyList[i], i, nullptr, nullptr));
             }
