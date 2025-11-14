@@ -198,7 +198,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
         init();
         auto ori_data_vec = std::vector<T>(data, data + conf.num);
-        auto ori_data = ori_data.data();
+        auto ori_data = ori_data_vec.data();
         auto buffer_len = max_dim + 2 * AVX_256_parallelism - max_dim % AVX_256_parallelism;
         interp_buffer_1 = new T[buffer_len];
         interp_buffer_2 = new T[buffer_len];
@@ -308,7 +308,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                                         __m256 v = _mm256_loadu_ps(cur_pos + z);
                                         __m256 v_ori = _mm256_loadu_ps(cur_pos_ori + z);
                                         vsum = _mm256_add_ps(vsum, v);
-                                        vsum_ori = _mm256_add_ps(vsum_ori, v);
+                                        vsum_ori = _mm256_add_ps(vsum_ori, v_ori);
                                     }
 
                                     
@@ -325,7 +325,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                             _mm256_storeu_ps(sum, vsum);
                             _mm256_storeu_ps(sum_ori, vsum_ori);
 
-                            for (int k = 0; k < AVX_256_parallelism; ++k){
+                            for (size_t k = 0; k < AVX_256_parallelism; ++k){
                                 mean += sum[k];
                                 ori_mean += sum_ori[k];
                             }
@@ -348,7 +348,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                                         __m256 v_xx = _mm256_loadu_ps(cur_pos + z);
                                         __m256 v_xy = _mm256_loadu_ps(cur_pos_ori + z);
                                         v_xx = _mm256_sub_ps(v_xx,v_x_mean);
-                                        v_xy = _mm256_add_ps(v_xy, v_y_mean);
+                                        v_xy = _mm256_sub_ps(v_xy, v_y_mean);
                                         v_xy = _mm256_mul_ps(v_xx, v_xy);
                                         v_xx = _mm256_mul_ps(v_xx, v_xx);
                                         v_sum_xx = _mm256_add_ps(v_sum_xx,v_xx);
@@ -368,7 +368,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                             _mm256_storeu_ps(sum_xx_arr, v_sum_xx);
                             _mm256_storeu_ps(sum_xy_arr, v_sum_xy);
                             
-                            for (int k = 0; k < AVX_256_parallelism; ++k){
+                            for (size_t k = 0; k < AVX_256_parallelism; ++k){
                                 sum_xx += sum_xx_arr[k];
                                 sum_xy += sum_xy_arr[k];
                             }
@@ -419,7 +419,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
                                 float tmp_max[AVX_256_parallelism];
                                 _mm256_storeu_ps(tmp_max, v_max_abs_err);
-                                for (int k = 0; k < AVX_256_parallelism; ++k){
+                                for (size_t k = 0; k < AVX_256_parallelism; ++k){
                                     max_abs_err_post_correction = std::max(max_abs_err_post_correction, tmp_max[k]);
                                 }
 
@@ -440,20 +440,21 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
                         }
                         else if constexpr (is_double){
+                            __m256d vsum = _mm256_set1_pd(0.0f);
+                            __m256d vsum_ori = _mm256_set1_pd(0.0f);
+
                             for(size_t x = x_start; x < x_start + block_size ; x++){
                                 for(size_t y = y_start; y < y_start + block_size ; y++){
                                     auto offset = x * original_dim_offsets[0] + y * original_dim_offsets[1] + z_start;
                                         auto cur_pos = data + offset, cur_pos_ori = ori_data + offset;
-                                        __m256d vsum = _mm256_set1_pd(0.0f);
-                                        __m256d vsum_ori = _mm256_set1_pd(0.0f);
-
+                                        
                                         size_t z = 0;
 
                                         for (; z + AVX_256_parallelism <= block_size; z += AVX_256_parallelism) {
                                             __m256d v = _mm256_loadu_pd(cur_pos + z);
                                             __m256d v_ori = _mm256_loadu_pd(cur_pos_ori + z);
                                             vsum = _mm256_add_pd(vsum, v);
-                                            vsum_ori = _mm256_add_pd(vsum_ori, v);
+                                            vsum_ori = _mm256_add_pd(vsum_ori, v_ori);
                                         }
 
                                         double sum[AVX_256_parallelism];
@@ -478,7 +479,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                             _mm256_storeu_pd(sum, vsum);
                             _mm256_storeu_pd(sum_ori, vsum_ori);
 
-                            for (int k = 0; k < AVX_256_parallelism; ++k){
+                            for (size_t k = 0; k < AVX_256_parallelism; ++k){
                                 mean += sum[k];
                                 ori_mean += sum_ori[k];
                             }
@@ -501,7 +502,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                                         __m256d v_xx = _mm256_loadu_pd(cur_pos + z);
                                         __m256d v_xy = _mm256_loadu_pd(cur_pos_ori + z);
                                         v_xx = _mm256_sub_pd(v_xx,v_x_mean);
-                                        v_xy = _mm256_add_pd(v_xy, v_y_mean);
+                                        v_xy = _mm256_sub_pd(v_xy, v_y_mean);
                                         v_xy = _mm256_mul_pd(v_xx, v_xy);
                                         v_xx = _mm256_mul_pd(v_xx, v_xx);
                                         v_sum_xx = _mm256_add_pd(v_sum_xx,v_xx);
@@ -521,7 +522,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                             _mm256_storeu_pd(sum_xx_arr, v_sum_xx);
                             _mm256_storeu_pd(sum_xy_arr, v_sum_xy);
                             
-                            for (int k = 0; k < AVX_256_parallelism; ++k){
+                            for (size_t k = 0; k < AVX_256_parallelism; ++k){
                                 sum_xx += sum_xx_arr[k];
                                 sum_xy += sum_xy_arr[k];
                             }
@@ -559,7 +560,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                                             v_x = _mm256_add_pd(v_x, v_b);
                                             v_y = _mm256_sub_pd(v_y, v_x);
                                             v_y = _mm256_andnot_pd(mask,v_y);
-                                            v_max_abs_err = _mm256_max_ps(v_max_abs_err,v_y);
+                                            v_max_abs_err = _mm256_max_pd(v_max_abs_err,v_y);
 
 
                                         }
@@ -572,7 +573,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
                                 double tmp_max[AVX_256_parallelism];
                                 _mm256_storeu_ps(tmp_max, v_max_abs_err);
-                                for (int k = 0; k < AVX_256_parallelism; ++k){
+                                for (size_t k = 0; k < AVX_256_parallelism; ++k){
                                     max_abs_err_post_correction = std::max(max_abs_err_post_correction, tmp_max[k]);
                                 }
 
