@@ -538,6 +538,7 @@ class HuffmanEncoder : public concepts::EncoderInterface<T> {
             }
         }
 */  
+        Timer timer(true);
         size_t ui16_range= 1<<16;
         std::vector<size_t> frequencyList(ui16_range, 0);
         auto frenqencies = frequencyList.data();
@@ -572,6 +573,7 @@ class HuffmanEncoder : public concepts::EncoderInterface<T> {
             auto right = qremove();
             qinsert(new_node(0, 0, left, right));
         }
+        timer.stop("prebuild")
 
         build_code(huffmanTree->qq[1], 0, 0, 0);
         treeRoot = huffmanTree->qq[1];
