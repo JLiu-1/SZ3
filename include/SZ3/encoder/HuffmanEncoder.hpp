@@ -571,7 +571,7 @@ class HuffmanEncoder : public concepts::EncoderInterface<T> {
         // to produce the same huffman three on linux & win, we need to iterate through ordered_map in a fixed order
         
         for (int i = offset; i <= max; i++) {
-            if (frenqencies[i] != 0) {
+            if (frequencyList[i] != 0) {
                 qinsert(new_node(frequencyList[i], i, nullptr, nullptr));
             }
         }
