@@ -89,8 +89,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
 
             //size_t stride2x = stride * 2;
-            double q_unit_a = 0.01;
-            double q_unit_b = 0.1 * eb;
+
 
             //int raw_block_size = 8;//or 8 * stride
             //int block_size = raw_block_size - raw_block_size % stride;
@@ -281,8 +280,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             //std::cout<<quant_index<<std::endl;
 
             //size_t stride2x = stride * 2;
-            double q_unit_a = 0.05;
-            double q_unit_b = 0.025 * eb;
+            
 
             //int raw_block_size = 8;//or 8 * stride
             //int block_size = raw_block_size - raw_block_size % stride;
@@ -1535,6 +1533,9 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
     double eb_ratio = 0.5;  // To be deprecated
     const size_t AVX_256_parallelism = 32 / sizeof(T);
     size_t max_dim = 1;
+
+    const double q_unit_a = 0.05;
+    const double q_unit_b = 0.025 * eb;
 
     T *interp_buffer_1,*interp_buffer_2,*interp_buffer_3,*interp_buffer_4,*pred_buffer;
     //std::vector<int> visited;
