@@ -38,13 +38,13 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
     size_t compress(const Config &conf, T *data, uchar *cmpData, size_t cmpCap) override {
         Timer timer(true);  
         std::vector<int> quant_inds = decomposition.compress(conf, data);
-        time.stop("interpquant");
+        timer.stop("interpquant");
         timer.start();
         if (decomposition.get_out_range().first != 0) {
             throw std::runtime_error("The output range of the decomposition must start from 0 for this compressor");
         }
         encoder.preprocess_encode(quant_inds, decomposition.get_out_range().second);
-        time.stop("prepro_huff");
+        timer.stop("prepro_huff");
         timer.start();
         size_t bufferSize = std::max<size_t>(
             1000, 1.2 * (decomposition.size_est() + encoder.size_est() + sizeof(T) * quant_inds.size()));
@@ -57,14 +57,14 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
 
         //store the size of quant_inds is necessary as it is not always equal to conf.num
         write<size_t>(quant_inds.size(), buffer_pos);
-        time.stop("memloc");
+        timer.stop("memloc");
         timer.start();
         encoder.encode(quant_inds, buffer_pos);
         encoder.postprocess_encode();
-        time.stop("huff");
+        timer.stop("huff");
         timer.start();
         auto cmpSize = lossless.compress(buffer, buffer_pos - buffer, cmpData, cmpCap);
-        time.stop("zstd");
+        timer.stop("zstd");
         timer.start();
         free(buffer);
         //std::cout<<"compress ended."<<std::endl; 
