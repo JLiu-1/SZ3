@@ -59,7 +59,6 @@ double interp_compress_test(
     auto lossless = Lossless_zstd();
 
     encoder.preprocess_encode(total_quant_bins, sz.get_out_range().second);
-     std::cout<<"1"<<std::endl;
     size_t bufferSize =
         std::max<size_t>(1000, 1.2 * (sz.size_est() + encoder.size_est() + sizeof(T) * total_quant_bins.size()));
 
@@ -67,15 +66,12 @@ double interp_compress_test(
     uchar *buffer_pos = buffer;
     sz.save(buffer_pos);
     encoder.save(buffer_pos);
-     std::cout<<"2"<<std::endl;
     // store the size of quant_inds is necessary as it is not always equal to conf.num
     write<size_t>(total_quant_bins.size(), buffer_pos);
     encoder.encode(total_quant_bins, buffer_pos);
-     std::cout<<"3"<<std::endl;
     encoder.postprocess_encode();
     auto cmpSize = lossless.compress(buffer, buffer_pos - buffer, cmpData, cmpCap);
     free(buffer);
-     std::cout<<"4"<<std::endl;
     auto compression_ratio = conf.num * sampled_blocks.size() * sizeof(T) * 1.0 / cmpSize;
     return compression_ratio;
 }
