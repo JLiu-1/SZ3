@@ -573,7 +573,7 @@ class HuffmanEncoder : public concepts::EncoderInterface<T> {
             auto right = qremove();
             qinsert(new_node(0, 0, left, right));
         }
-        timer.stop("prebuild")
+        timer.stop("prebuild");
 
         build_code(huffmanTree->qq[1], 0, 0, 0);
         treeRoot = huffmanTree->qq[1];
