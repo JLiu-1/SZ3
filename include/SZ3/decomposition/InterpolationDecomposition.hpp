@@ -504,12 +504,12 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         auto even_len = len - odd_len;
 
         if(even_len < 2)
-            p[even_len] = (buf[0]);
+            p[0] = (buf[0]);
 
         else if(even_len < 3)
-            p[even_len] = interp_linear(buf[0], buf[1]);
+            p[0] = interp_linear(buf[0], buf[1]);
         else
-            p[even_len] = interp_quad_1(buf[0], buf[1], buf[2]) ;
+            p[0] = interp_quad_1(buf[0], buf[1], buf[2]) ;
         size_t i = 0;
 
         if constexpr (is_float) {
