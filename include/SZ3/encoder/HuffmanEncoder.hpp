@@ -541,7 +541,7 @@ class HuffmanEncoder : public concepts::EncoderInterface<T> {
         Timer timer(true);
         size_t ui16_range= 1<<16;
         std::vector<size_t> frequencyList(ui16_range, 0);
-        auto frenqencies = frequencyList.data();
+        //auto frenqencies = frequencyList.data();
         for (size_t i = 0; i < length; i++) {
             /*
             auto k = s[i];
@@ -554,7 +554,7 @@ class HuffmanEncoder : public concepts::EncoderInterface<T> {
             frenqencies[s[i]] += 1;
         }
         for (int i = 0; i < ui16_range; i++) {
-            if (frenqencies[i] != 0) {
+            if (frequencyList[i] != 0) {
                 max = i;
                 if(offset ==0)
                     offset = i;
@@ -572,7 +572,7 @@ class HuffmanEncoder : public concepts::EncoderInterface<T> {
         
         for (int i = offset; i <= max; i++) {
             if (frenqencies[i] != 0) {
-                qinsert(new_node(frenqencies[i], i, nullptr, nullptr));
+                qinsert(new_node(frequencyList[i], i, nullptr, nullptr));
             }
         }
         // for (const auto &f : frequency) {
