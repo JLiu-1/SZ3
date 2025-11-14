@@ -278,7 +278,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
         //postfix
         if(N==3){
-            std::cout<<quant_index<<std::endl;
+            //std::cout<<quant_index<<std::endl;
 
             //size_t stride2x = stride * 2;
             double q_unit_a = 0.01;
@@ -294,7 +294,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             size_t num_blocks = 1;
             for(size_t i = 0; i < N ; i++)
                 num_blocks *= original_dimensions[i] / block_size;
-            std::cout<<num_blocks<<std::endl;
+            //std::cout<<num_blocks<<std::endl;
             //std::cout<<quant_inds_vec.size()<<std::endl;
             //quant_inds_vec.resize(quant_inds_vec.size() + 2 * num_blocks);
 
