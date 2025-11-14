@@ -558,7 +558,8 @@ class HuffmanEncoder : public concepts::EncoderInterface<T> {
         huffmanTree = createHuffmanTree(stateNum);
 
         // to produce the same huffman three on linux & win, we need to iterate through ordered_map in a fixed order
-        
+        timer.stop("create");
+        timer.start();
         for (int i = offset; i <= max; i++) {
             if (frenqencies[i] != 0) {
                 qinsert(new_node(frenqencies[i], i, nullptr, nullptr));
@@ -573,7 +574,8 @@ class HuffmanEncoder : public concepts::EncoderInterface<T> {
             auto right = qremove();
             qinsert(new_node(0, 0, left, right));
         }
-        timer.stop("prebuild");
+        timer.stop("qinsert");
+
 
         build_code(huffmanTree->qq[1], 0, 0, 0);
         treeRoot = huffmanTree->qq[1];
