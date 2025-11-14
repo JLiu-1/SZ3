@@ -518,7 +518,7 @@ class HuffmanEncoder : public concepts::EncoderInterface<T> {
      * */
     void init(const T *s, size_t length) {
         T max = s[0];
-        offset = s[0];  // offset is min
+        offset = 0;  // offset is min
 /*
 #if (SZ3_USE_SKA_HASH) && (INTPTR_MAX == INT64_MAX)  // use ska for 64bit system
         ska::unordered_map<T, size_t> frequency;
@@ -543,14 +543,23 @@ class HuffmanEncoder : public concepts::EncoderInterface<T> {
         std::vector<size_t> frequencyList(ui16_range, 0);
         auto frenqencies = frequencyList.data();
         for (size_t i = 0; i < length; i++) {
+            /*
             auto k = s[i];
             if (k > max) {
                 max = k;
             }
             if (k < offset) {
                 offset = k;
-            }
+            }*/
             frenqencies[s[i]] += 1;
+        }
+        for (int i = 0; i <= ui16_range; i++) {
+            if (frenqencies[i] != 0) {
+                max = i;
+                if(offset ==0)
+                    offset = i;
+            }
+
         }
 
 
