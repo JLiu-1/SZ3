@@ -555,6 +555,8 @@ class HuffmanEncoder : public concepts::EncoderInterface<T> {
 
 
         int stateNum = max - offset + 2;
+        timer.stop("count");
+        timer.start();
         huffmanTree = createHuffmanTree(stateNum);
 
         // to produce the same huffman three on linux & win, we need to iterate through ordered_map in a fixed order
