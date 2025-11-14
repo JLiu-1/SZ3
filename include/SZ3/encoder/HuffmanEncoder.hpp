@@ -106,7 +106,7 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
         }
         init(bins, num_bin);
         for (unsigned int i = 0; i < huffmanTree->stateNum; i++)
-            if (huffmanTree->code[i]) nodeCount++;
+            if (huffmanTree->cout[i] != 0) nodeCount++;
         nodeCount = nodeCount * 2 - 1;
     }
 
@@ -623,11 +623,26 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
     }
 
     void SZ_FreeHuffman() {
+    if (huffmanTree != nullptr) {
+        free(huffmanTree->pool);
+        huffmanTree->pool = nullptr;
+
+        free(huffmanTree->qqq);
+        huffmanTree->qqq = nullptr;
+
         if (huffmanTree->code != nullptr) {
             free(huffmanTree->code);
             huffmanTree->code = nullptr;
         }
+        if (huffmanTree->cout != nullptr) {
+            free(huffmanTree->cout);
+            huffmanTree->cout = nullptr;
+        }
+
+        free(huffmanTree);
+        huffmanTree = nullptr;
     }
+}
 };
 }  // namespace SZ3
 
