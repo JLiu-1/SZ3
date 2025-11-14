@@ -527,18 +527,21 @@ class HuffmanEncoder : public concepts::EncoderInterface<T> {
 #endif  // INTPTR_MAX == INT64_MAX
 
         for (size_t i = 0; i < length; i++) {
-            frequency[s[i]] += 1;
-        }
 
-        for (const auto &kv : frequency) {
-            auto k = kv.first;
+            auto k = s[i];
             if (k > max) {
                 max = k;
             }
             if (k < offset) {
                 offset = k;
             }
+            frequency[s[i]] += 1;
         }
+        /*
+        for (const auto &kv : frequency) {
+            auto k = kv.first;
+            
+        }*/
 
         int stateNum = max - offset + 2;
         huffmanTree = createHuffmanTree(stateNum);
