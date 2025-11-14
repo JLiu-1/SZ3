@@ -554,17 +554,17 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         if(odd_len > 1){
             if(odd_len < even_len){//the only boundary is p[len- 1] 
                 //odd_len < even_len so even_len > 2
-                p[len - 1] = interp_quad_2(buf[even_len - 3], buf[even_len - 2], buf[even_len - 1]);
+                p[odd_len - 1] = interp_quad_2(buf[even_len - 3], buf[even_len - 2], buf[even_len - 1]);
 
             }
             else{//the boundary points are is p[len -2 ] and p[len -1 ]
                 if(odd_len > 2){ //len - 2
                  //odd_len = even_len so even_len > 2
-                    p[len - 2] = interp_quad_2(buf[even_len - 3],  buf[even_len - 2], buf[even_len - 1]);
+                    p[odd_len - 2] = interp_quad_2(buf[even_len - 3],  buf[even_len - 2], buf[even_len - 1]);
                 }
                 //len -1
                 //odd_len = even_len so even_len > 1
-                    p[len - 1] = interp_linear1(buf[even_len - 2], buf[even_len - 1]);
+                    p[odd_len - 1] = interp_linear1(buf[even_len - 2], buf[even_len - 1]);
                 
 
             }
@@ -944,7 +944,6 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             begins[direction] = 1;
             ends[direction] = n;
             strides[direction] = 2;
-            size_t vector_len = n;
 
            
             for (size_t i = begins[0]; i < ends[0]; i += strides[0]) {
@@ -953,18 +952,18 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                     auto cur_buffer = interp_buffer_1;
 
                     auto cur_ij_offset = offset + i * dim_offsets[0] + j * dim_offsets[1];
-                    size_t even_len = n - n/2;
+                    size_t odd_len = n/2, even_len = n - odd_len;
                         
-                    for (size_t k = 0; k < n; k += 1) {
+                    for (size_t k = 0; k < n; k += 2) {
                         auto cur_offset = cur_ij_offset + k * dim_offsets[2];
-                        cur_buffer[(k%2)*even_len + k/2] = data[cur_offset];
+                        cur_buffer[k/2] = data[cur_offset];
                     }
                     
-                    avx_interp_cubic_1D(cur_buffer,pred_buffer, vector_len);
-                    size_t cur_idx = 1;
-                    for (size_t k = even_len; k < n; k ++){
+                    avx_interp_cubic_1D(cur_buffer,pred_buffer, n);
+                    #size_t cur_idx = 1;
+                    for (size_t k = 0; k < odd_len; k ++){
                         auto pred = pred_buffer[k];
-                        auto d = data + cur_ij_offset + (cur_idx) * dim_offsets[2];
+                        auto d = data + cur_ij_offset + (2 * k + 1) * dim_offsets[2];
                       // if (d-data < 0 || d-data>=num_elements)
                       //      std::cout<<i<<" "<<j<<" "<<k<<std::endl;
                         quantize_func(d - data, *d,pred);
