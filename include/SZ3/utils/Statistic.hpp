@@ -30,9 +30,8 @@ T data_range(const T *data, size_t num) {
     if constexpr (is_float){
         size_t i = 0;
 
-        __m256 vmax = _mm256_loadu_ps(data);
-        __m256 vmin = _mm256_loadu_ps(data);
-        i = 8;
+        __m256 vmax = _mm256_set1_ps(data[0]);
+        __m256 vmin = _mm256_set1_ps(data[0]);
 
         for (; i + 7 < num; i += 8) {
             __m256 v = _mm256_loadu_ps(data + i);
@@ -61,18 +60,17 @@ T data_range(const T *data, size_t num) {
     else if constexpr (is_double){
         size_t i = 0;
 
-        __m256d vmax = _mm256_loadu_pd(data);
-        __m256d vmin = _mm256_loadu_pd(data);
-        i = 4;
+        __m256d vmax = _mm256_set1_pd(data[0]);
+        __m256d vmin = _mm256_set1_pd(data[0]);
 
-        for (; i + 3 < num; i += 8) {
+        for (; i + 3 < num; i += 4) {
             __m256d v = _mm256_loadu_pd(data + i);
             vmax = _mm256_max_pd(vmax, v);
             vmin = _mm256_min_pd(vmin, v);
         }
 
-        double tmp_max[8];
-        double tmp_min[8];
+        double tmp_max[4];
+        double tmp_min[4];
         _mm256_storeu_pd(tmp_max, vmax);
         _mm256_storeu_pd(tmp_min, vmin);
 

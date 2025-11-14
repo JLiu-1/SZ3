@@ -82,6 +82,102 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             }
         }
         quantizer.postdecompress_data();
+
+
+        //postfix
+        if(N==3){
+
+
+            //size_t stride2x = stride * 2;
+            double q_unit_a = 0.01;
+            double q_unit_b = 0.1 * eb;
+
+            //int raw_block_size = 8;//or 8 * stride
+            //int block_size = raw_block_size - raw_block_size % stride;
+            const size_t block_size = 8, block_ele_num = block_size * block_size *block_size;
+            //const T idx_mean = block_size / T(2.0);
+            auto quant_center = conf.quantbinCnt / 2;
+            //size_t offset_x = original_dim_offsets[0], offset_y = original_dim_offsets[1];
+            int q_center = conf.quantbinCnt / 2;
+            size_t num_blocks = 1;
+            for(size_t i = 0; i < N ; i++)
+                num_blocks *= original_dimensions[i] / blocksize;
+            quant_inds_vec.resize(quant_inds_vec.size() + 2 * num_blocks);
+            
+            for(int x_start=0; x_start+block_size <=conf.dims[0];x_start+=block_size){
+                for(int y_start=0; y_start+block_size <=conf.dims[1];y_start+=block_size){
+                    for(int z_start=0; z_start+block_size <=conf.dims[2];z_start+=block_size){
+
+                        int a_q = quant_inds[quant_index];
+                        int b_q = quant_inds[quant_index +num_blocks];
+                        quant_index++;
+
+                        T a = 1.0 + (a_q -quant_center) * q_unit_a;
+                        T b = (b_q - quant_center) * q_unit_b;
+                        constexpr bool is_float  = std::is_same_v<T, float>;
+                        constexpr bool is_double = std::is_same_v<T, double>;
+                        if constexpr (is_float){
+    
+                            __m256 v_a = _mm256_set1_ps(a);
+                            __m256 v_b = _mm256_set1_ps(b);
+                            for(int x = x_start; x < x_start + block_size ; x++){
+                                for(int y = y_start; y < y_start + block_size ; y++){
+                                    auto offset = x * original_dim_offsets[0] + y * original_dim_offsets[1] + z_start;
+                                    auto cur_pos = dec_data + offset;
+                                    size_t z = 0;
+                                    for (; z + AVX_256_parallelism <= block_size; z += AVX_256_parallelism) {
+                                        __m256 v_x = _mm256_loadu_ps(cur_pos + z);
+                                        v_x = _mm256_mul_ps(v_x,v_a);
+                                        v_x = _mm256_add_ps(v_x, v_b);
+                                        _mm256_storeu_ps(cur_pos + z, v_x);
+
+
+
+                                    }
+                                    for (; z < block_size; ++z){
+                                        cur_pos[z] =  a * cur_pos[z] + b;
+                                    }
+    
+                                }
+                            }
+
+
+
+                        }
+                        else if constexpr (is_double){
+                            __m256d v_a = _mm256_set1_pd(a);
+                            __m256d v_b = _mm256_set1_pd(b);
+                            for(int x = x_start; x < x_start + block_size ; x++){
+                                for(int y = y_start; y < y_start + block_size ; y++){
+                                    auto offset = x * original_dim_offsets[0] + y * original_dim_offsets[1] + z_start;
+                                    auto cur_pos = dec_data + offset;
+                                    size_t z = 0;
+                                    for (; z + AVX_256_parallelism <= block_size; z += AVX_256_parallelism) {
+                                        __m256d v_x = _mm256_loadu_pd(cur_pos + z);
+                                        v_x = _mm256_mul_pd(v_x,v_a);
+                                        v_x = _mm256_add_pd(v_x, v_b);
+                                        _mm256_storeu_pd(cur_pos + z, v_x);
+
+
+
+                                    }
+                                    for (; z < block_size; ++z){
+                                        cur_pos[z] =  a * cur_pos[z] + b;
+                                    }
+    
+                                }
+                            }
+
+                        }
+
+                    }
+                }
+            }
+
+            
+        }
+
+
         delete [] interp_buffer_1;
         delete [] interp_buffer_2;
         delete [] interp_buffer_3;
@@ -102,6 +198,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         eb_beta = conf.interpBeta;
 
         init();
+        auto ori_data = std::vector<T>(data, data + conf.num);
         auto buffer_len = max_dim + 2 * AVX_256_parallelism - max_dim % AVX_256_parallelism;
         interp_buffer_1 = new T[buffer_len];
         interp_buffer_2 = new T[buffer_len];
@@ -167,6 +264,340 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         }
         quantizer.set_eb(eb);
         quantizer.postcompress_data();
+
+        //postfix
+        if(N==3){
+
+
+            //size_t stride2x = stride * 2;
+            double q_unit_a = 0.01;
+            double q_unit_b = 0.1 * eb;
+
+            //int raw_block_size = 8;//or 8 * stride
+            //int block_size = raw_block_size - raw_block_size % stride;
+            const size_t block_size = 8, block_ele_num = block_size * block_size *block_size;
+            //const T idx_mean = block_size / T(2.0);
+            auto quant_center = conf.quantbinCnt / 2;
+            //size_t offset_x = original_dim_offsets[0], offset_y = original_dim_offsets[1];
+            int q_center = conf.quantbinCnt / 2;
+            T a,b;
+            size_t num_blocks = 1;
+            for(size_t i = 0; i < N ; i++)
+                num_blocks *= original_dimensions[i] / blocksize;
+            quant_inds_vec.resize(quant_inds_vec.size() + 2 * num_blocks);
+            
+            for(int x_start=0; x_start+block_size <=conf.dims[0];x_start+=block_size){
+                for(int y_start=0; y_start+block_size <=conf.dims[1];y_start+=block_size){
+                    for(int z_start=0; z_start+block_size <=conf.dims[2];z_start+=block_size){
+                        T mean = 0.0, T ori_mean = 0.0;
+                        constexpr bool is_float  = std::is_same_v<T, float>;
+                        constexpr bool is_double = std::is_same_v<T, double>;
+                        if constexpr (is_float){
+                            __m256 vsum = _mm256_set1_ps(0.0f);
+                            __m256 vsum_ori = _mm256_set1_ps(0.0f);
+                            for(int x = x_start; x < x_start + block_size ; x++){
+                                for(int y = y_start; y < y_start + block_size ; y++){
+                                    auto offset = x * original_dim_offsets[0] + y * original_dim_offsets[1] + z_start;
+                                    auto cur_pos = data + offset, cur_pos_ori = ori_data + offset;
+                                    
+                                    size_t z = 0;
+
+                                    for (; z + AVX_256_parallelism <= block_size; z += AVX_256_parallelism) {
+                                        __m256 v = _mm256_loadu_ps(cur_pos + z);
+                                        __m256 v_ori = _mm256_loadu_ps(cur_pos_ori + z);
+                                        vsum = _mm256_add_ps(vsum, v);
+                                        vsum_ori = _mm256_add_ps(vsum_ori, v);
+                                    }
+
+                                    
+
+                                    for (; z < block_size; ++z){
+                                        mean += cur_pos[z];
+                                        ori_mean += cur_pos_ori[z];
+                                    }
+                                    
+                                }
+                            }
+                            float sum[AVX_256_parallelism];
+                            float sum_ori[AVX_256_parallelism];
+                            _mm256_storeu_ps(sum, vsum);
+                            _mm256_storeu_ps(sum_ori, vsum_ori);
+
+                            for (int k = 0; k < AVX_256_parallelism; ++k){
+                                mean += sum[k];
+                                ori_mean += sum_ori[k];
+                            }
+
+                            mean /= ele_num;
+                            ori_mean /= ele_num;
+
+
+                            __m256 v_sum_xy = _mm256_set1_ps(0.0f);
+                            __m256 v_sum_xx = _mm256_set1_ps(0.0f);
+                            __m256 v_x_mean = _mm256_set1_ps(mean);
+                            __m256 v_y_mean = _mm256_set1_ps(ori_mean);
+                            T sum_xx = T(0), sum_xy = T(0);
+                            for(int x = x_start; x < x_start + block_size ; x++){
+                                for(int y = y_start; y < y_start + block_size ; y++){
+                                    auto offset = x * original_dim_offsets[0] + y * original_dim_offsets[1] + z_start;
+                                    auto cur_pos = data + offset, cur_pos_ori = ori_data + offset;
+                                    size_t z = 0;
+                                    for (; z + AVX_256_parallelism <= block_size; z += AVX_256_parallelism) {
+                                        __m256 v_xx = _mm256_loadu_ps(cur_pos + z);
+                                        __m256 v_xy = _mm256_loadu_ps(cur_pos_ori + z);
+                                        v_xx = _mm256_sub_ps(v_xx,v_x_mean);
+                                        v_xy = _mm256_add_ps(v_xy, v_y_mean);
+                                        v_xy = _mm256_mul_ps(v_xx, v_xy);
+                                        v_xx = _mm256_mul_ps(v_xx, v_xx);
+                                        v_sum_xx = _mm256_add_ps(v_sum_xx,v_xx);
+                                        v_sum_xy = _mm256_add_ps(v_sum_xy,v_xy);
+
+
+                                    }
+                                    for (; z < block_size; ++z){
+                                        sum_xx += (cur_pos[z]-mean) * (cur_pos[z]-mean);
+                                        sum_xy += (cur_pos_ori[z]-ori_mean) * (cur_pos_ori[z]-ori_mean);
+                                    }
+    
+                                }
+                            }
+                            float sum_xx_arr[AVX_256_parallelism];
+                            float sum_xy_arr[AVX_256_parallelism];
+                            _mm256_storeu_ps(sum_xx_arr, vsum_xx);
+                            _mm256_storeu_ps(sum_xy_arr, vsum_xy);
+                            
+                            for (int k = 0; k < AVX_256_parallelism; ++k){
+                                sum_xx += sum_xx_arr[k];
+                                sum_xy += sum_xY_arr[k];
+                            }
+
+                            a = sum_xy/sum_xx;
+                            b = ori_mean - a * mean;
+
+                            a = a - 1.0;
+                            int a_q =(int)(a/q_unit_a);//todo: solve overflow
+                            a = 1.0 + a_q * q_unit_a;
+                            int b_q =(int)(b/q_unit_b);//todo: solve overflow
+                            b = b_q * q_unit_b;
+
+                            a_q += quant_center;
+                            b_q += quant_center;
+                            if(a_q < 0 || b_q < 0 || a_q >= 2 * quant_center || b_q >= 2 * quant_center){
+                                a_q = quant_center;
+                                b_q = quant_center;
+                            }
+                            else{
+                                T max_abs_err_post_correction = T(0);
+                                __m256 v_max_abs_err = _mm256_set1_ps(0.0f);
+                                __m256 v_a = _mm256_set1_ps(a);
+                                __m256 v_b = _mm256_set1_ps(b);
+                                const __m256 mask = _mm256_set1_ps(-0.0f);    
+                                for(int x = x_start; x < x_start + block_size ; x++){
+                                    for(int y = y_start; y < y_start + block_size ; y++){
+                                        auto offset = x * original_dim_offsets[0] + y * original_dim_offsets[1] + z_start;
+                                        auto cur_pos = data + offset, cur_pos_ori = ori_data + offset;
+                                        size_t z = 0;
+                                        for (; z + AVX_256_parallelism <= block_size; z += AVX_256_parallelism) {
+                                            __m256 v_x = _mm256_loadu_ps(cur_pos + z);
+                                            __m256 v_y = _mm256_loadu_ps(cur_pos_ori + z);
+                                            v_x = _mm256_mul_ps(v_x,v_a);
+                                            v_x = _mm256_add_ps(v_x, v_b);
+                                            v_y = _mm256_sub_ps(v_y, v_x);
+                                            v_y = _mm256_andnot_ps(mask,v_y);
+                                            v_max_abs_err = _mm256_max_ps(v_max_abs_err,v_y);
+
+
+                                        }
+                                        for (; z < block_size; ++z){
+                                            max_abs_err_post_correction = std::max(max_abs_err_post_correction, std::abs(cur_pos_ori[z] - a * cur_pos[z] - b) );
+                                        }
+        
+                                    }
+                                }
+
+                                float tmp_max[AVX_256_parallelism];
+                                _mm256_storeu_ps(tmp_max, v_max_abs_err);
+                                for (int k = 0; k < AVX_256_parallelism; ++k){
+                                    max_abs_err_post_correction = std::max(max_abs_err_post_correction, tmp_max[k]);
+                                }
+
+
+                                if(max_abs_err_post_correction > eb){
+                                    a_q = quant_center;
+                                    b_q = quant_center;
+
+                                }
+                            }
+
+                            quant_inds [quant_index] = a_q;
+                            quant_inds [quant_index + num_blocks] = b_q;
+                            quant_index++;
+
+
+
+
+                        }
+                        else if constexpr (is_double){
+                            for(int x = x_start; x < x_start + block_size ; x++){
+                                for(int y = y_start; y < y_start + block_size ; y++){
+                                    auto offset = x * original_dim_offsets[0] + y * original_dim_offsets[1] + z_start;
+                                        auto cur_pos = data + offset, cur_pos_ori = ori_data + offset;
+                                        __m256d vsum = _mm256_set1_pd(0.0f);
+                                        __m256d vsum_ori = _mm256_set1_pd(0.0f);
+
+                                        size_t z = 0;
+
+                                        for (; z + AVX_256_parallelism <= block_size; z += AVX_256_parallelism) {
+                                            __m256d v = _mm256_loadu_pd(cur_pos + z);
+                                            __m256d v_ori = _mm256_loadu_pd(cur_pos_ori + z);
+                                            vsum = _mm256_add_pd(vsum, v);
+                                            vsum_ori = _mm256_add_pd(vsum_ori, v);
+                                        }
+
+                                        double sum[AVX_256_parallelism];
+                                        double sum_ori[AVX_256_parallelism];
+                                        _mm256_storeu_pd(sum, vsum);
+                                        _mm256_storeu_pd(sum_ori, vsum_ori);
+
+                                        for (int k = 0; k < AVX_256_parallelism; ++k){
+                                            mean += sum[k];
+                                            ori_mean += sum_ori[k];
+                                        }
+
+                                        for (; z < block_size; ++z){
+                                            mean += cur_pos[z];
+                                            ori_mean += cur_pos_ori[z];
+                                        }
+                                }
+                            }
+
+                            double sum[AVX_256_parallelism];
+                            double sum_ori[AVX_256_parallelism];
+                            _mm256_storeu_pd(sum, vsum);
+                            _mm256_storeu_pd(sum_ori, vsum_ori);
+
+                            for (int k = 0; k < AVX_256_parallelism; ++k){
+                                mean += sum[k];
+                                ori_mean += sum_ori[k];
+                            }
+
+                            mean /= ele_num;
+                            ori_mean /= ele_num;
+
+
+                            __m256d v_sum_xy = _mm256_set1_pd(0.0f);
+                            __m256d v_sum_xx = _mm256_set1_pd(0.0f);
+                            __m256d v_x_mean = _mm256_set1_pd(mean);
+                            __m256d v_y_mean = _mm256_set1_pd(ori_mean);
+                            T sum_xx = T(0), sum_xy = T(0);
+                            for(int x = x_start; x < x_start + block_size ; x++){
+                                for(int y = y_start; y < y_start + block_size ; y++){
+                                    auto offset = x * original_dim_offsets[0] + y * original_dim_offsets[1] + z_start;
+                                    auto cur_pos = data + offset, cur_pos_ori = ori_data + offset;
+                                    size_t z = 0;
+                                    for (; z + AVX_256_parallelism <= block_size; z += AVX_256_parallelism) {
+                                        __m256d v_xx = _mm256_loadu_pd(cur_pos + z);
+                                        __m256d v_xy = _mm256_loadu_pd(cur_pos_ori + z);
+                                        v_xx = _mm256_sub_pd(v_xx,v_x_mean);
+                                        v_xy = _mm256_add_pd(v_xy, v_y_mean);
+                                        v_xy = _mm256_mul_pd(v_xx, v_xy);
+                                        v_xx = _mm256_mul_pd(v_xx, v_xx);
+                                        v_sum_xx = _mm256_add_pd(v_sum_xx,v_xx);
+                                        v_sum_xy = _mm256_add_pd(v_sum_xy,v_xy);
+
+
+                                    }
+                                    for (; z < block_size; ++z){
+                                        sum_xx += (cur_pos[z]-mean) * (cur_pos[z]-mean);
+                                        sum_xy += (cur_pos_ori[z]-ori_mean) * (cur_pos_ori[z]-ori_mean);
+                                    }
+    
+                                }
+                            }
+                            double sum_xx_arr[AVX_256_parallelism];
+                            double sum_xy_arr[AVX_256_parallelism];
+                            _mm256_storeu_pd(sum_xx_arr, vsum_xx);
+                            _mm256_storeu_pd(sum_xy_arr, vsum_xy);
+                            
+                            for (int k = 0; k < AVX_256_parallelism; ++k){
+                                sum_xx += sum_xx_arr[k];
+                                sum_xy += sum_xY_arr[k];
+                            }
+
+                            a = sum_xy/sum_xx;
+                            b = ori_mean - a * mean;
+
+                            a = a - 1.0;
+                            int a_q =(int)(a/q_unit_a);//todo: solve overflow
+                            a = 1.0 + a_q * q_unit_a;
+                            int b_q =(int)(b/q_unit_b);//todo: solve overflow
+                            b = b_q * q_unit_b;
+
+                            a_q += quant_center;
+                            b_q += quant_center;
+                            if(a_q < 0 || b_q < 0 || a_q >= 2 * quant_center || b_q >= 2 * quant_center){
+                                a_q = quant_center;
+                                b_q = quant_center;
+                            }
+                            else{
+                                T max_abs_err_post_correction = T(0);
+                                __m256d v_max_abs_err = _mm256_set1_pd(0.0f);
+                                __m256d v_a = _mm256_set1_pd(a);
+                                __m256d v_b = _mm256_set1_pd(b);
+                                const __m256d mask = _mm256_set1_pd(-0.0d);    
+                                for(int x = x_start; x < x_start + block_size ; x++){
+                                    for(int y = y_start; y < y_start + block_size ; y++){
+                                        auto offset = x * original_dim_offsets[0] + y * original_dim_offsets[1] + z_start;
+                                        auto cur_pos = data + offset, cur_pos_ori = ori_data + offset;
+                                        size_t z = 0;
+                                        for (; z + AVX_256_parallelism <= block_size; z += AVX_256_parallelism) {
+                                            __m256d v_x = _mm256_loadu_pd(cur_pos + z);
+                                            __m256d v_y = _mm256_loadu_pd(cur_pos_ori + z);
+                                            v_x = _mm256_mul_pd(v_x,v_a);
+                                            v_x = _mm256_add_pd(v_x, v_b);
+                                            v_y = _mm256_sub_pd(v_y, v_x);
+                                            v_y = _mm256_andnot_pd(mask,v_y);
+                                            v_max_abs_err = _mm256_max_ps(v_max_abs_err,v_y);
+
+
+                                        }
+                                        for (; z < block_size; ++z){
+                                            max_abs_err_post_correction = std::max(max_abs_err_post_correction, std::abs(cur_pos_ori[z] - a * cur_pos[z] - b) );
+                                        }
+        
+                                    }
+                                }
+
+                                double tmp_max[AVX_256_parallelism];
+                                _mm256_storeu_ps(tmp_max, v_max_abs_err);
+                                for (int k = 0; k < AVX_256_parallelism; ++k){
+                                    max_abs_err_post_correction = std::max(max_abs_err_post_correction, tmp_max[k]);
+                                }
+
+                                if(max_abs_err_post_correction > eb){
+                                    a_q = quant_center;
+                                    b_q = quant_center;
+
+                                }
+                            }
+
+                            quant_inds [quant_index] = a_q;
+                            quant_inds [quant_index + num_blocks] = b_q;
+                            quant_index++;
+
+
+                        }
+
+                    }
+                }
+            }
+
+            
+        }
+
+
+
+
         delete [] interp_buffer_1;
         delete [] interp_buffer_2;
         delete [] interp_buffer_3;
@@ -441,7 +872,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         size_t i = 0;
 
         if constexpr (is_float) {
-            const size_t step = 8;
+            const size_t step = AVX_256_parallelism;
             const __m256 nine  = _mm256_set1_ps(9.0f);
             const __m256 factor = _mm256_set1_ps(1.0f / 16.0f);
 
@@ -464,7 +895,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             }
         }
         else if constexpr (is_double) {
-            const size_t step = 4;
+            const size_t step = AVX_256_parallelism;
             const __m256d nine  = _mm256_set1_pd(9.0);
             const __m256d factor = _mm256_set1_pd(1.0 / 16.0);
 
@@ -513,11 +944,11 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         size_t i = 0;
 
         if constexpr (is_float) {
-            const size_t step = 8;
+            const size_t step = AVX_256_parallelism;
             const __m256 nine  = _mm256_set1_ps(9.0f);
             const __m256 factor = _mm256_set1_ps(1.0f / 16.0f);
 
-            for (; i + 3  < even_len; i += step) {
+            for (; i + AVX_256_parallelism  <= even_len; i += step) {
                 __m256 va = _mm256_loadu_ps(buf + i);
                 __m256 vb = _mm256_loadu_ps(buf + i + 1);
                 __m256 vc = _mm256_loadu_ps(buf + i + 2);
@@ -533,11 +964,11 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             }
         }
         else if constexpr (is_double) {
-            const size_t step = 4;
+            const size_t step = AVX_256_parallelism;
             const __m256d nine  = _mm256_set1_pd(9.0);
             const __m256d factor = _mm256_set1_pd(1.0 / 16.0);
 
-            for (; i + 3 < even_len; i += step) {
+            for (; i + AVX_256_parallelism <= even_len; i += step) {
                 __m256d va = _mm256_loadu_pd(buf + i);
                 __m256d vb = _mm256_loadu_pd(buf + i + 1);
                 __m256d vc = _mm256_loadu_pd(buf + i + 2);
@@ -1076,7 +1507,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
     double eb_alpha = -1;
     double eb_beta = -1;
     double eb_ratio = 0.5;  // To be deprecated
-    size_t AVX_256_parallelism = 32 / sizeof(T);
+    const size_t AVX_256_parallelism = 32 / sizeof(T);
     size_t max_dim = 1;
 
     T *interp_buffer_1,*interp_buffer_2,*interp_buffer_3,*interp_buffer_4,*pred_buffer;
