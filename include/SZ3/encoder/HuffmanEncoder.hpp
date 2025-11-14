@@ -149,7 +149,7 @@ class HuffmanEncoder : public concepts::EncoderInterface<T> {
         int lackBits = 0;
         // int64_t totalBitSize = 0, maxBitSize = 0, bitSize21 = 0, bitSize32 = 0;
         for (i = 0; i < num_bin; i++) {
-            assert(bins[i] >= offset );
+            std::cout<<bins[i]<<std::endl;
             state = bins[i] - offset;
             bitSize = huffmanTree->cout[state];
 
@@ -569,7 +569,6 @@ class HuffmanEncoder : public concepts::EncoderInterface<T> {
         int stateNum = max - offset + 2;
         timer.stop("count");
         huffmanTree = createHuffmanTree(stateNum);
-
         // to produce the same huffman three on linux & win, we need to iterate through ordered_map in a fixed order
         
         for (int i = offset; i <= max; i++) {
