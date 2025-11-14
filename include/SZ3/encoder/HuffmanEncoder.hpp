@@ -561,6 +561,7 @@ class HuffmanEncoder : public concepts::EncoderInterface<T> {
             }
 
         }
+        std::cout<<offset<<" "<<max<<std::endl;
 
 
         int stateNum = max - offset + 2;
