@@ -279,9 +279,8 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             //const T idx_mean = block_size / T(2.0);
             auto quant_center = conf.quantbinCnt / 2;
             //size_t offset_x = original_dim_offsets[0], offset_y = original_dim_offsets[1];
-            int q_center = conf.quantbinCnt / 2;
             T a,b;
-            size_t num_blocks = 1, ele_num = 1;
+            size_t num_blocks = 1;
             for(size_t i = 0; i < N ; i++)
                 num_blocks *= original_dimensions[i] / block_size;
             
@@ -394,8 +393,8 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                                 __m256 v_a = _mm256_set1_ps(a);
                                 __m256 v_b = _mm256_set1_ps(b);
                                 const __m256 mask = _mm256_set1_ps(-0.0f);    
-                                for(int x = x_start; x < x_start + block_size ; x++){
-                                    for(int y = y_start; y < y_start + block_size ; y++){
+                                for(size_t x = x_start; x < x_start + block_size ; x++){
+                                    for(size_t y = y_start; y < y_start + block_size ; y++){
                                         auto offset = x * original_dim_offsets[0] + y * original_dim_offsets[1] + z_start;
                                         auto cur_pos = data + offset, cur_pos_ori = ori_data + offset;
                                         size_t z = 0;
