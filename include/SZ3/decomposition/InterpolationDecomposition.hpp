@@ -283,8 +283,10 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             for(size_t i = 0; i < N ; i++)
                 num_blocks *= original_dimensions[i] / block_size;
             std::cout<<num_blocks<<std::endl;
-
+            std::cout<<quant_inds_vec.size()<<std::endl;
             quant_inds_vec.resize(quant_inds_vec.size() + 2 * num_blocks);
+
+             std::cout<<quant_inds_vec.size()<<std::endl;
             
             for(size_t x_start=0; x_start+block_size <=conf.dims[0];x_start+=block_size){
                 for(size_t y_start=0; y_start+block_size <=conf.dims[1];y_start+=block_size){
