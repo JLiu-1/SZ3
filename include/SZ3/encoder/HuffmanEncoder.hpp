@@ -553,7 +553,7 @@ class HuffmanEncoder : public concepts::EncoderInterface<T> {
             }*/
             frenqencies[s[i]] += 1;
         }
-        for (int i = 0; i <= ui16_range; i++) {
+        for (int i = 0; i < ui16_range; i++) {
             if (frenqencies[i] != 0) {
                 max = i;
                 if(offset ==0)
