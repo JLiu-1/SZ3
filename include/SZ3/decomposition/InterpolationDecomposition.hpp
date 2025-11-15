@@ -84,7 +84,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         quantizer.postdecompress_data();
 
 
-        //postfix
+        //postfix, todo: not updating anchors
         if(N==3){
 
 
