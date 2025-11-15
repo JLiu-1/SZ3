@@ -817,8 +817,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                         if(a_q!=0 || b_q!=0)
                             fixed_block_count ++;
                         if (block_idx % 5000 == 0)
-                            std::cout<<block_idx++<<" "<<a_q<<" "<<b_q<<std::endl;
-                        if()
+                            std::cout<<block_idx++<<" "<<a_q<<" "<<b_q<<std::endl;                        
                         quant_inds [quant_index] = a_q + quant_center;
                         quant_inds [quant_index + num_blocks] = b_q + quant_center;
                         quant_index++;
