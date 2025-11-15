@@ -400,7 +400,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
                            
                              //std::cout<<"p3"<<std::endl;
-                            if(a_q < -quant_center || b_q < -quant_center || a_q > quant_center || b_q > quant_center){{
+                            if(a_q < -quant_center || b_q < -quant_center || a_q > quant_center || b_q > quant_center){
                                 a_q = 0;
                                 b_q = 0;
                             }
