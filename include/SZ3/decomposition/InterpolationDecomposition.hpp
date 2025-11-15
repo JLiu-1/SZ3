@@ -609,7 +609,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                                             v_x = _mm256_mul_pd(v_x,v_a);
                                             //v_x = _mm256_add_ps(v_x, v_b);
                                             v_y = _mm256_sub_pd(v_y, v_x);
-                                            __m256d v_upper_y = _mm256_add_ps(v_y, v_eb);
+                                            __m256d v_upper_y = _mm256_add_pd(v_y, v_eb);
                                             //v_y = _mm256_andnot_ps(mask,v_y);
                                             v_max_b = _mm256_min_pd(v_max_b,v_upper_y);
                                             v_y = _mm256_sub_pd(v_y, v_eb);
