@@ -287,7 +287,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         //postfix
         if(N==3){
             //std::cout<<quant_index<<std::endl;
-            q_unit_a = conf.relErrorBound * q_unit_a_coeff;
+            q_unit_a = std::max(0.01,conf.relErrorBound * q_unit_a_coeff);
             q_unit_b = eb * q_unit_b_coeff;
             //size_t stride2x = stride * 2;
             
