@@ -397,12 +397,11 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                             int b_q =(int)(b/q_unit_b);//todo: solve overflow
                             b = b_q * q_unit_b;
 
-                            a_q += quant_center;
-                            b_q += quant_center;
+                           
                              //std::cout<<"p3"<<std::endl;
                             if(a_q < 0 || b_q < 0 || a_q >= 2 * quant_center || b_q >= 2 * quant_center){
-                                a_q = quant_center;
-                                b_q = quant_center;
+                                a_q = 0;
+                                b_q = 0;
                             }
                             else{
                                 T max_b = T(2.0 * eb), min_b = T(-2.0 * eb);
@@ -457,8 +456,8 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                                 //std::cout<<"3.5"<<std::endl;
                                // std::cout<<"3.3"<<std::endl;
                                 if(max_b < min_b){
-                                    a_q = quant_center;
-                                    b_q = quant_center;
+                                    a_q = 0;
+                                    b_q = 0;
                                 }
                                 else{
                                     if(b > max_b){
@@ -473,15 +472,20 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
                                     }
                                     if(b > max_b || b < min_b){
-                                        a_q = quant_center;
-                                        b_q = quant_center;
+                                        a_q = 0;
+                                        b_q = 0;
                                     }
                                 }
                                 //std::cout<<"3.4"<<std::endl;
                             }
                             //std::cout<<quant_index<<std::endl;
-                            quant_inds [quant_index] = a_q;
-                            quant_inds [quant_index + num_blocks] = b_q;
+                            if(a_q < -quant_center || b_q < -quant_center || a_q > quant_center || b_q > quant_center){
+                                a_q = 0;
+                                b_q = 0;
+                            }
+
+                            quant_inds [quant_index] = a_q + quant_center;
+                            quant_inds [quant_index + num_blocks] = b_q + quant_center;
                             quant_index++;
 
 
