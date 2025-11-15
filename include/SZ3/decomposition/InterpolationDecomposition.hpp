@@ -85,7 +85,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
 
         //postfix, todo: not updating anchors
-        if(N==3){
+        if(N==3 && block_fixed){
 
 
             //size_t stride2x = stride * 2;
@@ -817,7 +817,14 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                     }
                 }
             }
-             std::cout<<fixed_block_count<<" fixed over "<<num_blocks<<" blocks. Rate: "<<double(fixed_block_count)/num_blocks<<std::endl;
+             //std::cout<<fixed_block_count<<" fixed over "<<num_blocks<<" blocks. Rate: "<<<<std::endl;
+            double fixed_block_count = double(fixed_block_count)/num_blocks;
+            if(fixed_block_count > 0.25)
+                block_fixed = true;
+            else{
+                block_fixed = false;
+                quant_inds_vec.resize(num_elements);
+            }
             
         }
 
@@ -841,7 +848,8 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         write(anchor_stride, c);
         write(eb_alpha, c);
         write(eb_beta, c);
-        if(N==3){
+        write(block_fixed, c);
+        if(N==3 && block_fixed){
             write(q_unit_a, c);
             write(q_unit_b, c);
         }
@@ -857,8 +865,8 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         read(anchor_stride, c, remaining_length);
         read(eb_alpha, c, remaining_length);
         read(eb_beta, c, remaining_length);
-
-        if(N==3){
+        read(block_fixed, c, remaining_length);
+        if(N==3 && block_fixed){
             read(q_unit_a, c, remaining_length);
             read(q_unit_b, c, remaining_length);
         }
@@ -1749,6 +1757,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
     const double q_unit_a_coeff = 50;// * rel_eb
     const double q_unit_b_coeff = 0.025; // *abs_eb
     double q_unit_a, q_unit_b;
+    bool block_fixed = false;
 
     T *interp_buffer_1,*interp_buffer_2,*interp_buffer_3,*interp_buffer_4,*pred_buffer;
     //std::vector<int> visited;
