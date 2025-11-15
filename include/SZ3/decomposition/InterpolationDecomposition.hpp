@@ -459,7 +459,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         size_t i = 0;
 
         if constexpr (is_float) {
-            const size_t step = 4;
+            const size_t step = AVX_256_parallelism;
             const __m256 nine  = _mm256_set1_ps(9.0f);
             const __m256 factor = _mm256_set1_ps(1.0f / 16.0f);
 
@@ -531,7 +531,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         size_t i = 0;
 
         if constexpr (is_float) {
-            const size_t step = 4;
+            const size_t step = 8;
             const __m256 nine  = _mm256_set1_ps(9.0f);
             const __m256 factor = _mm256_set1_ps(1.0f / 16.0f);
 
