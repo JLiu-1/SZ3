@@ -81,6 +81,7 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
             
             encoder.encode(suffix_quant_inds, buffer_pos);
             auto suffix_huff_size = buffer_pos - old_pos;
+            std::cout<<huff_size<<" "<<suffix_huff_size<<std::endl;
             if (suffix_huff_size >= huff_size / 10){
                 buffer[0] = 0;
                 buffer_pos = old_pos;
