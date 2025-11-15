@@ -396,10 +396,11 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                             a = 1.0 + a_q * q_unit_a;
                             int b_q =(int)(b/q_unit_b);//todo: solve overflow
                             b = b_q * q_unit_b;
+                            //std::cout<<"original: "<<a<<" "<<b<<" "<<a_q<<" "<<b_q<<std::endl;
 
                            
                              //std::cout<<"p3"<<std::endl;
-                            if(a_q < 0 || b_q < 0 || a_q >= 2 * quant_center || b_q >= 2 * quant_center){
+                            if(a_q < -quant_center || b_q < -quant_center || a_q > quant_center || b_q > quant_center){{
                                 a_q = 0;
                                 b_q = 0;
                             }
