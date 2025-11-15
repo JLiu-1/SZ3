@@ -115,7 +115,6 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         interp_buffer_3 = new T[buffer_len];
         interp_buffer_4 = new T[buffer_len];
         pred_buffer = new T[buffer_len];
-        /
        
 
         std::vector<int> quant_inds_vec(num_elements);
