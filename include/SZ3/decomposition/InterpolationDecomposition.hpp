@@ -110,6 +110,10 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                         int a_q = quant_inds[quant_index] - quant_center;
                         int b_q = quant_inds[quant_index +num_blocks] - quant_center;
                         quant_index++;
+                         if (block_idx % 5000 == 0)
+                            std::cout<<block_idx<<" "<<a_q<<" "<<b_q<<std::endl;
+                        block_idx++;
+
                         if(a_q !=0 || b_q!= 0){
 
                             T a = 1.0 + a_q  * q_unit_a;
@@ -167,9 +171,6 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
                             }
                         }
-                         if (block_idx % 5000 == 0)
-                            std::cout<<block_idx<<" "<<a_q<<" "<<b_q<<std::endl;
-                        block_idx++;
 
                     }
                 }
