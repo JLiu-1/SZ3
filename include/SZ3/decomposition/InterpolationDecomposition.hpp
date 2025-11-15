@@ -661,6 +661,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                                         a_q = 0;
                                         b_q = 0;
                                     }
+                                }
 
                                 //std::cout<<"3.4"<<std::endl;
                             }
