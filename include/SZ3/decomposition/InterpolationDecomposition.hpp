@@ -817,9 +817,11 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                     }
                 }
             }
-             //std::cout<<fixed_block_count<<" fixed over "<<num_blocks<<" blocks. Rate: "<<<<std::endl;
-            double fixed_block_count = double(fixed_block_count)/num_blocks;
-            if(fixed_block_count > 0.25)
+            
+            double fixed_block_rate = double(fixed_block_count)/num_blocks;
+            if(num_elements > 100000)
+                 std::cout<<fixed_block_count<<" fixed over "<<num_blocks<<" blocks. Rate: "<<fixed_block_rate<<std::endl;
+            if(fixed_block_rate > 0.25)
                 block_fixed = true;
             else{
                 block_fixed = false;
