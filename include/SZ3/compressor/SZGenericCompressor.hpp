@@ -125,7 +125,7 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
             auto suffix_quant_inds = encoder.decode(bufferPos, quant_inds_size);
             encoder.postprocess_decode();
             quant_inds.resize(quant_inds.size()+suffix_quant_inds.size());
-            quant_inds.insert(quant_inds.end(),suffix_quant_inds.begin(),suffix_quant_inds,end())
+            quant_inds.insert(quant_inds.end(),suffix_quant_inds.begin(),suffix_quant_inds.end())
             suffix_quant_inds.clear();
 
         }
