@@ -52,7 +52,7 @@ T data_range(const T *data, size_t num) {
 
         for (; i < num; ++i){
             maxval = std::max(maxval, data[i]);
-            minval = std::max(minval, data[i]);
+            minval = std::min(minval, data[i]);
         }
 
         return maxval - minval;
@@ -82,7 +82,7 @@ T data_range(const T *data, size_t num) {
 
         for (; i < num; ++i){
             maxval = std::max(maxval, data[i]);
-            minval = std::max(minval, data[i]);
+            minval = std::min(minval, data[i]);
         }
 
         return maxval  - minval;
