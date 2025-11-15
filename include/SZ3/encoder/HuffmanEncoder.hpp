@@ -40,7 +40,7 @@ class HuffmanEncoder : public concepts::EncoderInterface<T> {
         node *qqq, *qq;  // the root node of the HuffmanTree is qq[1]
         int n_nodes;     // n_nodes is for compression
         int qend;
-        uint64_t *code;
+        uint64_t **code;
         unsigned char *cout;
         int n_inode;  // n_inode is for decompression
         int maxBitCount;
@@ -66,11 +66,8 @@ class HuffmanEncoder : public concepts::EncoderInterface<T> {
 
         huffmanTree->pool = static_cast<struct node_t *>(malloc(huffmanTree->allNodes * 2 * sizeof(struct node_t)));
         huffmanTree->qqq = static_cast<node *>(malloc(huffmanTree->allNodes * 2 * sizeof(node)));
-        huffmanTree->code = static_cast<uint64_t *>(malloc(huffmanTree->stateNum * sizeof(uint64_t)));
+        huffmanTree->code = static_cast<uint64_t **>(malloc(huffmanTree->stateNum * sizeof(uint64_t *)));
         huffmanTree->cout = static_cast<unsigned char *>(malloc(huffmanTree->stateNum * sizeof(unsigned char)));
-
-memset(huffmanTree->code, 0, huffmanTree->stateNum * sizeof(uint64_t));
-memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
 
         memset(huffmanTree->pool, 0, huffmanTree->allNodes * 2 * sizeof(struct node_t));
         memset(huffmanTree->qqq, 0, huffmanTree->allNodes * 2 * sizeof(node));
@@ -106,7 +103,7 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
         }
         init(bins, num_bin);
         for (unsigned int i = 0; i < huffmanTree->stateNum; i++)
-            if (huffmanTree->cout[i] != 0) nodeCount++;
+            if (huffmanTree->code[i]) nodeCount++;
         nodeCount = nodeCount * 2 - 1;
     }
 
@@ -144,46 +141,82 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
 
     // perform encoding
     size_t encode(const T *bins, size_t num_bin, uchar *&bytes) {
-        uchar *out_begin = bytes + sizeof(size_t);
-        uchar *p = out_begin;
+        size_t outSize = 0;
+        size_t i = 0;
+        unsigned char bitSize = 0, byteSize, byteSizep;
+        int state;
+        uchar *p = bytes + sizeof(size_t);
+        int lackBits = 0;
+        // int64_t totalBitSize = 0, maxBitSize = 0, bitSize21 = 0, bitSize32 = 0;
+        for (i = 0; i < num_bin; i++) {
+            state = bins[i] - offset;
+            bitSize = huffmanTree->cout[state];
 
-        uint64_t bitbuf = 0;   // LSB-first bit buffer
-        unsigned nbits = 0;    // 当前 buffer 中已有多少 bit（低位开始）
+            if (lackBits == 0) {
+                byteSize = bitSize % 8 == 0
+                               ? bitSize / 8
+                               : bitSize / 8 + 1;  // it's equal to the number of bytes involved (for *outSize)
+                byteSizep = bitSize / 8;           // it's used to move the pointer p for next data
+                if (byteSize <= 8) {
+                    int64ToBytes_bigEndian(p, (huffmanTree->code[state])[0]);
+                    p += byteSizep;
+                } else  // byteSize>8
+                {
+                    int64ToBytes_bigEndian(p, (huffmanTree->code[state])[0]);
+                    p += 8;
+                    int64ToBytes_bigEndian(p, (huffmanTree->code[state])[1]);
+                    p += (byteSizep - 8);
+                }
+                outSize += byteSize;
+                lackBits = bitSize % 8 == 0 ? 0 : 8 - bitSize % 8;
+            } else {
+                *p = (*p) | static_cast<unsigned char>((huffmanTree->code[state])[0] >> (64 - lackBits));
+                if (lackBits < bitSize) {
+                    p++;
 
-        uint64_t *code = huffmanTree->code;
-        unsigned char *len = huffmanTree->cout;
+                    int64_t newCode = (huffmanTree->code[state])[0] << lackBits;
+                    int64ToBytes_bigEndian(p, newCode);
 
-        for (size_t i = 0; i < num_bin; ++i) {
-            int state = bins[i] - offset;
-            assert(state >= 0 && static_cast<unsigned>(state) < huffmanTree->stateNum);
+                    if (bitSize <= 64) {
+                        bitSize -= lackBits;
+                        byteSize = bitSize % 8 == 0 ? bitSize / 8 : bitSize / 8 + 1;
+                        byteSizep = bitSize / 8;
+                        p += byteSizep;
+                        outSize += byteSize;
+                        lackBits = bitSize % 8 == 0 ? 0 : 8 - bitSize % 8;
+                    } else  // bitSize > 64
+                    {
+                        byteSizep = 7;  // must be 7 bytes, because lackBits!=0
+                        p += byteSizep;
+                        outSize += byteSize;
 
-            uint64_t c = code[state];        // 低 len[state] bits 有效
-            unsigned l = len[state];
-
-            // 把当前码字的 bits 追加到 bitbuf 的高位（但表示成 LSB-first）
-            // bitbuf = [低位是先来的 bit，逐渐往高位堆]
-            bitbuf |= (c << nbits);
-            nbits  += l;
-
-            // 每凑够 8 bit，输出一个字节
-            while (nbits >= 8) {
-                unsigned char byte = static_cast<unsigned char>(bitbuf & 0xFFu);
-                // 反转 bit 顺序，让存入字节是 MSB-first
-                *p++ = reverse8(byte);
-                bitbuf >>= 8;
-                nbits  -= 8;
+                        bitSize -= 64;
+                        if (lackBits < bitSize) {
+                            *p = (*p) | static_cast<unsigned char>((huffmanTree->code[state])[0] >> (64 - lackBits));
+                            p++;
+                            newCode = (huffmanTree->code[state])[1] << lackBits;
+                            int64ToBytes_bigEndian(p, newCode);
+                            bitSize -= lackBits;
+                            byteSize = bitSize % 8 == 0 ? bitSize / 8 : bitSize / 8 + 1;
+                            byteSizep = bitSize / 8;
+                            p += byteSizep;
+                            outSize += byteSize;
+                            lackBits = bitSize % 8 == 0 ? 0 : 8 - bitSize % 8;
+                        } else  // lackBits >= bitSize
+                        {
+                            *p = (*p) | static_cast<unsigned char>((huffmanTree->code[state])[0] >> (64 - bitSize));
+                            lackBits -= bitSize;
+                        }
+                    }
+                } else  // lackBits >= bitSize
+                {
+                    lackBits -= bitSize;
+                    if (lackBits == 0) p++;
+                }
             }
         }
-
-        // 剩余不到 8 bit 的部分，也输出一个字节
-        if (nbits > 0) {
-            unsigned char byte = static_cast<unsigned char>(bitbuf & 0xFFu);
-            *p++ = reverse8(byte);
-        }
-
-        size_t outSize = static_cast<size_t>(p - out_begin);
-        write(outSize, bytes);      // 保留原来的长度写入方式
-        bytes += outSize;           // 移动到 bitstream 末尾
+        write(outSize, bytes);
+        bytes += outSize;  // move pointer to end of encoded array
         return outSize;
     }
 
@@ -192,7 +225,7 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
     void preprocess_decode() override {}
 
     // perform decoding
-    /*std::vector<T> decode(const uchar *&bytes, size_t targetLength) override {
+    std::vector<T> decode(const uchar *&bytes, size_t targetLength) override {
         node t = treeRoot;
         std::vector<T> out(targetLength);
         size_t i = 0, byteIndex = 0, count = 0;
@@ -220,71 +253,6 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
                 count++;
             }
         }
-        bytes += encodedLength;
-        return out;
-    }*/
-
-    std::vector<T> decode(const uchar *&bytes, size_t targetLength) override {
-        node root = treeRoot;
-        std::vector<T> out(targetLength);
-        size_t count = 0;
-
-        // 先读出 bitstream 的字节长度
-        size_t encodedLength = 0;
-        read(encodedLength, bytes);
-
-        node n = root;
-        if (n->t) {  // root->t==1 表示只有一个符号（常数）
-            T val = n->c + offset;
-            for (size_t i = 0; i < targetLength; ++i) {
-                out[i] = val;
-            }
-            // 注意：这里仍需把 bytes 向前挪 encodedLength 个字节，
-            //       虽然其实不会用到这些 bit
-            bytes += encodedLength;
-            return out;
-        }
-
-        const uchar *bitptr = bytes;     // 指向 bitstream 起始位置
-        size_t bytePos = 0;
-        size_t byteLimit = encodedLength;
-
-        if (byteLimit == 0) {
-            // 理论上不应该出现：有 targetLength>0 但 encodedLength=0
-            return out;
-        }
-
-        uchar curByte = bitptr[0];
-        int bitsLeft = 8;
-
-        // 遍历 bit，直到解出 targetLength 个符号或者没有更多 bit
-        while (count < targetLength && bytePos < byteLimit) {
-            // 取当前字节的最高 bit（MSB-first）
-            int bit = (curByte & 0x80u) != 0;
-            curByte <<= 1;
-            --bitsLeft;
-
-            // 走 Huffman 树
-            n = bit ? n->right : n->left;
-
-            if (n->t) {
-                // 叶子：输出符号并回到根
-                out[count++] = n->c + offset;
-                n = root;
-            }
-
-            // 当前字节 bit 用完了，读取下一个字节
-            if (bitsLeft == 0) {
-                ++bytePos;
-                if (bytePos >= byteLimit) {
-                    break;  // 没有更多 bit 了
-                }
-                curByte = bitptr[bytePos];
-                bitsLeft = 8;
-            }
-        }
-
-        // 消费掉 encodedLength 个字节
         bytes += encodedLength;
         return out;
     }
@@ -323,14 +291,6 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
     bool loaded = false;
     T offset;
 
-    static inline unsigned char reverse8(unsigned char x) {
-        x = (unsigned char)((x & 0xF0u) >> 4 | (x & 0x0Fu) << 4);
-        x = (unsigned char)((x & 0xCCu) >> 2 | (x & 0x33u) << 2);
-        x = (unsigned char)((x & 0xAAu) >> 1 | (x & 0x55u) << 1);
-        return x;
-    }
-
-
     node reconstruct_HuffTree_from_bytes_anyStates(const unsigned char *bytes, uint nodeCount) {
         if (nodeCount <= 256) {
             unsigned char *L = static_cast<unsigned char *>(malloc(nodeCount * sizeof(unsigned char)));
@@ -345,17 +305,17 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
             // unsigned char cmpSysEndianType = bytes[0];
             // if(cmpSysEndianType!=(unsigned char)sysEndianType)
             // {
-            // 	unsigned char* p = (unsigned char*)(bytes+1+2*nodeCount*sizeof(unsigned char));
-            // 	size_t i = 0, size = nodeCount*sizeof(unsigned int);
-            // 	while(1)
-            // 	{
-            // 		symTransform_4bytes(p);
-            // 		i+=sizeof(unsigned int);
-            // 		if(i<size)
-            // 			p+=sizeof(unsigned int);
-            // 		else
-            // 			break;
-            // 	}
+            //  unsigned char* p = (unsigned char*)(bytes+1+2*nodeCount*sizeof(unsigned char));
+            //  size_t i = 0, size = nodeCount*sizeof(unsigned int);
+            //  while(1)
+            //  {
+            //      symTransform_4bytes(p);
+            //      i+=sizeof(unsigned int);
+            //      if(i<size)
+            //          p+=sizeof(unsigned int);
+            //      else
+            //          break;
+            //  }
             // }
             memcpy(L, bytes + 1, nodeCount * sizeof(unsigned char));
             memcpy(R, bytes + 1 + nodeCount * sizeof(unsigned char), nodeCount * sizeof(unsigned char));
@@ -383,17 +343,17 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
             // unsigned char cmpSysEndianType = bytes[0];
             // if(cmpSysEndianType!=(unsigned char)sysEndianType)
             // {
-            // 	unsigned char* p = (unsigned char*)(bytes+1);
-            // 	size_t i = 0, size = 3*nodeCount*sizeof(unsigned int);
-            // 	while(1)
-            // 	{
-            // 		symTransform_4bytes(p);
-            // 		i+=sizeof(unsigned int);
-            // 		if(i<size)
-            // 			p+=sizeof(unsigned int);
-            // 		else
-            // 			break;
-            // 	}
+            //  unsigned char* p = (unsigned char*)(bytes+1);
+            //  size_t i = 0, size = 3*nodeCount*sizeof(unsigned int);
+            //  while(1)
+            //  {
+            //      symTransform_4bytes(p);
+            //      i+=sizeof(unsigned int);
+            //      if(i<size)
+            //          p+=sizeof(unsigned int);
+            //      else
+            //          break;
+            //  }
             // }
 
             memcpy(L, bytes + 1, nodeCount * sizeof(unsigned short));
@@ -424,17 +384,17 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
             // unsigned char cmpSysEndianType = bytes[0];
             // if(cmpSysEndianType!=(unsigned char)sysEndianType)
             // {
-            // 	unsigned char* p = (unsigned char*)(bytes+1);
-            // 	size_t i = 0, size = 3*nodeCount*sizeof(unsigned int);
-            // 	while(1)
-            // 	{
-            // 		symTransform_4bytes(p);
-            // 		i+=sizeof(unsigned int);
-            // 		if(i<size)
-            // 			p+=sizeof(unsigned int);
-            // 		else
-            // 			break;
-            // 	}
+            //  unsigned char* p = (unsigned char*)(bytes+1);
+            //  size_t i = 0, size = 3*nodeCount*sizeof(unsigned int);
+            //  while(1)
+            //  {
+            //      symTransform_4bytes(p);
+            //      i+=sizeof(unsigned int);
+            //      if(i<size)
+            //          p+=sizeof(unsigned int);
+            //      else
+            //          break;
+            //  }
             // }
 
             memcpy(L, bytes + 1, nodeCount * sizeof(unsigned int));
@@ -468,7 +428,7 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
             n->t = 0;
             // printf("new_node: c = %d, freq = %zu, t = %d, left = %d, right = %d \n", n->c, n->freq, n->t, n->left->c,
             // n->right->c);
-             n->c = 0;
+            // n->c = 0;
         }
         return n;
     }
@@ -518,22 +478,38 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
      * @out2 should be 0 as well.
      * @index: the index of the byte
      * */
-    void build_code(node n, uint64_t code_val, int len) {
+    void build_code(node n, int len, uint64_t out1, uint64_t out2) {
         if (n->t) {
-            assert(len <= 64);
-            huffmanTree->code[n->c] = code_val;                  // 低 len bit 有效
-            huffmanTree->cout[n->c] = static_cast<unsigned char>(len);
-            if (len > huffmanTree->maxBitCount) {
-                huffmanTree->maxBitCount = len;
+            huffmanTree->code[n->c] = static_cast<uint64_t *>(malloc(2 * sizeof(uint64_t)));
+            if (len <= 64) {
+                (huffmanTree->code[n->c])[0] = out1 << (64 - len);
+                (huffmanTree->code[n->c])[1] = out2;
+            } else {
+                (huffmanTree->code[n->c])[0] = out1;
+                (huffmanTree->code[n->c])[1] = out2 << (128 - len);
             }
+            huffmanTree->cout[n->c] = static_cast<unsigned char>(len);
+            // std::cout << "build_code: c = " << n->c << ", len = " << len << ", out1 = " << out1 << ", out2 = " << out2
+            //           << ", code0 = " << (huffmanTree->code[n->c])[0] << ", code1 = " << (huffmanTree->code[n->c])[1]
+            //           << std::endl;
             return;
         }
-
-        build_code(n->left, code_val, len + 1);
-
-        uint64_t code_right = code_val | (uint64_t(1) << len);
-        build_code(n->right, code_right, len + 1);
+        int index = len >> 6;  //=len/64
+        if (index == 0) {
+            out1 = out1 << 1;
+            out1 = out1 | 0;
+            build_code(n->left, len + 1, out1, 0);
+            out1 = out1 | 1;
+            build_code(n->right, len + 1, out1, 0);
+        } else {
+            if (len % 64 != 0) out2 = out2 << 1;
+            out2 = out2 | 0;
+            build_code(n->left, len + 1, out1, out2);
+            out2 = out2 | 1;
+            build_code(n->right, len + 1, out1, out2);
+        }
     }
+
     /**
      * Compute the frequency of the data and build the Huffman tree
      * @param HuffmanTree* huffmanTree (output)
@@ -542,16 +518,18 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
      * */
     void init(const T *s, size_t length) {
         T max = s[0];
-        offset = 0;  // offset is min
-/*
+        offset = s[0];  // offset is min
+
 #if (SZ3_USE_SKA_HASH) && (INTPTR_MAX == INT64_MAX)  // use ska for 64bit system
         ska::unordered_map<T, size_t> frequency;
 #else   // most likely 32bit system
         std::unordered_map<T, size_t> frequency;
 #endif  // INTPTR_MAX == INT64_MAX
-*/
 
-/*
+        for (size_t i = 0; i < length; i++) {
+            frequency[s[i]] += 1;
+        }
+
         for (const auto &kv : frequency) {
             auto k = kv.first;
             if (k > max) {
@@ -561,48 +539,18 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
                 offset = k;
             }
         }
-*/  
-        //Timer timer(true);
-        size_t ui16_range= 1<<16;
-        std::vector<size_t> frequencyList(ui16_range, 0);
-        auto frenqencies = frequencyList.data();
-        for (size_t i = 0; i < length; i++) {
-            /*
-            auto k = s[i];
-            if (k > max) {
-                max = k;
-            }
-            if (k < offset) {
-                offset = k;
-            }*/
-            //assert(s[i]>0 && s[i]<ui16_range);
-            frenqencies[s[i]] += 1;
-        }
-        for (int i = 0; i < ui16_range; i++) {
-            if (frenqencies[i] != 0) {
-                offset = i;
-                break;
-            }
-
-        }
-        for (int i = ui16_range - 1; i >= 0 ; i--) {
-            if (frenqencies[i] != 0) {
-                max = i;
-                break;
-            }
-
-        }
-       // std::cout<<offset<<" "<<max<<std::endl;
-
 
         int stateNum = max - offset + 2;
-        //timer.stop("count");
         huffmanTree = createHuffmanTree(stateNum);
+
         // to produce the same huffman three on linux & win, we need to iterate through ordered_map in a fixed order
-        
-        for (int i = offset; i <= max; i++) {
-            if (frenqencies[i] != 0) {
-                qinsert(new_node(frenqencies[i], i - offset, nullptr, nullptr));
+        std::vector<size_t> frequencyList(stateNum, 0);
+        for (const auto &kv : frequency) {
+            frequencyList[kv.first - offset] = kv.second;
+        }
+        for (int i = 0; i < stateNum; i++) {
+            if (frequencyList[i] != 0) {
+                qinsert(new_node(frequencyList[i], i, nullptr, nullptr));
             }
         }
         // for (const auto &f : frequency) {
@@ -615,8 +563,7 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
             qinsert(new_node(0, 0, left, right));
         }
 
-
-        build_code(huffmanTree->qq[1], 0ULL, 0);
+        build_code(huffmanTree->qq[1], 0, 0, 0);
         treeRoot = huffmanTree->qq[1];
     }
 
@@ -688,26 +635,23 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
     }
 
     void SZ_FreeHuffman() {
-    if (huffmanTree != nullptr) {
-        free(huffmanTree->pool);
-        huffmanTree->pool = nullptr;
-
-        free(huffmanTree->qqq);
-        huffmanTree->qqq = nullptr;
-
-        if (huffmanTree->code != nullptr) {
+        if (huffmanTree != nullptr) {
+            size_t i;
+            free(huffmanTree->pool);
+            huffmanTree->pool = nullptr;
+            free(huffmanTree->qqq);
+            huffmanTree->qqq = nullptr;
+            for (i = 0; i < huffmanTree->stateNum; i++) {
+                if (huffmanTree->code[i] != nullptr) free(huffmanTree->code[i]);
+            }
             free(huffmanTree->code);
             huffmanTree->code = nullptr;
-        }
-        if (huffmanTree->cout != nullptr) {
             free(huffmanTree->cout);
             huffmanTree->cout = nullptr;
+            free(huffmanTree);
+            huffmanTree = nullptr;
         }
-
-        free(huffmanTree);
-        huffmanTree = nullptr;
     }
-}
 };
 }  // namespace SZ3
 
