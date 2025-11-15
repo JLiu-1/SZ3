@@ -289,7 +289,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             int quant_center = conf.quantbinCnt / 2;
             //size_t offset_x = original_dim_offsets[0], offset_y = original_dim_offsets[1];
             T a,b;
-            int a_q b_q;
+            int a_q, b_q;
             size_t num_blocks = 1;
             for(size_t i = 0; i < N ; i++)
                 num_blocks *= original_dimensions[i] / block_size;
