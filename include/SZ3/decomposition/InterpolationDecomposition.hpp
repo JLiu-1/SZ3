@@ -407,7 +407,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                             else{
                                 T max_b = T(2.0 * eb), min_b = T(-2.0 * eb);
                                 __m256 v_max_b = _mm256_set1_ps(max_b);
-                                __m256 v_min_b = _mm256_set1_ps(max_b);
+                                __m256 v_min_b = _mm256_set1_ps(min_b);
                                 __m256 v_a = _mm256_set1_ps(a);
                                 __m256 v_b = _mm256_set1_ps(b);
                                 __m256 v_eb = _mm256_set1_ps(float(eb));
@@ -591,7 +591,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                             else{
                                 T max_b = T(2.0 * eb), min_b = T(-2.0 * eb);
                                 __m256d v_max_b = _mm256_set1_pd(max_b);
-                                __m256d v_min_b = _mm256_set1_pd(max_b);
+                                __m256d v_min_b = _mm256_set1_pd(min_b);
                                 __m256d v_a = _mm256_set1_pd(a);
                                 __m256d v_b = _mm256_set1_pd(b);
                                 __m256d v_eb = _mm256_set1_pd(eb);
