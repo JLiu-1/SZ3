@@ -106,7 +106,7 @@ endif ()
 
 if(ENABLE_AVX2)
   message(STATUS "AVX2 compilation enabled.")
-  target_compile_options(${PROJECT_NAME} INTERFACE -mavx2 -mfma)
+  target_compile_options(${PROJECT_NAME} INTERFACE -mavx2)
   if(NOT CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     message(WARNING "Compiler '${CMAKE_CXX_COMPILER_ID}' might not explicitly support AVX2 flags. Please add them manually if needed.")
   endif()
