@@ -861,15 +861,15 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
     void load(const uchar *&c, size_t &remaining_length) override {
         read(original_dimensions.data(), N, c, remaining_length);
-        std::cout<<original_dimensions[0]<<std::endl;
+        //std::cout<<original_dimensions[0]<<std::endl;
         read(blocksize, c, remaining_length);
         read(interp_id, c, remaining_length);
         read(direction_sequence_id, c, remaining_length);
-        std::cout<<direction_sequence_id<<std::endl;
+        //std::cout<<direction_sequence_id<<std::endl;
         read(anchor_stride, c, remaining_length);
         read(eb_alpha, c, remaining_length);
         read(eb_beta, c, remaining_length);
-        std::cout<<eb_beta<<std::endl;
+        //std::cout<<eb_beta<<std::endl;
         read(block_fixed, c, remaining_length);
         if(N==3 && block_fixed){
             read(q_unit_a, c, remaining_length);
@@ -1262,7 +1262,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                                               const std::array<size_t, N> &end_idx, const size_t &direction,
                                               std::array<size_t, N> &strides, const size_t &math_stride,
                                               const std::string &interp_func, QuantizeFunc &&quantize_func) {
-        assert(direction==0);
+        assert(direction==0 && N==3);
         for (size_t i = 0; i < N; i++) {
             if (end_idx[i] < begin_idx[i]) return 0;
         }
@@ -1420,7 +1420,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                                               const std::array<size_t, N> &end_idx, const size_t &direction,
                                               std::array<size_t, N> &strides, const size_t &math_stride,
                                               const std::string &interp_func, QuantizeFunc &&quantize_func) {
-        assert(direction==1);
+        assert(direction==1 && N==3);
         for (size_t i = 0; i < N; i++) {
             if (end_idx[i] < begin_idx[i]) return 0;
         }
@@ -1579,7 +1579,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                                               const std::array<size_t, N> &end_idx, const size_t &direction,
                                               std::array<size_t, N> &strides, const size_t &math_stride,
                                               const std::string &interp_func, QuantizeFunc &&quantize_func) {
-        assert(direction==2);
+        assert(direction==2&& N==3);
         for (size_t i = 0; i < N; i++) {
             if (end_idx[i] < begin_idx[i]) return 0;
         }
