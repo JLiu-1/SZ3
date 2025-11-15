@@ -111,10 +111,13 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
     T *decompress(const Config &conf, uchar const *cmpData, size_t cmpSize, T *decData) override {
         //std::cout<<"dec star."<<std::endl; 
         bool have_suffix = (cmpData[0] == 1);
+        std::cout<<have_suffix<<" "<<cmpSize<<std::endl;
+        auto thepos=cmpData;
         cmpData++;
         cmpSize--;
         size_t main_size;
         read(main_size, cmpData,cmpSize);
+        std::cout<<main_size<<" "<<cmpData - thepos<<" "<<cmpSize<<std::endl;
         uchar *buffer = nullptr;
         size_t bufferSize = 0;
         lossless.decompress(cmpData, main_size, buffer, bufferSize);
