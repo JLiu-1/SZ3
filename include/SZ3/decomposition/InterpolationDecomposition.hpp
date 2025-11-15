@@ -865,7 +865,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         read(blocksize, c, remaining_length);
         read(interp_id, c, remaining_length);
         read(direction_sequence_id, c, remaining_length);
-        std::cout<<direction_sequence_id[0]<<std::endl;
+        std::cout<<direction_sequence_id<<std::endl;
         read(anchor_stride, c, remaining_length);
         read(eb_alpha, c, remaining_length);
         read(eb_beta, c, remaining_length);
