@@ -89,8 +89,9 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
 
             //size_t stride2x = stride * 2;
+            dpib;e
+            //double q_unit_a = conf. q_unit_b = eb * q_unit_b_coeff;
 
-            double q_unit_b = eb * q_unit_b_coeff;
             //int raw_block_size = 8;//or 8 * stride
             //int block_size = raw_block_size - raw_block_size % stride;
             const size_t block_size = 8;
@@ -105,66 +106,65 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                 for(size_t y_start=0; y_start+block_size <=conf.dims[1];y_start+=block_size){
                     for(size_t z_start=0; z_start+block_size <=conf.dims[2];z_start+=block_size){
 
-                        int a_q = quant_inds[quant_index];
-                        int b_q = quant_inds[quant_index +num_blocks];
+                        int a_q = quant_inds[quant_index] - quant_center;
+                        int b_q = quant_inds[quant_index +num_blocks] - quant_center;
                         quant_index++;
+                        if(a_q !=0 || b_q!= 0){
 
-                        T a = 1.0 + (a_q -quant_center) * q_unit_a;
-                        T b = (b_q - quant_center) * q_unit_b;
-                        constexpr bool is_float  = std::is_same_v<T, float>;
-                        constexpr bool is_double = std::is_same_v<T, double>;
-                        if constexpr (is_float){
-    
-                            __m256 v_a = _mm256_set1_ps(a);
-                            __m256 v_b = _mm256_set1_ps(b);
-                            for(size_t x = x_start; x < x_start + block_size ; x++){
-                                for(size_t y = y_start; y < y_start + block_size ; y++){
-                                    auto offset = x * original_dim_offsets[0] + y * original_dim_offsets[1] + z_start;
-                                    auto cur_pos = dec_data + offset;
-                                    size_t z = 0;
-                                    for (; z + AVX_256_parallelism <= block_size; z += AVX_256_parallelism) {
-                                        __m256 v_x = _mm256_loadu_ps(cur_pos + z);
-                                        v_x = _mm256_mul_ps(v_x,v_a);
-                                        v_x = _mm256_add_ps(v_x, v_b);
-                                        _mm256_storeu_ps(cur_pos + z, v_x);
+                            T a = 1.0 + a_q  * q_unit_a;
+                            T b = b_q  * q_unit_b;
+                            constexpr bool is_float  = std::is_same_v<T, float>;
+                            constexpr bool is_double = std::is_same_v<T, double>;
+                            if constexpr (is_float){
+        
+                                __m256 v_a = _mm256_set1_ps(a);
+                                __m256 v_b = _mm256_set1_ps(b);
+                                for(size_t x = x_start; x < x_start + block_size ; x++){
+                                    for(size_t y = y_start; y < y_start + block_size ; y++){
+                                        auto offset = x * original_dim_offsets[0] + y * original_dim_offsets[1] + z_start;
+                                        auto cur_pos = dec_data + offset;
+                                        size_t z = 0;
+                                        for (; z + AVX_256_parallelism <= block_size; z += AVX_256_parallelism) {
+                                            __m256 v_x = _mm256_loadu_ps(cur_pos + z);
+                                            v_x = _mm256_mul_ps(v_x,v_a);
+                                            v_x = _mm256_add_ps(v_x, v_b);
+                                            _mm256_storeu_ps(cur_pos + z, v_x);
 
 
 
+                                        }
+                                        for (; z < block_size; ++z){
+                                            cur_pos[z] =  a * cur_pos[z] + b;
+                                        }
+        
                                     }
-                                    for (; z < block_size; ++z){
-                                        cur_pos[z] =  a * cur_pos[z] + b;
-                                    }
-    
                                 }
                             }
+                            else if constexpr (is_double){
+                                __m256d v_a = _mm256_set1_pd(a);
+                                __m256d v_b = _mm256_set1_pd(b);
+                                for(size_t x = x_start; x < x_start + block_size ; x++){
+                                    for(size_t y = y_start; y < y_start + block_size ; y++){
+                                        auto offset = x * original_dim_offsets[0] + y * original_dim_offsets[1] + z_start;
+                                        auto cur_pos = dec_data + offset;
+                                        size_t z = 0;
+                                        for (; z + AVX_256_parallelism <= block_size; z += AVX_256_parallelism) {
+                                            __m256d v_x = _mm256_loadu_pd(cur_pos + z);
+                                            v_x = _mm256_mul_pd(v_x,v_a);
+                                            v_x = _mm256_add_pd(v_x, v_b);
+                                            _mm256_storeu_pd(cur_pos + z, v_x);
 
 
 
-                        }
-                        else if constexpr (is_double){
-                            __m256d v_a = _mm256_set1_pd(a);
-                            __m256d v_b = _mm256_set1_pd(b);
-                            for(size_t x = x_start; x < x_start + block_size ; x++){
-                                for(size_t y = y_start; y < y_start + block_size ; y++){
-                                    auto offset = x * original_dim_offsets[0] + y * original_dim_offsets[1] + z_start;
-                                    auto cur_pos = dec_data + offset;
-                                    size_t z = 0;
-                                    for (; z + AVX_256_parallelism <= block_size; z += AVX_256_parallelism) {
-                                        __m256d v_x = _mm256_loadu_pd(cur_pos + z);
-                                        v_x = _mm256_mul_pd(v_x,v_a);
-                                        v_x = _mm256_add_pd(v_x, v_b);
-                                        _mm256_storeu_pd(cur_pos + z, v_x);
-
-
-
+                                        }
+                                        for (; z < block_size; ++z){
+                                            cur_pos[z] =  a * cur_pos[z] + b;
+                                        }
+        
                                     }
-                                    for (; z < block_size; ++z){
-                                        cur_pos[z] =  a * cur_pos[z] + b;
-                                    }
-    
                                 }
-                            }
 
+                            }
                         }
 
                     }
@@ -278,7 +278,8 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         //postfix
         if(N==3){
             //std::cout<<quant_index<<std::endl;
-            double q_unit_b = eb * q_unit_b_coeff;
+            q_unit_a = conf.relErrorBound * q_unit_b_coeff;
+            q_unit_b = eb * q_unit_b_coeff;
             //size_t stride2x = stride * 2;
             
 
@@ -404,7 +405,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                                 a_q = 0;
                                 b_q = 0;
                             }
-                            else{
+                            if(a_q !=0 || b_q!= 0){
                                 T max_b = T(2.0 * eb), min_b = T(-2.0 * eb);
                                 __m256 v_max_b = _mm256_set1_ps(max_b);
                                 __m256 v_min_b = _mm256_set1_ps(min_b);
@@ -592,7 +593,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                                 a_q = 0;
                                 b_q = 0;
                             }
-                            else{
+                            if(a_q !=0 || b_q!= 0){
                                 T max_b = T(2.0 * eb), min_b = T(-2.0 * eb);
                                 __m256d v_max_b = _mm256_set1_pd(max_b);
                                 __m256d v_min_b = _mm256_set1_pd(min_b);
@@ -702,6 +703,10 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         write(anchor_stride, c);
         write(eb_alpha, c);
         write(eb_beta, c);
+        if(N==3){
+            write(q_unit_a, c);
+            write(q_unit_b, c);
+        }
 
         quantizer.save(c);
     }
@@ -714,6 +719,11 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         read(anchor_stride, c, remaining_length);
         read(eb_alpha, c, remaining_length);
         read(eb_beta, c, remaining_length);
+
+        if(N==3){
+            read(q_unit_a, c, remaining_length);
+            read(q_unit_b, c, remaining_length);
+        }
 
         quantizer.load(c, remaining_length);
     }
@@ -1598,8 +1608,9 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
     const size_t AVX_256_parallelism = 32 / sizeof(T);
     size_t max_dim = 1;
 
-    const double q_unit_a = 0.05;
-    const double q_unit_b_coeff = 0.025;
+    const double q_unit_a_coeff = 50;// * rel_eb
+    const double q_unit_b_coeff = 0.025; // *abs_eb
+    double q_unit_a, q_unit_b;
 
     T *interp_buffer_1,*interp_buffer_2,*interp_buffer_3,*interp_buffer_4,*pred_buffer;
     //std::vector<int> visited;
