@@ -77,9 +77,9 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
         if(suffix_quant_inds > conf.num){
             auto old_pos = buffer_pos;
             encoder.preprocess_encode(suffix_quant_inds, decomposition.get_out_range().second);
-            write<size_t>(quant_inds_suffix.size(), buffer_pos);
+            write<size_t>(suffix_quant_inds.size(), buffer_pos);
             
-            encoder.encode(quant_inds_suffix, buffer_pos);
+            encoder.encode(suffix_quant_inds, buffer_pos);
             auto suffix_huff_size = buffer_pos - old_pos;
             if (suffix_huff_size >= huff_size / 10){
                 buffer[0] = 0;
@@ -111,8 +111,8 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
         decomposition.load(bufferPos, bufferSize);
         encoder.load(bufferPos, bufferSize);
 
-        bool have_suffix = *buffer_pos;
-        buffer_pos++;
+        bool have_suffix = *bufferPos;
+        bufferPos++;
 
         size_t quant_inds_size = 0;
         read(quant_inds_size, bufferPos);
@@ -125,7 +125,7 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
             auto suffix_quant_inds = encoder.decode(bufferPos, quant_inds_size);
             encoder.postprocess_decode();
             quant_inds.resize(quant_inds.size()+suffix_quant_inds.size());
-            quant_inds.insert(quant_inds.end(),suffix_quant_inds.begin(),suffix_quant_inds.end())
+            quant_inds.insert(quant_inds.end(),suffix_quant_inds.begin(),suffix_quant_inds.end());
             suffix_quant_inds.clear();
 
         }
