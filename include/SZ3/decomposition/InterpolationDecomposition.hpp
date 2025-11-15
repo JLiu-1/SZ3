@@ -405,6 +405,73 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                                 b_q = 0;
                             }
                             if(a_q !=0 || b_q!= 0){
+                                T mse = T(0);
+                                T mse_post = T(0);
+                                T max_e_post = T(0);
+
+                                __m256 v_a = _mm256_set1_ps(a);
+                                __m256 v_b = _mm256_set1_ps(b);
+                                __m256 v_mse = _mm256_set1_ps(mse);
+                                __m256 v_max_e_post = _mm256_set1_ps(max_e_post);
+                                __m256 v_mse_post = _mm256_set1_ps(mse_post);
+                                const __m256 mask = _mm256_set1_ps(-0.0f);    
+                                //std::cout<<"3.1"<<std::endl;
+                                for(size_t x = x_start; x < x_start + block_size ; x++){
+                                    for(size_t y = y_start; y < y_start + block_size ; y++){
+                                        auto offset = x * original_dim_offsets[0] + y * original_dim_offsets[1] + z_start;
+                                        auto cur_pos = data + offset, cur_pos_ori = ori_data + offset;
+                                        size_t z = 0;
+                                        for (; z + AVX_256_parallelism <= block_size; z += AVX_256_parallelism) {
+                                            __m256 v_x = _mm256_loadu_ps(cur_pos + z);
+                                            __m256 v_y = _mm256_loadu_ps(cur_pos_ori + z);
+                                            __m256 e = _mm256_sub_ps(v_y, v_x);
+                                            e = _mm256_mul_ps(e, e);
+                                           // e = _mm256_andnot_ps(mask,e);
+                                            v_mse = _mm256_add_ps(v_mse,e);
+                                            //std::cout<<"3.1"<<std::endl;
+                                            v_x = _mm256_mul_ps(v_x,v_a);
+                                            v_x = _mm256_add_ps(v_x, v_b);
+                                            e = _mm256_sub_ps(v_y, v_x);
+                                            e = _mm256_andnot_ps(mask,e);
+                                            v_max_e_post = _mm256_max_ps(v_max_e_post,e);
+                                            e = _mm256_mul_ps(e,e);
+                                            v_mse_post = _mm256_add_ps(v_mse_post,e);
+                                            
+                                           // sd::cout<<"3.2"<<std::endl;
+
+
+                                        }
+                                        for (; z < block_size; ++z){
+                                           // std::cout<<"3.3"<<std::endl;
+                                            auto err =cur_pos_ori[z] - cur_pos[z];
+                                            mse+ = err*err;
+                                            auto err_post = cur_pos_ori[z] - a * cur_pos[z] - b;
+                                            mse_post += err_post * err_post;
+                                            max_e_post = std::max(max_e_post,err_post); 
+                                        }
+        
+                                    }
+                                }
+                               // std::cout<<"3.2"<<std::endl;
+                                float tmp_mse[AVX_256_parallelism];
+                                float tmp_mse_post[AVX_256_parallelism];
+                                float tmp_max_e_post[AVX_256_parallelism];
+                                _mm256_storeu_ps(tmp_mse, v_mse);
+                                _mm256_storeu_ps(tmp_mse_post, v_mse_post);
+                                _mm256_storeu_ps(tmp_max_e_post, v_max_e_post);
+                                for (size_t k = 0; k < AVX_256_parallelism; ++k){
+                                    mse += tmp_mse[k];
+                                    mse_post += tmp_mse_post[k];
+                                    max_e_post = std::max(max_e_post, tmp_max_e_post[k]);
+                                }
+                                //std::cout<<"3.5"<<std::endl;
+                               // std::cout<<"3.3"<<std::endl;
+                                if( max_e_post > eb || mse_post > 0.95 * mse){
+                                    a_q = 0;
+                                    b_q = 0;
+                                }
+
+                                /*
                                 T max_b = T(2.0 * eb), min_b = T(-2.0 * eb);
                                 __m256 v_max_b = _mm256_set1_ps(max_b);
                                 __m256 v_min_b = _mm256_set1_ps(min_b);
@@ -476,7 +543,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                                         a_q = 0;
                                         b_q = 0;
                                     }
-                                }
+                                }*/
                                 //std::cout<<"3.4"<<std::endl;
                             }
                             //std::cout<<quant_index<<std::endl;
@@ -593,6 +660,74 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                                 b_q = 0;
                             }
                             if(a_q !=0 || b_q!= 0){
+
+                                T mse = T(0);
+                                T mse_post = T(0);
+                                T max_e_post = T(0);
+
+                                __m256d v_a = _mm256_set1_pd(a);
+                                __m256d v_b = _mm256_set1_pd(b);
+                                __m256d v_mse = _mm256_set1_pd(mse);
+                                __m256d v_max_e_post = _mm256_set1_pd(max_e_post);
+                                __m256d v_mse_post = _mm256_set1_pd(mse_post);
+                                const __m256 mask = _mm256_set1_pd(-0.0d);    
+                                //std::cout<<"3.1"<<std::endl;
+                                for(size_t x = x_start; x < x_start + block_size ; x++){
+                                    for(size_t y = y_start; y < y_start + block_size ; y++){
+                                        auto offset = x * original_dim_offsets[0] + y * original_dim_offsets[1] + z_start;
+                                        auto cur_pos = data + offset, cur_pos_ori = ori_data + offset;
+                                        size_t z = 0;
+                                        for (; z + AVX_256_parallelism <= block_size; z += AVX_256_parallelism) {
+                                            __m256d v_x = _mm256_loadu_pd(cur_pos + z);
+                                            __m256d v_y = _mm256_loadu_pd(cur_pos_ori + z);
+                                            __m256d e = _mm256_sub_pd(v_y, v_x);
+                                            e = _mm256_mul_pd(e, e);
+                                           // e = _mm256_andnot_ps(mask,e);
+                                            v_mse = _mm256_add_pd(v_mse,e);
+                                            //std::cout<<"3.1"<<std::endl;
+                                            v_x = _mm256_mul_pd(v_x,v_a);
+                                            v_x = _mm256_add_pd(v_x, v_b);
+                                            e = _mm256_sub_pd(v_y, v_x);
+                                            e = _mm256_andnot_pd(mask,e);
+                                            v_max_e_post = _mm256_max_pd(v_max_e_post,e);
+                                            e = _mm256_mul_pd(e,e);
+                                            v_mse_post = _mm256_add_pd(v_mse_post,e);
+                                            
+                                           // sd::cout<<"3.2"<<std::endl;
+
+
+                                        }
+                                        for (; z < block_size; ++z){
+                                           // std::cout<<"3.3"<<std::endl;
+                                            auto err =cur_pos_ori[z] - cur_pos[z];
+                                            mse+ = err*err;
+                                            auto err_post = cur_pos_ori[z] - a * cur_pos[z] - b;
+                                            mse_post += err_post * err_post;
+                                            max_e_post = std::max(max_e_post,err_post); 
+                                        }
+        
+                                    }
+                                }
+                               // std::cout<<"3.2"<<std::endl;
+                                double tmp_mse[AVX_256_parallelism];
+                                double tmp_mse_post[AVX_256_parallelism];
+                                double tmp_max_e_post[AVX_256_parallelism];
+                                _mm256_storeu_pd(tmp_mse, v_mse);
+                                _mm256_storeu_pd(tmp_mse_post, v_mse_post);
+                                _mm256_storeu_pd(tmp_max_e_post, v_max_e_post);
+                                for (size_t k = 0; k < AVX_256_parallelism; ++k){
+                                    mse += tmp_mse[k];
+                                    mse_post += tmp_mse_post[k];
+                                    max_e_post = std::max(max_e_post, tmp_max_e_post[k]);
+                                }
+                                //std::cout<<"3.5"<<std::endl;
+                               // std::cout<<"3.3"<<std::endl;
+                                if( max_e_post > eb || mse_post > 0.95 * mse){
+                                    a_q = 0;
+                                    b_q = 0;
+                                }
+
+                                /*
                                 T max_b = T(2.0 * eb), min_b = T(-2.0 * eb);
                                 __m256d v_max_b = _mm256_set1_pd(max_b);
                                 __m256d v_min_b = _mm256_set1_pd(min_b);
@@ -663,6 +798,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                                         b_q = 0;
                                     }
                                 }
+                                */
 
                                 //std::cout<<"3.4"<<std::endl;
                             }
