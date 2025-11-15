@@ -468,7 +468,7 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
             n->t = 0;
             // printf("new_node: c = %d, freq = %zu, t = %d, left = %d, right = %d \n", n->c, n->freq, n->t, n->left->c,
             // n->right->c);
-            // n->c = 0;
+             n->c = 0;
         }
         return n;
     }
