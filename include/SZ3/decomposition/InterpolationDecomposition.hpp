@@ -108,7 +108,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                     for(size_t z_start=0; z_start+block_size <=conf.dims[2];z_start+=block_size){
 
                         int a_q = quant_inds[quant_index] - quant_center;
-                        int b_q = quant_inds[quant_index +num_blocks] - quant_center;
+                        int b_q = quant_inds[quant_index + num_blocks] - quant_center;
                         quant_index++;
                         if (block_idx % 5000 == 0)
                             std::cout<<block_idx<<" "<<a_q<<" "<<b_q<<" "<<quant_index-1<<" "<<num_blocks<<std::endl;
@@ -175,6 +175,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                     }
                 }
             }
+            std::cout<<quant_inds[num_elements+num_blocks]<<std::endl;
 
             
         }
@@ -832,6 +833,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                     }
                 }
             }
+            std::cout<<quant_inds[num_elements+num_blocks]<<std::endl;
             
             double fixed_block_rate = double(fixed_block_count)/num_blocks;
             if(num_elements > 100000)
