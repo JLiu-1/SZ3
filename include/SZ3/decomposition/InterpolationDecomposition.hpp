@@ -109,8 +109,6 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         eb_beta = conf.interpBeta;
 
         init();
-        auto ori_data_vec = std::vector<T>(data, data + conf.num);
-        auto ori_data = ori_data_vec.data();
         auto buffer_len = max_dim + 2 * AVX_256_parallelism - max_dim % AVX_256_parallelism;
         interp_buffer_1 = new T[buffer_len];
         interp_buffer_2 = new T[buffer_len];

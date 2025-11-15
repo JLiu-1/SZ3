@@ -14,7 +14,7 @@ template <class T>
 T data_range(const T *data, size_t num) {
 
     
-    if( num <= 16){
+    if(1){//if( num <= 16){
         T max = data[0];
         T min = data[0];
         for (size_t i = 1; i < num; i++) {
