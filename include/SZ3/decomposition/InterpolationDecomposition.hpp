@@ -115,20 +115,10 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         interp_buffer_3 = new T[buffer_len];
         interp_buffer_4 = new T[buffer_len];
         pred_buffer = new T[buffer_len];
-        //std::cout<<max_dim<<std::endl;
-        size_t additional_quant_counts = 0;
-        if(N==3){
-            const size_t block_size = 8;
-            size_t num_blocks = 1;
-            for(size_t i = 0; i < N ; i++)
-                num_blocks *= original_dimensions[i] / block_size;
-            additional_quant_counts += 2 * num_blocks;
-
-
-        }
+        /
        
 
-        std::vector<int> quant_inds_vec(num_elements + additional_quant_counts);
+        std::vector<int> quant_inds_vec(num_elements);
         //visited.resize(num_elements);
         quant_inds = quant_inds_vec.data();
         double eb = quantizer.get_eb();
