@@ -56,7 +56,7 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
 
         auto buffer = static_cast<uchar *>(malloc(bufferSize));
         uchar *buffer_pos = buffer;
-        if(suffix_quant_inds > conf.num)
+        if(quant_inds.size() > conf.num)
             *buffer_pos = 1;
         else
             *buffer_pos = 0;
