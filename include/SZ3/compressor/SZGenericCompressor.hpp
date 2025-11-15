@@ -56,11 +56,9 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
 
         auto buffer = static_cast<uchar *>(malloc(bufferSize));
         uchar *buffer_pos = buffer;
-        if(suffix_quant_inds.size() > 0)
-            *buffer_pos = 1;
-        else
-            *buffer_pos = 0;
-        buffer_pos++;
+
+        *cmpData[0] = 0;
+        cmpCap -=5;
 
         decomposition.save(buffer_pos);
         encoder.save(buffer_pos);
@@ -74,57 +72,69 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
         encoder.postprocess_encode();
         
 
-        size_t huff_size = buffer_pos - buffer;
+        auto cmpSize = lossless.compress(buffer, buffer_pos - buffer, cmpData + 5, cmpCap );
+
+
         if(suffix_quant_inds.size() > 0){
             auto old_pos = buffer_pos;
+            cmpCap -= cmpSize;
             encoder.preprocess_encode(suffix_quant_inds, decomposition.get_out_range().second);
             write<size_t>(suffix_quant_inds.size(), buffer_pos);
             
             encoder.encode(suffix_quant_inds, buffer_pos);
-            auto suffix_huff_size = buffer_pos - old_pos;
-            std::cout<<huff_size<<" "<<suffix_huff_size<<std::endl;
-            if (suffix_huff_size >= huff_size / 10){
-                buffer[0] = 0;
-                buffer_pos = old_pos;
-            }
+
             encoder.postprocess_encode();
+            auto cmpSize_suffix = lossless.compress(old_pos, buffer_pos - old_pos, cmpData + 5 + cmpSize, cmpCap);
+            std::cout<<cmpSize<<" "<<cmpSize_suffix<<std::endl;
+
+            if (cmpSize_suffix <= cmpSize/10){
+                cmpData[0] = 1;
+                write(cmpSize_suffix, cmpData+ 1);
+                cmpSize+=cmpSize_suffix;
+                
+            }
 
         }
         //timer.stop("huff");
        // timer.start();
-        auto cmpSize = lossless.compress(buffer, buffer_pos - buffer, cmpData, cmpCap);
+        
       //  timer.stop("zstd");
       //  timer.start();
         free(buffer);
         
         //std::cout<<"compress ended."<<std::endl; 
 
-        return cmpSize;
+        return 5 + cmpSize;
     }
 
     T *decompress(const Config &conf, uchar const *cmpData, size_t cmpSize, T *decData) override {
         //std::cout<<"dec star."<<std::endl; 
+        bool have_suffix = (cmpData[0] == 1);
+        cmpData++;
+        cmpsize--;
+        size_t main_size;
+        read(main_size, cmpData,cmpSize);
         uchar *buffer = nullptr;
         size_t bufferSize = 0;
-        lossless.decompress(cmpData, cmpSize, buffer, bufferSize);
+        lossless.decompress(cmpData, main_size, buffer, bufferSize);
 
         uchar const *bufferPos = buffer;
 
         decomposition.load(bufferPos, bufferSize);
         encoder.load(bufferPos, bufferSize);
 
-        bool have_suffix = *bufferPos;
-        bufferPos++;
+        
 
         size_t quant_inds_size = 0;
         read(quant_inds_size, bufferPos);
         auto quant_inds = encoder.decode(bufferPos, quant_inds_size);
         encoder.postprocess_decode();
-
+        cmpSize-=main_size;
         if(have_suffix){
+            lossless.decompress(cmpData, cmpSize, bufferPos, bufferSize);
             size_t suffix_quant_inds_size = 0;
             read(suffix_quant_inds_size, bufferPos);
-            auto suffix_quant_inds = encoder.decode(bufferPos, quant_inds_size);
+            auto suffix_quant_inds = encoder.decode(bufferPos, suffix_quant_inds_size);
             encoder.postprocess_decode();
             quant_inds.resize(quant_inds.size()+suffix_quant_inds.size());
             quant_inds.insert(quant_inds.end(),suffix_quant_inds.begin(),suffix_quant_inds.end());
