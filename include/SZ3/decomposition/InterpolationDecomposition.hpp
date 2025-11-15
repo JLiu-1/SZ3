@@ -444,7 +444,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                                         for (; z < block_size; ++z){
                                            // std::cout<<"3.3"<<std::endl;
                                             auto err =cur_pos_ori[z] - cur_pos[z];
-                                            mse+ = err*err;
+                                            mse += err*err;
                                             auto err_post = cur_pos_ori[z] - a * cur_pos[z] - b;
                                             mse_post += err_post * err_post;
                                             max_e_post = std::max(max_e_post,err_post); 
@@ -670,7 +670,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                                 __m256d v_mse = _mm256_set1_pd(mse);
                                 __m256d v_max_e_post = _mm256_set1_pd(max_e_post);
                                 __m256d v_mse_post = _mm256_set1_pd(mse_post);
-                                const __m256 mask = _mm256_set1_pd(-0.0d);    
+                                const __m256d mask = _mm256_set1_pd(-0.0d);    
                                 //std::cout<<"3.1"<<std::endl;
                                 for(size_t x = x_start; x < x_start + block_size ; x++){
                                     for(size_t y = y_start; y < y_start + block_size ; y++){
@@ -700,7 +700,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                                         for (; z < block_size; ++z){
                                            // std::cout<<"3.3"<<std::endl;
                                             auto err =cur_pos_ori[z] - cur_pos[z];
-                                            mse+ = err*err;
+                                            mse  = err*err;
                                             auto err_post = cur_pos_ori[z] - a * cur_pos[z] - b;
                                             mse_post += err_post * err_post;
                                             max_e_post = std::max(max_e_post,err_post); 
