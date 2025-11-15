@@ -631,8 +631,8 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
                                 double tmp_max_b[AVX_256_parallelism];
                                 double tmp_min_b[AVX_256_parallelism];
-                                _mm256_storeu_ps(tmp_max_b, v_max_b);
-                                _mm256_storeu_ps(tmp_min_b, v_min_b);
+                                _mm256_storeu_pd(tmp_max_b, v_max_b);
+                                _mm256_storeu_pd(tmp_min_b, v_min_b);
                                 for (size_t k = 0; k < AVX_256_parallelism; ++k){
                                     max_b = std::min(max_b, tmp_max_b[k]);
                                     min_b = std::max(min_b, tmp_min_b[k]);
