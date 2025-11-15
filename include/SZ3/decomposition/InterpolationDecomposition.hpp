@@ -399,7 +399,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
                             a_q += quant_center;
                             b_q += quant_center;
-                           // std::cout<<"p3"<<std::endl;
+                             std::cout<<"p3"<<std::endl;
                             if(a_q < 0 || b_q < 0 || a_q >= 2 * quant_center || b_q >= 2 * quant_center){
                                 a_q = quant_center;
                                 b_q = quant_center;
@@ -412,6 +412,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                                 __m256 v_b = _mm256_set1_ps(b);
                                 __m256 v_eb = _mm256_set1_ps(float(eb));
                                 //const __m256 mask = _mm256_set1_ps(-0.0f);    
+                                std::cout<<"3.1"<<std::endl;
                                 for(size_t x = x_start; x < x_start + block_size ; x++){
                                     for(size_t y = y_start; y < y_start + block_size ; y++){
                                         auto offset = x * original_dim_offsets[0] + y * original_dim_offsets[1] + z_start;
@@ -444,7 +445,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         
                                     }
                                 }
-
+                                std::cout<<"3.2"<<std::endl;
                                 float tmp_max_b[AVX_256_parallelism];
                                 float tmp_min_b[AVX_256_parallelism];
                                 _mm256_storeu_ps(tmp_max_b, v_max_b);
@@ -454,6 +455,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                                     min_b = std::max(min_b, tmp_min_b[k]);
                                 }
                                 //std::cout<<"3.5"<<std::endl;
+                                std::cout<<"3.3"<<std::endl;
                                 if(max_b < min_b){
                                     a_q = quant_center;
                                     b_q = quant_center;
@@ -475,6 +477,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                                         b_q = quant_center;
                                     }
                                 }
+                                std::cout<<"3.4"<<std::endl;
                             }
                             //std::cout<<quant_index<<std::endl;
                             quant_inds [quant_index] = a_q;
