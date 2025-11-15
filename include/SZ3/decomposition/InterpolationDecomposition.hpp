@@ -861,12 +861,15 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
     void load(const uchar *&c, size_t &remaining_length) override {
         read(original_dimensions.data(), N, c, remaining_length);
+        std::cout<<original_dimensions[0]<<std::endl;
         read(blocksize, c, remaining_length);
         read(interp_id, c, remaining_length);
         read(direction_sequence_id, c, remaining_length);
+        std::cout<<direction_sequence_id[0]<<std::endl;
         read(anchor_stride, c, remaining_length);
         read(eb_alpha, c, remaining_length);
         read(eb_beta, c, remaining_length);
+        std::cout<<eb_beta<<std::endl;
         read(block_fixed, c, remaining_length);
         if(N==3 && block_fixed){
             read(q_unit_a, c, remaining_length);
