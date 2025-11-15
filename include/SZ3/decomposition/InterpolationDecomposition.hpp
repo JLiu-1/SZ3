@@ -531,11 +531,11 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         size_t i = 0;
 
         if constexpr (is_float) {
-            const size_t step = 8;
+            const size_t step = AVX_256_parallelism;
             const __m256 nine  = _mm256_set1_ps(9.0f);
             const __m256 factor = _mm256_set1_ps(1.0f / 16.0f);
 
-            for (; i + 3  < even_len; i += step) {
+            for (; i + 3  <= even_len; i += step) {
                 __m256 va = _mm256_loadu_ps(buf + i);
                 __m256 vb = _mm256_loadu_ps(buf + i + 1);
                 __m256 vc = _mm256_loadu_ps(buf + i + 2);
