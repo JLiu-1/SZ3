@@ -563,7 +563,7 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
         }
 */  
         //Timer timer(true);
-        size_t ui16_range= 1<<16;
+        const size_t ui16_range= 1<<16;
         std::vector<size_t> frequencyList(ui16_range, 0);
         auto frenqencies = frequencyList.data();
         for (size_t i = 0; i < length; i++) {
