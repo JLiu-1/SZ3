@@ -131,8 +131,12 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
         auto quant_inds = encoder.decode(bufferPos, quant_inds_size);
         encoder.postprocess_decode();
         cmpSize-=main_size;
+        free(buffer);
         if(have_suffix){
-            lossless.decompress(cmpData, cmpSize, bufferPos, bufferSize);
+            buffer = nullptr;
+            bufferSize = 0;
+            bufferPos = buffer;
+            lossless.decompress(cmpData, cmpSize, buffer, bufferSize);
             size_t suffix_quant_inds_size = 0;
             read(suffix_quant_inds_size, bufferPos);
             auto suffix_quant_inds = encoder.decode(bufferPos, suffix_quant_inds_size);
@@ -144,7 +148,7 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
         }
 
 
-        free(buffer);
+        
 
         decomposition.decompress(conf, quant_inds, decData);
         return decData;
