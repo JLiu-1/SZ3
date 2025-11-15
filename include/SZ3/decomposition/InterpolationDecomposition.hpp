@@ -405,11 +405,13 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                                 b_q = quant_center;
                             }
                             else{
-                                T max_abs_err_post_correction = T(0);
-                                __m256 v_max_abs_err = _mm256_set1_ps(0.0f);
+                                T max_b = T(2.0 * eb), min_b = T(-2.0 * eb);
+                                __m256 v_max_b = _mm256_set1_ps(max_b);
+                                __m256 v_min_b = _mm256_set1_ps(max_b);
                                 __m256 v_a = _mm256_set1_ps(a);
                                 __m256 v_b = _mm256_set1_ps(b);
-                                const __m256 mask = _mm256_set1_ps(-0.0f);    
+                                __m256 v_eb = _mm256_set1_ps(float(eb));
+                                //const __m256 mask = _mm256_set1_ps(-0.0f);    
                                 for(size_t x = x_start; x < x_start + block_size ; x++){
                                     for(size_t y = y_start; y < y_start + block_size ; y++){
                                         auto offset = x * original_dim_offsets[0] + y * original_dim_offsets[1] + z_start;
@@ -421,34 +423,57 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                                             __m256 v_y = _mm256_loadu_ps(cur_pos_ori + z);
                                             //std::cout<<"3.1"<<std::endl;
                                             v_x = _mm256_mul_ps(v_x,v_a);
-                                            v_x = _mm256_add_ps(v_x, v_b);
+                                            //v_x = _mm256_add_ps(v_x, v_b);
                                             v_y = _mm256_sub_ps(v_y, v_x);
-                                            v_y = _mm256_andnot_ps(mask,v_y);
-                                            v_max_abs_err = _mm256_max_ps(v_max_abs_err,v_y);
+                                            __m256 v_upper_y = _mm256_add_ps(v_y, v_eb);
+                                            //v_y = _mm256_andnot_ps(mask,v_y);
+                                            v_max_b = _mm256_min_ps(v_max_b,v_upper_y);
+                                            v_y = _mm256_sub_ps(v_y, v_eb);
+                                            v_min_b = _mm256_max_ps(v_min_b,v_y);
                                            // std::cout<<"3.2"<<std::endl;
 
 
                                         }
                                         for (; z < block_size; ++z){
                                            // std::cout<<"3.3"<<std::endl;
-                                            max_abs_err_post_correction = std::max(max_abs_err_post_correction, std::abs(cur_pos_ori[z] - a * cur_pos[z] - b) );
+                                            auto scaled_err = cur_pos_ori[z] - a * cur_pos[z];
+                                            max_b = std::min(max_b,scaled_err + eb);
+                                            min_b = std::max(min_b,scaled_err - eb);
+                                            
                                         }
         
                                     }
                                 }
 
-                                float tmp_max[AVX_256_parallelism];
-                                _mm256_storeu_ps(tmp_max, v_max_abs_err);
+                                float tmp_max_b[AVX_256_parallelism];
+                                float tmp_min_b[AVX_256_parallelism];
+                                _mm256_storeu_ps(tmp_max_b, v_max_b);
+                                _mm256_storeu_ps(tmp_min_b, v_min_b);
                                 for (size_t k = 0; k < AVX_256_parallelism; ++k){
-                                    max_abs_err_post_correction = std::max(max_abs_err_post_correction, tmp_max[k]);
+                                    max_b = std::min(max_b, tmp_max_b[k]);
+                                    min_b = std::max(min_b, tmp_min_b[k]);
                                 }
                                 //std::cout<<"3.5"<<std::endl;
-
-
-                                if(max_abs_err_post_correction > eb){
+                                if(max_b < min_b){
                                     a_q = quant_center;
                                     b_q = quant_center;
+                                }
+                                else{
+                                    if(b > max_b){
+                                        b_q =(int)(max_b/q_unit_b);//todo: solve overflow
+                                        b = b_q * q_unit_b;
+                                       
 
+                                    }
+                                    if (b < min_b){
+                                        b_q =(int)(min_b/q_unit_b);//todo: solve overflow
+                                        b = b_q * q_unit_b;
+
+                                    }
+                                    if(b > max_b || b < min_b){
+                                        a_q = quant_center;
+                                        b_q = quant_center;
+                                    }
                                 }
                             }
                             //std::cout<<quant_index<<std::endl;
