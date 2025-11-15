@@ -29,6 +29,8 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         init();
         auto buffer_len = max_dim +  2 * AVX_256_parallelism - max_dim % AVX_256_parallelism;
         interp_buffer_1 = new T[buffer_len];
+        for(size_t i =0;i<buffer_len;i++)
+            interp_buffer_1 = T(0);
         interp_buffer_2 = new T[buffer_len];
         interp_buffer_3 = new T[buffer_len];
         interp_buffer_4 = new T[buffer_len];
@@ -598,7 +600,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                                               const std::array<size_t, N> &end_idx, const size_t &direction,
                                               std::array<size_t, N> &strides, const size_t &math_stride,
                                               const std::string &interp_func, QuantizeFunc &&quantize_func) {
-        assert(direction==0);
+        assert(direction==0  && N==3);
         for (size_t i = 0; i < N; i++) {
             if (end_idx[i] < begin_idx[i]) return 0;
         }
@@ -756,7 +758,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                                               const std::array<size_t, N> &end_idx, const size_t &direction,
                                               std::array<size_t, N> &strides, const size_t &math_stride,
                                               const std::string &interp_func, QuantizeFunc &&quantize_func) {
-        assert(direction==1);
+        assert(direction==1  && N==3);
         for (size_t i = 0; i < N; i++) {
             if (end_idx[i] < begin_idx[i]) return 0;
         }
@@ -915,7 +917,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                                               const std::array<size_t, N> &end_idx, const size_t &direction,
                                               std::array<size_t, N> &strides, const size_t &math_stride,
                                               const std::string &interp_func, QuantizeFunc &&quantize_func) {
-        assert(direction==2);
+        assert(direction==2 && N==3);
         for (size_t i = 0; i < N; i++) {
             if (end_idx[i] < begin_idx[i]) return 0;
         }
