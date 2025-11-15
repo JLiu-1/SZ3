@@ -395,7 +395,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                             a = a - 1.0;
                             a_q =(int)(a/q_unit_a);//todo: solve overflow
                             a = 1.0 + a_q * q_unit_a;
-                            int b_q =(int)(b/q_unit_b);//todo: solve overflow
+                            b_q =(int)(b/q_unit_b);//todo: solve overflow
                             b_q * q_unit_b;
                             //std::cout<<"original: "<<a<<" "<<b<<" "<<a_q<<" "<<b_q<<std::endl;
 
@@ -648,9 +648,9 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                             b = ori_mean - a * mean;
 
                             a = a - 1.0;
-                            int a_q =(int)(a/q_unit_a);//todo: solve overflow
+                            a_q =(int)(a/q_unit_a);//todo: solve overflow
                             a = 1.0 + a_q * q_unit_a;
-                            int b_q =(int)(b/q_unit_b);//todo: solve overflow
+                            b_q =(int)(b/q_unit_b);//todo: solve overflow
                             b = b_q * q_unit_b;
 
 
@@ -807,7 +807,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                           
 
                         }
-                        if(a_q!=0||b_q!=0)
+                        if(a_q!=0 || b_q!=0)
                             fixed_block_count ++;
                         quant_inds [quant_index] = a_q + quant_center;
                         quant_inds [quant_index + num_blocks] = b_q + quant_center;
@@ -820,7 +820,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
              std::cout<<fixed_block_count<<" fixed over "<<num_blocks<<" blocks. Rate: "<<double(fixed_block_count)/num_blocks<<std::endl;
             
         }
-       
+
 
 
 
