@@ -286,7 +286,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             //int block_size = raw_block_size - raw_block_size % stride;
             const size_t block_size = 8, block_ele_num = block_size * block_size *block_size;
             //const T idx_mean = block_size / T(2.0);
-            auto quant_center = conf.quantbinCnt / 2;
+            int quant_center = conf.quantbinCnt / 2;
             //size_t offset_x = original_dim_offsets[0], offset_y = original_dim_offsets[1];
             T a,b;
             size_t num_blocks = 1;
