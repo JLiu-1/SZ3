@@ -39,9 +39,9 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
         //Timer timer(true);  
         std::vector<int> quant_inds = decomposition.compress(conf, data);
         std::vector<int> suffix_quant_inds;
-        if(quant_inds_size > conf.num){
-            suffix_quant_inds.insert(suffix_quant_inds.end(),quant_inds.begin()+conf.num,quant_inds.end);
-            quant_inds.resize(conf.num;)
+        if(quant_inds.size() > conf.num){
+            suffix_quant_inds.insert(suffix_quant_inds.end(),quant_inds.begin()+conf.num,quant_inds.end());
+            quant_inds.resize(conf.num);
         }
         //timer.stop("interpquant");
         //timer.start();
