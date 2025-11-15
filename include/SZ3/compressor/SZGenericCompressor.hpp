@@ -144,6 +144,7 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
             quant_inds.resize(quant_inds.size()+suffix_quant_inds.size());
             quant_inds.insert(quant_inds.end(),suffix_quant_inds.begin(),suffix_quant_inds.end());
             suffix_quant_inds.clear();
+            free(buffer);
 
         }
 
