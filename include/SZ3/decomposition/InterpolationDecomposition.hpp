@@ -817,10 +817,10 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                     }
                 }
             }
-
+             std::cout<<fixed_block_count<<" fixed over "<<num_blocks<<" blocks. Rate: "<<double(fixed_block_count)/num_blocks<<std::endl;
             
         }
-        std::cout<<fixed_block_count<<" fixed over "<<num_blocks<<" blocks. Rate: "<<double(fixed_block_count)/num_blocks<<std::endl;
+       
 
 
 
