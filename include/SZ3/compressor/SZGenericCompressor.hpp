@@ -58,7 +58,7 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
         uchar *buffer_pos = buffer;
 
         cmpData[0] = 0;
-        cmpCap -=5;
+        cmpCap -= 9;
 
         decomposition.save(buffer_pos);
         encoder.save(buffer_pos);
@@ -72,7 +72,7 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
         encoder.postprocess_encode();
         
 
-        auto cmpSize = lossless.compress(buffer, buffer_pos - buffer, cmpData + 5, cmpCap );
+        auto cmpSize = lossless.compress(buffer, buffer_pos - buffer, cmpData + 9, cmpCap );
 
 
         if(suffix_quant_inds.size() > 0){
@@ -84,8 +84,8 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
             encoder.encode(suffix_quant_inds, buffer_pos);
 
             encoder.postprocess_encode();
-            auto cmpSize_suffix = lossless.compress(old_pos, buffer_pos - old_pos, cmpData + 5 + cmpSize, cmpCap);
-            std::cout<<cmpSize<<" "<<cmpSize_suffix<<std::endl;
+            auto cmpSize_suffix = lossless.compress(old_pos, buffer_pos - old_pos, cmpData + 9 + cmpSize, cmpCap);
+            //std::cout<<cmpSize<<" "<<cmpSize_suffix<<std::endl;
 
             if (cmpSize_suffix <= cmpSize/10){
                 cmpData[0] = 1;
@@ -105,19 +105,19 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
         
         //std::cout<<"compress ended."<<std::endl; 
 
-        return 5 + cmpSize;
+        return 9 + cmpSize;
     }
 
     T *decompress(const Config &conf, uchar const *cmpData, size_t cmpSize, T *decData) override {
         //std::cout<<"dec star."<<std::endl; 
         bool have_suffix = (cmpData[0] == 1);
-        std::cout<<have_suffix<<" "<<cmpSize<<std::endl;
+        //std::cout<<have_suffix<<" "<<cmpSize<<std::endl;
         auto thepos=cmpData;
         cmpData++;
         cmpSize--;
         size_t main_size;
         read(main_size, cmpData,cmpSize);
-        std::cout<<main_size<<" "<<cmpData - thepos<<" "<<cmpSize<<std::endl;
+        //std::cout<<main_size<<" "<<cmpData - thepos<<" "<<cmpSize<<std::endl;
         uchar *buffer = nullptr;
         size_t bufferSize = 0;
         lossless.decompress(cmpData, main_size, buffer, bufferSize);
