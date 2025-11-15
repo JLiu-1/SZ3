@@ -57,7 +57,7 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
         auto buffer = static_cast<uchar *>(malloc(bufferSize));
         uchar *buffer_pos = buffer;
 
-        *cmpData[0] = 0;
+        cmpData[0] = 0;
         cmpCap -=5;
 
         decomposition.save(buffer_pos);
@@ -89,7 +89,8 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
 
             if (cmpSize_suffix <= cmpSize/10){
                 cmpData[0] = 1;
-                write(cmpSize_suffix, cmpData+ 1);
+                auto pos = cmpData +1;
+                write(cmpSize_suffix, pos);
                 cmpSize+=cmpSize_suffix;
                 
             }
@@ -111,7 +112,7 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
         //std::cout<<"dec star."<<std::endl; 
         bool have_suffix = (cmpData[0] == 1);
         cmpData++;
-        cmpsize--;
+        cmpSize--;
         size_t main_size;
         read(main_size, cmpData,cmpSize);
         uchar *buffer = nullptr;
