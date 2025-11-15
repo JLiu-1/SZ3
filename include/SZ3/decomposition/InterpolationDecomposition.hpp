@@ -30,7 +30,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         auto buffer_len = max_dim +  2 * AVX_256_parallelism - max_dim % AVX_256_parallelism;
         interp_buffer_1 = new T[buffer_len];
         for(size_t i =0;i<buffer_len;i++)
-            interp_buffer_1 = T(0);
+            interp_buffer_1[i] = T(0);
         interp_buffer_2 = new T[buffer_len];
         interp_buffer_3 = new T[buffer_len];
         interp_buffer_4 = new T[buffer_len];
