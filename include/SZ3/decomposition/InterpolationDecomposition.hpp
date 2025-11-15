@@ -85,7 +85,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
 
         //postfix, todo: not updating anchors
-        if(N==3 && block_fixed){
+        if(N==3 && block_fixed&& quant_inds.size() > num_elements){
 
 
             //size_t stride2x = stride * 2;
