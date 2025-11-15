@@ -66,6 +66,7 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
         encoder.save(buffer_pos);
 
         //store the size of quant_inds is necessary as it is not always equal to conf.num
+        std::cout<<quant_inds.size()<<" "<<suffix_quant_inds.size()<<std::endl;
         write<size_t>(quant_inds.size(), buffer_pos);
         //timer.stop("memloc");
         //timer.start();
