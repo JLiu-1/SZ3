@@ -90,7 +90,7 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
             if (cmpSize_suffix <= cmpSize/10){
                 cmpData[0] = 1;
                 auto pos = cmpData +1;
-                write(cmpSize_suffix, pos);
+                write(cmpSize, pos);
                 cmpSize+=cmpSize_suffix;
                 
             }
