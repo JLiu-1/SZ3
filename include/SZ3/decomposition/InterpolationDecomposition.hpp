@@ -826,7 +826,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             if(num_elements > 100000)
                  std::cout<<fixed_block_count<<" fixed over "<<num_blocks<<" blocks. Rate: "<<fixed_block_rate<<std::endl;
             if(fixed_block_rate > 0.25)
-                block_fixed = true;
+                block_fixed = false;
             else{
                 block_fixed = false;
                 quant_inds_vec.resize(num_elements);
