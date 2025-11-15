@@ -34,8 +34,8 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         interp_buffer_3 = new T[buffer_len];
         interp_buffer_4 = new T[buffer_len];
         pred_buffer = new T[buffer_len];
-        for(size_t i =0;i<buffer_len;i++)
-            pred_buffer[i] = interp_buffer_1[i] = interp_buffer_2[i] = interp_buffer_3[i] = interp_buffer_4[i] = T(0);
+        //for(size_t i =0;i<buffer_len;i++)
+         //   pred_buffer[i] = interp_buffer_1[i] = interp_buffer_2[i] = interp_buffer_3[i] = interp_buffer_4[i] = T(0);
         this->quant_inds = quant_inds.data();
         double eb = quantizer.get_eb();
         //visited.resize(num_elements);
@@ -115,8 +115,8 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         interp_buffer_3 = new T[buffer_len];
         interp_buffer_4 = new T[buffer_len];
         pred_buffer = new T[buffer_len];
-        for(size_t i =0;i<buffer_len;i++)
-            pred_buffer[i] = interp_buffer_1[i] = interp_buffer_2[i] = interp_buffer_3[i] = interp_buffer_4[i] = T(0);
+        //for(size_t i =0;i<buffer_len;i++)
+        //    pred_buffer[i] = interp_buffer_1[i] = interp_buffer_2[i] = interp_buffer_3[i] = interp_buffer_4[i] = T(0);
        
 
         std::vector<int> quant_inds_vec(num_elements);
