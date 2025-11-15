@@ -21,8 +21,6 @@ T data_range(const T *data, size_t num) {
             if (max < data[i]) max = data[i];
             if (min > data[i]) min = data[i];
         }
-        std::cout<<max<<std::endl;
-        std::cout<<min<<std::endl;
         return max - min;
 
     }
@@ -54,10 +52,8 @@ T data_range(const T *data, size_t num) {
 
         for (; i < num; ++i){
             maxval = std::max(maxval, data[i]);
-            minval = std::max(minval, data[i]);
+            minval = std::min(minval, data[i]);
         }
-        std::cout<<maxval<<std::endl;
-        std::cout<<minval<<std::endl;
         return maxval - minval;
     }
     else if constexpr (is_double){
