@@ -281,10 +281,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
             std::vector<int> quant_inds_vec_reordered(num_elements);
             #pragma omp parallel for
 
-            for(int i =0; i < interp_level;i++){
-                std::cout<<reduced_dim_offsets[i][0]<<" "<<reduced_dim_offsets[i][1]<<std::endl;
-                 std::cout<<level_prefix[i]<<std::endl;
-            }
+            
             for(size_t idx = 0; idx < num_elements ; idx++){
                 //quant_inds_vec_reordered[idx] = quant_inds_vec[idx];
                 
@@ -313,6 +310,10 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
                  assert( idx < quant_inds_vec.size() && reordered_idx < quant_inds_vec_reordered.size());
                 quant_inds_vec_reordered [reordered_idx] = quant_inds_vec[idx];
                 
+            }
+            for(int i =0; i < interp_level;i++){
+                std::cout<<reduced_dim_offsets[i][0]<<" "<<reduced_dim_offsets[i][1]<<std::endl;
+                 std::cout<<level_prefix[i]<<std::endl;
             }
             std::cout<<"shenfenzheng"<<std::endl;   
            
