@@ -66,8 +66,15 @@ template <class T, uint N>
 double interp_compress_test(
     const std::vector<std::vector<T>> sampled_blocks, const Config conf, int block_size, uchar *cmpData,
     size_t cmpCap) {  // test interp cmp on a set of sampled data blocks and return the compression ratio
-    auto sz =
+    #ifdef _OPENMP
+     auto sz =
+        make_decomposition_interpolation_omp<T, N>(conf, LinearQuantizerOMP<T>(conf.absErrorBound, conf.quantbinCnt / 2));
+     #else
+         auto sz =
         make_decomposition_interpolation<T, N>(conf, LinearQuantizer<T>(conf.absErrorBound, conf.quantbinCnt / 2));
+     #endif
+   
+   
 
     std::vector<int> total_quant_bins;
     for (size_t k = 0; k < sampled_blocks.size(); k++) {
