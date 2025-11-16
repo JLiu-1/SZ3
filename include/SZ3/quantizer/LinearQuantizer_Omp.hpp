@@ -90,7 +90,7 @@ class LinearQuantizerOMP : public concepts::QuantizerOMPInterface<T, int> {
     }
 
     ALWAYS_INLINE T recover_pred(T pred, int quant_index) {
-        if(data_idx == 22448644){
+        if(quant_index == 22448644){
               std::cout<<"ss"<<std::endl;
               std::cout<<this->double_error_bound<<std::endl;
             }
