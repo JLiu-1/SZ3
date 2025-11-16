@@ -560,7 +560,7 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
 
             auto default_nthreads = omp_get_max_threads();
             if (default_nthreads > 1 && length >= 1u << 18) {
-                auto best_num_threads = std::min(nthreads, (int)(length / ui16_range));
+                auto best_num_threads = std::min(default_nthreads, (int)(length / ui16_range));
                 omp_set_num_threads(best_num_threads);
                 #pragma omp parallel
                 {
