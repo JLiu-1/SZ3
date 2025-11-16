@@ -282,12 +282,15 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
                 size_t y = temp / original_dim_offsets[1];
                 size_t z = temp % original_dim_offsets[1];
                 int level = 0;
+                std::cout<<"pre: "<<x<<" "<<y<<" "<<z<<std::endl;
+
                 while(x % 2 == 0 and y % 2 == 0 and z % 2 == 0 and level < interp_level - 1){
                     x = x >> 1;
                     y = y >> 1;
                     z = z >> 1;
                     level++;
                 }
+                std::cout<<"post: "<<x<<" "<<y<<" "<<z<<" "<<level<<std::endl;
                 auto reordered_idx = x * reduced_dim_offsets[level][0] + y * reduced_dim_offsets[level][1] + z ;
                 if(level  < interp_level - 1){//non-anchor or not last level
                     reordered_idx += level_prefix[level] - ((x + 1) >> 1) * reduced_dim_offsets[level + 1][0] - (x % 2 == 0) * ((y + 1) >> 1) * reduced_dim_offsets[level + 1][1] - (z % 2 == 0 && y % 2 == 0) * ((x + 1) >> 1);
