@@ -541,8 +541,53 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
      * @param size_t length (input)
      * */
     void init(const T *s, size_t length) {
+
+   
+
+
+
         T max = s[0];
         offset = 0;  // offset is min
+         const size_t ui16_range = 1u << 16;
+         std::vector<size_t> frequencyList(ui16_range, 0);
+         auto frenqencies = frequencyList.data();
+
+
+
+        #ifdef _OPENMP
+            int nthreads = 1;
+            #pragma omp parallel
+            {
+                int tid = omp_get_thread_num();
+                #pragma omp single
+                {
+                    nthreads = omp_get_num_threads();
+                }
+                // 每个线程一个局部 freq
+                std::vector<size_t> local_freq(ui16_range, 0);
+
+                #pragma omp for
+                for (long long i = 0; i < (long long)length; ++i) {
+                    auto v = s[i];
+                    // 假设 v 已经在 [0, ui16_range)
+                    local_freq[(unsigned)v]++;
+                }
+
+                // 归并到全局
+                #pragma omp critical
+                {
+                    for (size_t k = 0; k < ui16_range; ++k) {
+                        frenqencies[k] += local_freq[k];
+                    }
+                }
+            }
+        #else
+            for (size_t i = 0; i < length; i++) {
+                frenqencies[s[i]]++;
+            }
+        #endif
+
+
 /*
 #if (SZ3_USE_SKA_HASH) && (INTPTR_MAX == INT64_MAX)  // use ska for 64bit system
         ska::unordered_map<T, size_t> frequency;
@@ -563,9 +608,8 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
         }
 */  
         //Timer timer(true);
-        const size_t ui16_range= 1<<16;
-        std::vector<size_t> frequencyList(ui16_range, 0);
-        auto frenqencies = frequencyList.data();
+
+        
         for (size_t i = 0; i < length; i++) {
             /*
             auto k = s[i];
