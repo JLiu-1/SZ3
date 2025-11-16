@@ -90,26 +90,26 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
 
                 auto tid = omp_get_thread_num();
                 size_t start_idx = ((size_t)tid * quant_inds_size) / (size_t)nthreads, cur_len = ((size_t)(tid+1) * quant_inds_size) / (size_t)nthreads - start_idx;
-                #pragma omp critical
-                std::cout<<tid<<" "<<start_idx<<" "<<cur_len<<std::endl;
+                //#pragma omp critical
+                //std::cout<<tid<<" "<<start_idx<<" "<<cur_len<<std::endl;
                 size_t cur_bufferSize = std::max<size_t>(1000, 1.2 * sizeof(T) * cur_len);
                 auto cur_buffer = static_cast<uchar *>(malloc(cur_bufferSize)); 
                 auto cur_buffer_pos = cur_buffer;
                 auto cur_outSize = encoder.encode(quant_inds_data + start_idx, cur_len, cur_buffer_pos);
 
                 block_byte_offsets[tid] = cur_outSize;
-                 #pragma omp critical
-                std::cout<<"tid: "<<tid<<" outsize: "<<cur_outSize<<std::endl;
+                // #pragma omp critical
+                //std::cout<<"tid: "<<tid<<" outsize: "<<cur_outSize<<std::endl;
                 #pragma omp barrier
                 #pragma omp single
                 {
                     size_t prefix_sum = 0;
                     for (size_t i = 0; i < nthreads; i++){
-                        std::cout<<"prefix, tid: "<<i<<", outsize: "<<block_byte_offsets[i]<<std::endl;
+                        //std::cout<<"prefix, tid: "<<i<<", outsize: "<<block_byte_offsets[i]<<std::endl;
                         auto next_prefix_sum = prefix_sum + block_byte_offsets[i];
                         block_byte_offsets[i] = next_prefix_sum;
                         prefix_sum = next_prefix_sum;
-                        std::cout<<" offset: "<<block_byte_offsets[i]<<std::endl;
+                       // std::cout<<" offset: "<<block_byte_offsets[i]<<std::endl;
 
                     }
                 }
@@ -184,10 +184,13 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
                 
                 size_t start_idx = ((size_t)tid * quant_inds_size) / (size_t)compression_thread_num, cur_len = ((size_t)(tid+1) * quant_inds_size) / (size_t)compression_thread_num - start_idx;
                 size_t block_byte_offset = block_byte_offsets[tid];
+                //size_t block_byte_length = block_byte_offsets[tid + 1];
                  #pragma omp critical
                 std::cout<<"tid: "<<tid<<", prefix: "<<block_byte_offset<<std::endl;
                 auto temp_buffer_pos = bufferPos + block_byte_offset;
                 auto cur_quant_inds = encoder.decode(temp_buffer_pos, cur_len);
+                 #pragma omp critical
+                std::cout<<"tid: "<<<<", ended_at: "<<temp_buffer_pos - bufferPos - block_byte_offset<<std::endl;
                 std::move(cur_quant_inds.begin(), cur_quant_inds.end(), quant_inds.begin() + start_idx);
 
 
