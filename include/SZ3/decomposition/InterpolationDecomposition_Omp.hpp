@@ -274,7 +274,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
 
         if(N==3){
             std::vector<int> quant_inds_vec_reordered(num_elements);
-
+            std::cout<<interp_level<<std::endl;
             #pragma omp parallel for
             for(size_t idx = 0; idx < num_elements ; idx++){
                 size_t x = idx / original_dim_offsets[0];
