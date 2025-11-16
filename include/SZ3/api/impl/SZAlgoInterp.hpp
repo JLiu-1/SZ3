@@ -63,7 +63,7 @@ void SZ_decompress_Interp(const Config &conf, const uchar *cmpData, size_t cmpSi
 }
 
 template <class T, uint N>
-uint64_t interp_compress_test(
+double interp_compress_test(
     const std::vector<std::vector<T>> sampled_blocks, const Config conf, int block_size, uchar *cmpData,
     size_t cmpCap) {  // test interp cmp on a set of sampled data blocks and return the compression ratio
     #ifdef _OPENMP
@@ -74,44 +74,122 @@ uint64_t interp_compress_test(
         make_decomposition_interpolation<T, N>(conf, LinearQuantizer<T>(conf.absErrorBound, conf.quantbinCnt / 2));
      #endif
    
-    uint64_t abs_q_aggregated = 0.0;
-    int radius = conf.quantbinCnt/2;
-    //std::vector<int> total_quant_bins;
+
+
+    std::vector<int> quant_inds;
     for (size_t k = 0; k < sampled_blocks.size(); k++) {
         auto cur_block = sampled_blocks[k];
-        auto quant_bins = sz.compress(conf, cur_block.data());
-        for (auto &q:quant_bins)
-            abs_q_aggregated += std::abs(q - radius);
-        //total_quant_bins.insert(total_quant_bins.end(), quant_bins.begin(),
-       //                         quant_bins.end());  // merge the quant bins. Lossless them together
+        auto cur_quant_inds = sz.compress(conf, cur_block.data());
+        quant_inds.insert(total_quant_bins.end(), cur_quant_inds.begin(),
+                                qcur_quant_indss.end());  // merge the quant bins. Lossless them together
     }
-    return abs_q_aggregated;
 
-
-    /*
     auto encoder = HuffmanEncoder<int>();
     auto lossless = Lossless_zstd();
-    encoder.preprocess_encode(total_quant_bins, sz.get_out_range().second);
-    size_t bufferSize =
-        std::max<size_t>(1000, 1.2 * (sz.size_est() + encoder.size_est() + sizeof(T) * total_quant_bins.size()));
+    encoder.preprocess_encode(quant_inds, decomposition.get_out_range().second);
+    size_t bufferSize = std::max<size_t>(
+        1000, 1.2 * (encoder.size_est() + sizeof(T) * quant_inds.size()));
+
     auto buffer = static_cast<uchar *>(malloc(bufferSize));
     uchar *buffer_pos = buffer;
-    sz.save(buffer_pos);
-    encoder.save(buffer_pos);
-    // store the size of quant_inds is necessary as it is not always equal to conf.num
-    write<size_t>(total_quant_bins.size(), buffer_pos);
-    encoder.encode(total_quant_bins, buffer_pos);
-    encoder.postprocess_encode();
+    //store the size of quant_inds is necessary as it is not always equal to conf.num
+
+
+    auto quant_inds_size =  quant_inds.size();
+    write<size_t>(quant_inds_size, buffer_pos);
+
+    #ifdef _OPENMP
+    auto default_nthreads = omp_get_max_threads();
+    //std::cout<<default_nthreads<<" "<<quant_inds_size<<std::endl;
+    auto best_num_threads = std::min(default_nthreads, (int)(quant_inds_size / (1024)));
+    //std::cout<<best_num_threads<<std::endl;
+    if (best_num_threads > 1) {
+        omp_set_num_threads(best_num_threads);
+        uchar * offset_block_pos = buffer_pos + sizeof(int);
+        size_t bins_per_thread;
+        auto quant_inds_data = quant_inds.data();
+        std::vector<size_t>block_byte_offsets;
+        size_t offset_chunk_size;
+        size_t total_huffman_size = 0;
+        size_t nthreads;
+        #pragma omp parallel
+        {   
+
+            #pragma omp single
+            {
+                nthreads = omp_get_num_threads();
+                //std::cout<<nthreads<<std::endl;
+                block_byte_offsets.resize(nthreads);
+                write<int>(nthreads, buffer_pos);
+                offset_chunk_size = nthreads * sizeof (size_t);
+            }
+
+            auto tid = omp_get_thread_num();
+            size_t start_idx = ((size_t)tid * quant_inds_size) / (size_t)nthreads, cur_len = ((size_t)(tid+1) * quant_inds_size) / (size_t)nthreads - start_idx;
+            //#pragma omp critical
+            //std::cout<<tid<<" "<<start_idx<<" "<<cur_len<<std::endl;
+            size_t cur_bufferSize = std::max<size_t>(1000, 1.2 * sizeof(T) * cur_len);
+            auto cur_buffer = static_cast<uchar *>(malloc(cur_bufferSize)); 
+            auto cur_buffer_pos = cur_buffer;
+            auto cur_outSize = encoder.encode(quant_inds_data + start_idx, cur_len, cur_buffer_pos);
+
+            cur_outSize += sizeof(size_t); //the original outsize doesn't contain the size header. Actually, since we already have the offset chunk, write the size in each block is a waste.
+                                           //However, remove it will need to modify the huffman encoding api, which may bring compatability issue. So keep it now. 
+
+            block_byte_offsets[tid] = cur_outSize;
+            // #pragma omp critical
+            //std::cout<<"tid: "<<tid<<" outsize: "<<cur_outSize<<std::endl;
+            #pragma omp barrier
+            #pragma omp single
+            {
+                size_t prefix_sum = 0;
+                for (size_t i = 0; i < nthreads; i++){
+                    //std::cout<<"prefix, tid: "<<i<<", outsize: "<<block_byte_offsets[i]<<std::endl;
+                    auto next_prefix_sum = prefix_sum + block_byte_offsets[i];
+                    block_byte_offsets[i] = prefix_sum;
+                    prefix_sum = next_prefix_sum;
+                   // std::cout<<" offset: "<<block_byte_offsets[i]<<std::endl;
+
+                }
+            }
+
+            if(tid == nthreads - 1)
+                total_huffman_size = block_byte_offsets[tid] + cur_outSize;
+            auto temp_buffer_pos = buffer_pos + tid * sizeof(size_t);
+            write<size_t>(block_byte_offsets[tid],temp_buffer_pos);
+            temp_buffer_pos = buffer_pos + offset_chunk_size + block_byte_offsets[tid];
+            write<uchar>(cur_buffer, cur_outSize, temp_buffer_pos);
+
+            free(cur_buffer);
+
+
+        }
+        omp_set_num_threads(default_nthreads);
+        buffer_pos += offset_chunk_size + total_huffman_size;
+    }
+        
+    else{
+        write<int>(1, buffer_pos); //1 thread
+        write<size_t>(0, buffer_pos); //offset = 0;
+        encoder.encode(quant_inds, buffer_pos);
+    }
+
+
+    #else
+        write<int>(1, buffer_pos); //1 thread
+        write<size_t>(0, buffer_pos); //offset = 0;
+        encoder.encode(quant_inds, buffer_pos);
+
+    #endif
     auto cmpSize = lossless.compress(buffer, buffer_pos - buffer, cmpData, cmpCap);
     free(buffer);
-    auto compression_ratio = conf.num * sampled_blocks.size() * sizeof(T) * 1.0 / cmpSize;
-    return compression_ratio;*/
-    
 
+    auto compression_ratio = conf.num * sampled_blocks.size() * sizeof(T) * 1.0 / cmpSize;
+    return compression_ratio;
 }
 
 template <class T, uint N>
-uint64_t lorenzo_compress_test(
+double lorenzo_compress_test(
     const std::vector<std::vector<T>> sampled_blocks, const Config &conf, uchar *cmpData,
     size_t cmpCap) {  // test lorenzo cmp on a set of sampled data blocks and return the compression ratio
     std::vector<int> total_quant_bins;
@@ -123,17 +201,12 @@ uint64_t lorenzo_compress_test(
                                                  LinearQuantizer<T>(conf.absErrorBound, conf.quantbinCnt / 2));
     // auto sz = make_decomposition_lorenzo_regression<T, N>(conf, LinearQuantizer<T>(conf.absErrorBound,
     // conf.quantbinCnt / 2));
-    uint64_t abs_q_aggregated = 0.0;
-    int radius = conf.quantbinCnt/2;
     for (size_t k = 0; k < sampled_blocks.size(); k++) {
         auto cur_block = sampled_blocks[k];
         auto quant_bins = sz.compress(conf, cur_block.data());
-        for (auto &q:quant_bins)
-            abs_q_aggregated += std::abs(q - radius);
-       // total_quant_bins.insert(total_quant_bins.end(), quant_bins.begin(),
-        //                        quant_bins.end());  // merge the quant bins. Lossless them together
+        total_quant_bins.insert(total_quant_bins.end(), quant_bins.begin(),
+                                quant_bins.end());  // merge the quant bins. Lossless them together
     }
-    /*
     auto encoder = HuffmanEncoder<int>();
     auto lossless = Lossless_zstd();
     encoder.preprocess_encode(total_quant_bins, conf.quantbinCnt);
@@ -156,7 +229,6 @@ uint64_t lorenzo_compress_test(
     // else{
     //     return 0.0;
     // }
-    */
 }
 
 template <class T, uint N>
@@ -223,10 +295,7 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
     }
     timer.stop("sampling");
     timer.start();
-    //double best_lorenzo_ratio = 0, best_interp_ratio = 0, ratio;
-    uint64_t best_lorenzo_aq = std::numeric_limits<uint64_t>::max();
-    uint64_t best_interp_aq = std::numeric_limits<uint64_t>::max();
-    uint64_t aq;
+    double best_lorenzo_ratio = 0, best_interp_ratio = 0, ratio;
     size_t bufferCap = conf.num * sizeof(T);
     auto buffer = static_cast<uchar *>(malloc(bufferCap));
     Config lorenzo_config = conf;
@@ -241,18 +310,18 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
         testConfig.setDims(dims.begin(), dims.end());
         for (auto &interp_op : {INTERP_ALGO_LINEAR, INTERP_ALGO_CUBIC}) {
             testConfig.interpAlgo = interp_op;
-            aq = interp_compress_test<T, N>(sampled_blocks, testConfig, sampleBlockSize, buffer, bufferCap);
-            if (aq < best_interp_aq) {
-                best_interp_aq = aq;
+            ratio = interp_compress_test<T, N>(sampled_blocks, testConfig, sampleBlockSize, buffer, bufferCap);
+            if (ratio > best_interp_ratio) {
+                best_interp_ratio = ratio;
                 conf.interpAlgo = interp_op;
             }
         }
 
         testConfig.interpAlgo = conf.interpAlgo;
         testConfig.interpDirection = factorial(N) - 1;
-        aq = interp_compress_test<T, N>(sampled_blocks, testConfig, sampleBlockSize, buffer, bufferCap);
-        if (aq < best_interp_aq * 0.98) {
-            best_interp_aq = aq;
+        ratio = interp_compress_test<T, N>(sampled_blocks, testConfig, sampleBlockSize, buffer, bufferCap);
+        if (ratio > best_interp_ratio * 1.02) {
+            best_interp_ratio = ratio;
             conf.interpDirection = testConfig.interpDirection;
         }
         testConfig.interpDirection = conf.interpDirection;
@@ -264,9 +333,9 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
             auto beta = betalist[i];
             testConfig.interpAlpha = alpha;
             testConfig.interpBeta = beta;
-            aq = interp_compress_test<T, N>(sampled_blocks, testConfig, sampleBlockSize, buffer, bufferCap);
-            if (aq < best_interp_aq * 0.98) {
-                best_interp_aq = aq;
+            ratio = interp_compress_test<T, N>(sampled_blocks, testConfig, sampleBlockSize, buffer, bufferCap);
+            if (ratio > best_interp_ratio * 1.02) {
+                best_interp_ratio = ratio;
                 conf.interpAlpha = alpha;
                 conf.interpBeta = beta;
             }
@@ -274,7 +343,7 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
     }
     {
         // only test lorenzo for 1D
-        if (N == 1) {
+        if (N == 1 && best_interp_ratio < 50) {
             std::vector<size_t> sample_dims(N, sampleBlockSize + 1);
             lorenzo_config.cmprAlgo = ALGO_LORENZO_REG;
             lorenzo_config.setDims(sample_dims.begin(), sample_dims.end());
@@ -285,14 +354,15 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
             lorenzo_config.openmp = false;
             lorenzo_config.blockSize = 5;
             //        lorenzo_config.quantbinCnt = 65536 * 2;
-            best_lorenzo_aq = lorenzo_compress_test<T, N>(sampled_blocks, lorenzo_config, buffer, bufferCap);
+            best_lorenzo_ratio = lorenzo_compress_test<T, N>(sampled_blocks, lorenzo_config, buffer, bufferCap);
             //            delete[]cmprData;
             //    printf("Lorenzo ratio = %.2f\n", ratio);
         }
     }
 
 
-    bool useInterp = !(best_lorenzo_aq <= best_interp_aq * 0.9);  // 0.9 is a fix coefficient. subject to revise
+    bool useInterp = !(best_lorenzo_ratio >= best_interp_ratio * 1.1 && best_lorenzo_ratio < 50 &&
+                       best_interp_ratio < 50);  // 1.1 is a fix coefficient. subject to revise
     size_t cmpSize = 0;
     timer.stop("interp tuning");
     timer.start();
@@ -317,12 +387,12 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
         //     }
         // }
 
-        if (conf.relErrorBound < 1.01e-6 && lorenzo_config.quantbinCnt != 16384) {
+        if (conf.relErrorBound < 1.01e-6 && best_lorenzo_ratio > 5 && lorenzo_config.quantbinCnt != 16384) {
             auto quant_num = lorenzo_config.quantbinCnt;
             lorenzo_config.quantbinCnt = 16384;
-            aq = lorenzo_compress_test<T, N>(sampled_blocks, lorenzo_config, buffer, bufferCap);
-            if (aq < best_lorenzo_aq * 0.98) {
-                best_lorenzo_aq = aq;
+            ratio = lorenzo_compress_test<T, N>(sampled_blocks, lorenzo_config, buffer, bufferCap);
+            if (ratio > best_lorenzo_ratio * 1.02) {
+                best_lorenzo_ratio = ratio;
             } else {
                 lorenzo_config.quantbinCnt = quant_num;
             }
