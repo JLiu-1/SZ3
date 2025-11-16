@@ -42,7 +42,9 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
         if (decomposition.get_out_range().first != 0) {
             throw std::runtime_error("The output range of the decomposition must start from 0 for this compressor");
         }
+        timer.start();
         encoder.preprocess_encode(quant_inds, decomposition.get_out_range().second);
+        timer.stop("prehuff");
         size_t bufferSize = std::max<size_t>(
             1000, 1.2 * (decomposition.size_est() + encoder.size_est() + sizeof(T) * quant_inds.size()));
 
@@ -53,9 +55,11 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
         encoder.save(buffer_pos);
 
         //store the size of quant_inds is necessary as it is not always equal to conf.num
+         timer.start();
         write<size_t>(quant_inds.size(), buffer_pos);
         encoder.encode(quant_inds, buffer_pos);
         encoder.postprocess_encode();
+        timer.stop("phuff");
         
         auto cmpSize = lossless.compress(buffer, buffer_pos - buffer, cmpData, cmpCap);
         free(buffer);
