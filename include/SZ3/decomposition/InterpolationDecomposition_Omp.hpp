@@ -33,7 +33,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
 
 
         buffer_len =  (max_dim + 2 * AVX_256_parallelism - max_dim % AVX_256_parallelism) ;
-        size_t total_buffer_len = buffer_len * nThreads
+        size_t total_buffer_len = buffer_len * nThreads;
         interp_buffer_1 = new T[total_buffer_len];
 
         interp_buffer_2 = new T[total_buffer_len];
@@ -125,7 +125,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
    
 
         bbuffer_len =  (max_dim + 2 * AVX_256_parallelism - max_dim % AVX_256_parallelism) ;
-        size_t total_buffer_len = buffer_len * nThreads
+        size_t total_buffer_len = buffer_len * nThreads;
         interp_buffer_1 = new T[total_buffer_len];
         interp_buffer_2 = new T[total_buffer_len];
         interp_buffer_3 = new T[total_buffer_len];
