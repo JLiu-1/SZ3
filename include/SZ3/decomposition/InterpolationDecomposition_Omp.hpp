@@ -304,9 +304,10 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
                 }
                  assert( idx < quant_inds_vec.size() && reordered_idx < quant_inds_vec_reordered.size());
                 quant_inds_vec_reordered [reordered_idx] = quant_inds_vec[idx];
+                */
             }
             std::cout<<"shenfenzheng"<<std::endl;   
-           */
+           
             return quant_inds_vec_reordered;
 
         }
