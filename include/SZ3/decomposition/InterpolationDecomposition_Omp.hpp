@@ -31,6 +31,35 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
     T *decompress(const Config &conf, std::vector<int> &quant_inds, T *dec_data) override {
         init();
 
+        if(N==3){
+            std::vector<int> quant_inds_vec_reordered(num_elements);
+
+            #pragma omp parallel for
+            for(size_t idx = 0; idx < num_elements ; idx++){
+                size_t x = idx / original_dim_offsets[0];
+                auto temp = idx % original_dim_offsets[0];
+                size_t y = temp / original_dim_offsets[1];
+                size_t z = temp % original_dim_offsets[1];
+                int level = 0;
+                while(x % 2 == 0 and y % 2 == 0 and z % 2 == 0 and level < interp_level){
+                    x = x >> 1;
+                    y = y >> 1;
+                    z = z >> 1;
+                    level++;
+                }
+                auto reordered_idx = x * reduced_dim_offsets[level][0] + y * reduced_dim_offsets[level][1] + z ;
+                if(level < interp_level){//non-anchor or not last level
+                    reordered_idx += level_prefix[level] - ((x + 1) >> 1) * reduced_dim_offsets[level + 1][0] - (x % 2 == 0) * ((y + 1) >> 1) * reduced_dim_offsets[level + 1][1] - (z % 2 == 0 && y % 2 == 0) * ((x + 1) >> 1);
+                }
+                quant_inds_vec_reordered[idx]  = quant_inds[reordered_idx];
+            }
+            quant_inds.clear();
+            quant_inds.shrink_to_fit();
+            quant_inds= std::move( quant_inds_vec_reordered);
+
+        }
+
+
         auto default_nThreads = omp_get_max_threads();
         //std::cout<<"max threads: "<<default_nThreads<<std::endl;
 
@@ -64,15 +93,15 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
         this->quant_inds = quant_inds.data();
         double eb = quantizer.get_eb();
         //visited.resize(num_elements);
-
+        auto start_level = interp_level;
         if (anchor_stride == 0) {                                               // check whether used anchor points
             *dec_data += quantizer.recover(0, this->quant_inds[0]);  // no anchor points
         } else {
            // recover_anchor_grid(dec_data);  // recover anchor points, not needed because because all outliers were previously unpacked.
-            interp_level--;
+            start_level--;
         }
-       
-        for (int level = interp_level; level > 0 && level <= interp_level; level--) {
+        
+        for (int level = start_level; level > 0; level--) {
             // set level-wise error bound
             if (eb_alpha < 0) {
                 if (level >= 3) {
@@ -171,15 +200,15 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
         //visited.resize(num_elements);
         quant_inds = quant_inds_vec.data();
         double eb = quantizer.get_eb();
-
+        auto start_level = interp_level;
         if (anchor_stride == 0) {  // check whether to use anchor points
             quant_inds[0] = quantizer.quantize_and_overwrite(*data, 0, 0);  // no
         } else {
             build_anchor_grid(data);  // losslessly saving anchor points
-            interp_level--;
+            start_level--;
         }
 
-        for (int level = interp_level; level > 0 && level <= interp_level; level--) {
+        for (int level = start_level; level > 0; level--) {
             double cur_eb = eb;
             // set level-wise error bound
             if (eb_alpha < 0) {
@@ -227,8 +256,9 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
         }
         quantizer.set_eb(eb);
         quantizer.postcompress_data();
-       
 
+
+        
 
 
 
@@ -241,6 +271,34 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
         delete [] pred_buffer;
 
         omp_set_num_threads(default_nThreads);
+
+        if(N==3){
+            std::vector<int> quant_inds_vec_reordered(num_elements);
+
+            #pragma omp parallel for
+            for(size_t idx = 0; idx < num_elements ; idx++){
+                size_t x = idx / original_dim_offsets[0];
+                auto temp = idx % original_dim_offsets[0];
+                size_t y = temp / original_dim_offsets[1];
+                size_t z = temp % original_dim_offsets[1];
+                int level = 0;
+                while(x % 2 == 0 and y % 2 == 0 and z % 2 == 0 and level < interp_level){
+                    x = x >> 1;
+                    y = y >> 1;
+                    z = z >> 1;
+                    level++;
+                }
+                auto reordered_idx = x * reduced_dim_offsets[level][0] + y * reduced_dim_offsets[level][1] + z ;
+                if(level < interp_level){//non-anchor or not last level
+                    reordered_idx += level_prefix[level] - ((x + 1) >> 1) * reduced_dim_offsets[level + 1][0] - (x % 2 == 0) * ((y + 1) >> 1) * reduced_dim_offsets[level + 1][1] - (z % 2 == 0 && y % 2 == 0) * ((x + 1) >> 1);
+                }
+                quant_inds_vec_reordered [reordered_idx] = quant_inds[idx];
+            }
+            return quant_inds_vec_reordered;
+
+        }
+
+
         return quant_inds_vec;
     }
 
@@ -314,6 +372,35 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
         do {
             dim_sequences.push_back(sequence);
         } while (std::next_permutation(sequence.begin(), sequence.end()));
+
+        if(N==3){
+       
+            auto d_size = original_dimensions;
+            reduced_dim_offsets.resize(interp_level + 1);
+            level_prefix.resize(interp_level + 1, 0);
+            
+            int level = 0;
+            while(level <= interp_level){
+                //grid_leaps[level][0] = 1;
+                reduced_dim_offsets[level][2] = 1;
+                reduced_dim_offsets[level][1] = d_size[2];
+                reduced_dim_offsets[level][0] = d_size[1] * d_size[2];
+              
+               
+                
+                
+                if(level < interp_level ){
+                    d_size[0] = (d_size[0] + 1) >> 1;
+                    d_size[1] = (d_size[1] + 1) >> 1;
+                    d_size[2] = (d_size[2] + 1) >> 1;
+                    prefix_nums[level] = d_size[0] *  d_size[1] * d_size[2];
+                }
+                level++;
+            }  
+        }
+         
+
+
     }
 
     void build_anchor_grid(T *data) {  // store anchor points. steplength: anchor_stride on each dimension 
@@ -1174,6 +1261,11 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
     size_t buffer_len = 1024;
     T *interp_buffer_1,*interp_buffer_2,*interp_buffer_3,*interp_buffer_4,*pred_buffer;
     //std::vector<int> visited;
+
+    std::vector<size_t> level_prefix;
+    std::vector<std::array<size_t,N> >reduced_dim_offsets;
+
+    
 };
 
 template <class T, uint N, class QuantizerOMP>

@@ -243,8 +243,8 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
         }
         testConfig.interpDirection = conf.interpDirection;
         // test more alpha-beta pairs for best compression ratio,
-        auto alphalist = std::vector<double>{1.25, 1.5, 2.0};
-        auto betalist = std::vector<double>{1.5, 2.5, 3.0};
+        auto alphalist = std::vector<double>{1.25, 1.5, 2.0};//fixed, to discuss: add 1/1 back
+        auto betalist = std::vector<double>{1.5, 2.5, 3.0};//fixed
         for (size_t i = 0; i < alphalist.size(); i++) {
             auto alpha = alphalist[i];
             auto beta = betalist[i];
