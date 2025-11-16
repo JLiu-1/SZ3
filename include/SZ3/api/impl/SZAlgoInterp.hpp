@@ -79,6 +79,7 @@ double interp_compress_test(
     std::vector<int> total_quant_bins;
     for (size_t k = 0; k < sampled_blocks.size(); k++) {
         auto cur_block = sampled_blocks[k];
+         std::cout<<"start"<<std::endl;
         auto quant_bins = sz.compress(conf, cur_block.data());
         std::cout<<"ended"<<std::endl;
         total_quant_bins.insert(total_quant_bins.end(), quant_bins.begin(),
