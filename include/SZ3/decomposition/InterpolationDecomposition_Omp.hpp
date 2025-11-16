@@ -463,7 +463,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
                     const size_t cidx = 20679172;
                     auto idx = d - data;
                     if(num_elements > cidx && idx == cidx) 
-                        std::cout<<"core"<<stride<<" "<<*(d - stride)<<" "<<*(d + stride)<<" "<<*(d + stride3x)<<std::endl;
+                        std::cout<<"core "<<stride<<" "<<*(d - stride3x)<<" "<<*(d - stride)<<" "<<*(d + stride)<<" "<<*(d + stride3x)<<std::endl;
                     quantize_func(d - data, *d,
                                   interp_cubic(*(d - stride3x), *(d - stride), *(d + stride), *(d + stride3x)));
                 });
