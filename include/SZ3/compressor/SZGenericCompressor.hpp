@@ -89,7 +89,7 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
                 }
 
                 auto tid = omp_get_thread_num();
-                size_t start_idx = ((size_t)tid * quant_inds_size) / (size_t)nthreads, cur_len = ((size_t)(tid+1) * quant_inds_size) / (size_t)nthreads - start_idx <<std::endl;;
+                size_t start_idx = ((size_t)tid * quant_inds_size) / (size_t)nthreads, cur_len = ((size_t)(tid+1) * quant_inds_size) / (size_t)nthreads - start_idx <<std::endl;
                 std::cout<<tid<<" "<<start_idx<<" "<<cur_len<<std::endl;
                 size_t cur_bufferSize = std::max<size_t>(1000, 1.2 * sizeof(T) * cur_len);
                 auto cur_buffer = static_cast<uchar *>(malloc(cur_bufferSize)); 
