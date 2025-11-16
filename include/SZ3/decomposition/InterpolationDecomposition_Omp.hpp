@@ -86,7 +86,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
 
         pred_buffer = new T[total_buffer_len];
         #pragma omp parallel for
-        for(size_t i =0;i<buffer_len;i++)
+        for(size_t i =0;i<total_buffer_len;i++)
             pred_buffer[i] = interp_buffer_1[i] = interp_buffer_2[i] = interp_buffer_3[i] = interp_buffer_4[i] = T(0);
 
         #pragma omp parallel for
@@ -196,7 +196,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
 
         pred_buffer = new T[total_buffer_len];
         #pragma omp parallel for
-        for(size_t i =0;i < buffer_len;i++)
+        for(size_t i =0;i < total_buffer_len;i++)
             pred_buffer[i] = interp_buffer_1[i] = interp_buffer_2[i] = interp_buffer_3[i] = interp_buffer_4[i] = T(0);
        
 
