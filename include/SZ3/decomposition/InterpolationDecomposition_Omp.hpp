@@ -1244,9 +1244,8 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
             strides[dims[0]] = 1;
             size_t max_interp_seq_length = 0;
              for (uint i = 0; i < N; ++i) 
-                max_interp_seq_length = std::max(max_interp_seq_length, (ends[i]-begins[i])/stride2x );
+                max_interp_seq_length = std::max(max_interp_seq_length, (end[i]-begin[i])/stride2x );
             for (uint i = 1; i < N; ++i) {
-                max_interp_seq_length = std::max(max_interp_seq_length, ends[i]-begins[i])
                 begin_idx[dims[i]] = (begin[dims[i]] ? begin[dims[i]] + stride2x : 0);
                 strides[dims[i]] = stride2x;
             }
