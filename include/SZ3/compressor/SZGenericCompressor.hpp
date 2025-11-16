@@ -75,6 +75,7 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
             std::vector<size_t>block_byte_offsets;
             size_t offset_chunk_size;
             size_t total_huffman_size = 0;
+            size_t nthreads;
             #pragma omp parallel
             {   
 
