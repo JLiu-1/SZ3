@@ -63,9 +63,9 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
         write<size_t>(quant_inds_size, buffer_pos);
 
         #ifdef _OPENMP
-        auto nthreads = omp_get_max_threads();
-        std::cout<<nthreads<<" "<<quant_inds_size<<std::endl;
-        auto best_num_threads = std::min(nthreads, (int)(quant_inds_size / 1u<<16));
+        auto default_nthreads = omp_get_max_threads();
+        std::cout<<default_nthreads<<" "<<quant_inds_size<<std::endl;
+        auto best_num_threads = std::min(default_nthreads, (int)(quant_inds_size / (1u<<16)));
         std::cout<<best_num_threads<<std::endl;
         if (best_num_threads > 1) {
             omp_set_num_threads(best_num_threads);
@@ -118,6 +118,7 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
 
 
             }
+            omp_set_num_threads(default_nthreads);
             buffer_pos += offset_chunk_size + total_huffman_size;
         }
             
