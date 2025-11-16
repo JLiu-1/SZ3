@@ -1077,7 +1077,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
                 begin_idx[dims[i]] = (begin[dims[i]] ? begin[dims[i]] + stride2x : 0);
                 strides[dims[i]] = stride2x;
             }
-            if(0){//if(N==3  &&stride<=2){//avx
+            if(N==3  &&stride<=2){//avx
                 if(direction ==0 ){//xyz
                     predict_error += interpolation_1d_simd_3d_x(data, begin_idx, end_idx, dims[0], strides, stride, interp_func, quantize_func);
                     begin_idx[1] = begin[1];
