@@ -460,6 +460,10 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
             strides[direction] = 2;
             foreach_omp 
                 <T, N>(data, offset, begins, ends, strides, dim_offsets, [&](T *d) {
+                    const size_t cidx = 20679172;
+                    auto idx = d - data;
+                    if(num_elements > cidx && idx == cidx) 
+                        std::cout<<"core"<<stride<<" "<<*(d - stride)<<" "<<*(d + stride)<<" "<<*(d + stride3x)<<std::endl;
                     quantize_func(d - data, *d,
                                   interp_cubic(*(d - stride3x), *(d - stride), *(d + stride), *(d + stride3x)));
                 });
@@ -477,6 +481,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
             for (auto boundary : boundaries) {
                 begins[direction] = boundary;
                 ends[direction] = boundary + 1;
+                
                 foreach_omp //todo: this is infficient when direction = 0
                     <T, N>(data, offset, begins, ends, strides, dim_offsets, [&](T *d) {
                         if (boundary >= 3) {
@@ -494,14 +499,25 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
                                 const size_t cidx = 20679172;
                                 auto idx = d - data;
                                 if(num_elements > cidx && idx == cidx) 
-                                    std::cout<<stride<<" "<<*(d - stride)<<" "<<*(d + stride)<<" "<<*(d + stride3x)<<std::endl;
+                                    std::cout<<"boundary"<<" "<<boundary<<" "<<stride<<" "<<*(d - stride)<<" "<<*(d + stride)<<" "<<*(d + stride3x)<<std::endl;
+                                
                                 quantize_func(d - data, *d,
                                               interp_quad_1(*(d - stride), *(d + stride), *(d + stride3x)));
                             }
-                            else if (boundary + 1 < n)
+                            else if (boundary + 1 < n){
+                                const size_t cidx = 20679172;
+                            auto idx = d - data;
+                            if(num_elements > cidx && idx == cidx) 
+                                std::cout<<"boundary"<<" "<<boundary<<" "<<stride<<" "<<*(d - stride)<<" "<<*(d + stride)<<" "<<*(d + stride3x)<<std::endl;
                                 quantize_func(d - data, *d, interp_linear(*(d - stride), *(d + stride)));
-                            else
+                            }
+                            else{
+                                const size_t cidx = 20679172;
+                                auto idx = d - data;
+                                if(num_elements > cidx && idx == cidx) 
+                                    std::cout<<"boundary"<<" "<<boundary<<" "<<stride<<" "<<*(d - stride)<<" "<<*(d + stride)<<" "<<*(d + stride3x)<<std::endl;
                                 quantize_func(d - data, *d, *(d - stride));
+                            }
                         }
                     });
             }
