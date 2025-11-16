@@ -282,8 +282,8 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
             #pragma omp parallel for
 
             for(int i =0; i < interp_level;i++){
-                std::cout<<reduced_dim_offsets[level][0]<<" "<<reduced_dim_offsets[level][1]<<std::endl;
-                 std::cout<<level_prefix[level]<<std::endl;
+                std::cout<<reduced_dim_offsets[i][0]<<" "<<reduced_dim_offsets[i][1]<<std::endl;
+                 std::cout<<level_prefix[i]<<std::endl;
             }
             for(size_t idx = 0; idx < num_elements ; idx++){
                 //quant_inds_vec_reordered[idx] = quant_inds_vec[idx];
