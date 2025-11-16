@@ -65,7 +65,7 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
         #ifdef _OPENMP
         auto nthreads = omp_get_max_threads();
         auto best_num_threads = std::min(nthreads, (int)(quant_inds_size / 1<<16));
-
+        std::cout<<best_num_threads<<std::endl;
         if (best_num_threads > 1) {
             omp_set_num_threads(best_num_threads);
             uchar * offset_block_pos = buffer_pos + sizeof(int);
