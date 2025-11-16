@@ -55,14 +55,12 @@ class LinearQuantizerOMP : public concepts::QuantizerOMPInterface<T, int> {
                 
                 return this->radius + quant_index;
             } else {
-                if(data_idx == 22448644)
-              std::cout<<"bb"<<std::endl;
+              
                 save_unpred(data, data_idx);
                 return 0;
             }
         } else {
-            if(data_idx == 22448644)
-              std::cout<<"pp"<<std::endl;
+          
             save_unpred(data, data_idx);
             return 0;
         }
