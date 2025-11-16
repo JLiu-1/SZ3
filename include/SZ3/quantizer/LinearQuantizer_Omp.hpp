@@ -119,7 +119,7 @@ class LinearQuantizerOMP : public concepts::QuantizerOMPInterface<T, int> {
            #pragma omp parallel for
         #endif
         for(size_t i = 0; i < unpred.size(); i++)
-            data[unpred_idx[i]] = unpred[i] 
+            data[unpred_idx[i]] = unpred[i];
 
     }
 
