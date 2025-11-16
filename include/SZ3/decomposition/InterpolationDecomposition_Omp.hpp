@@ -286,7 +286,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
                 size_t z = temp % original_dim_offsets[1];
                 int level = 0;
                 //std::cout<<"pre: "<<x<<" "<<y<<" "<<z<<std::endl;
-                std::cout<<interp_level<<std::endl;
+                //std::cout<<interp_level<<std::endl;
 
                 while(x % 2 == 0 and y % 2 == 0 and z % 2 == 0 and level < interp_level - 1){
                     x = x >> 1;
@@ -299,7 +299,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
                     reordered_idx += level_prefix[level] - ((x + 1) >> 1) * reduced_dim_offsets[level + 1][0] - (x % 2 == 0) * ((y + 1) >> 1) * reduced_dim_offsets[level + 1][1] - (z % 2 == 0 && y % 2 == 0) * ((x + 1) >> 1);
                 }
                  assert( idx < quant_inds_vec.size() && reordered_idx < quant_inds_vec_reordered.size());
-                quant_inds_vec_reordered [reordered_idx] = quant_inds[idx];
+                quant_inds_vec_reordered [reordered_idx] = quant_inds_vec[idx];
             }
            
             return quant_inds_vec_reordered;
