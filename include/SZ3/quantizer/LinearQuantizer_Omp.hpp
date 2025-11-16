@@ -39,8 +39,6 @@ class LinearQuantizerOMP : public concepts::QuantizerOMPInterface<T, int> {
     // int quantize(T data, T pred, T& dec_data);
     ALWAYS_INLINE int quantize_and_overwrite(T &data, T pred, size_t data_idx) override {
 
-        if(data_idx == 22448644)
-            std::cout<<"quantizing the point"<<std::endl;
         T diff = data - pred;
         int quant_index = std::llrint(diff * this->double_error_bound_reciprocal);
         if (std::abs(quant_index) < this->radius ) {
@@ -48,18 +46,7 @@ class LinearQuantizerOMP : public concepts::QuantizerOMPInterface<T, int> {
             //    quant_index = -quant_index;
             T decompressed_data = pred + quant_index * this->double_error_bound;
 
-            if(data_idx == 22448644){
-              std::cout<<"ss"<<std::endl;
-              std::cout<<data<<std::endl;
-              std::cout<<pred<<std::endl;
-              std::cout<<quant_index<<std::endl;
-              std::cout<<this->double_error_bound<<std::endl;
-              std::cout<<decompressed_data<<std::endl;
-              std::cout<<decompressed_data-data<<std::endl;
-              std::cout<<this->error_bound<<std::endl;
-
-            }
-           
+   
             // if data is NaN, the error is NaN, and NaN <= error_bound is false
             if (fabs(decompressed_data - data) <= this->error_bound) {
                 data = decompressed_data;
@@ -71,31 +58,27 @@ class LinearQuantizerOMP : public concepts::QuantizerOMPInterface<T, int> {
                 if(data_idx == 22448644)
               std::cout<<"bb"<<std::endl;
                 save_unpred(data, data_idx);
-                return this->radius;//now we can and we should return center
+                return 0;
             }
         } else {
             if(data_idx == 22448644)
               std::cout<<"pp"<<std::endl;
             save_unpred(data, data_idx);
-            return this->radius;//now we can and we should return center
+            return 0;
         }
     }
 
     // recover the data using the quantization index
     ALWAYS_INLINE T recover(T pred, int quant_index) override {
-        //if (quant_index ) {
+        if (quant_index ) {
             return recover_pred(pred, quant_index);
-        //} else {
-        //    //return recover_unpred();
-        //    return T(0);
-        //}
+        } else {
+            //return recover_unpred();
+            return T(0);
+        }
     }
 
     ALWAYS_INLINE T recover_pred(T pred, int quant_index) {
-        if(quant_index == 22448644){
-              std::cout<<"ss"<<std::endl;
-              std::cout<<this->double_error_bound<<std::endl;
-            }
         return pred + (quant_index - this->radius) * this->double_error_bound;
     }
 

@@ -32,7 +32,6 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
         init();
 
 
-         std::cout<<"nThreads: "<<nThreads<<std::endl;
         buffer_len =  (max_dim + 2 * AVX_256_parallelism - max_dim % AVX_256_parallelism) * nThreads;
 
         interp_buffer_1 = new T[buffer_len ];
@@ -61,13 +60,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
            // recover_anchor_grid(dec_data);  // recover anchor points, not needed because because all outliers were previously unpacked.
             interp_level--;
         }
-        if(N ==3){
-            size_t check_idx = 22448644;
-            std::cout<<dec_data[check_idx]<<std::endl;
-            std::cout<<quant_inds[check_idx]<<std::endl;
-
-        }
-
+       
         for (int level = interp_level; level > 0 && level <= interp_level; level--) {
             // set level-wise error bound
             if (eb_alpha < 0) {
@@ -99,17 +92,12 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
                 }
                 interpolation(
                     dec_data, block.get_global_index(), end_idx, interpolators[interp_id],
-                    [&](size_t idx, T &d, T pred) { const size_t cidx = 22448644;if(num_elements > cidx && idx == cidx) std::cout<<d<<" "<<pred<<" "<<quant_inds[idx]<<std::endl;d += quantizer.recover(pred, quant_inds[idx]);},// no need to use idx. the outliers will be unpacked separately (todo).
+                    [&](size_t idx, T &d, T pred) { d += quantizer.recover(pred, quant_inds[idx]);},// no need to use idx. the outliers will be unpacked separately (todo).
                     direction_sequence_id, stride);
             }
         }
         quantizer.postdecompress_data();
-        if(N ==3){
-            size_t check_idx = 22448644;
-            std::cout<<dec_data[check_idx]<<std::endl;
-            std::cout<<quant_inds[check_idx]<<std::endl;
-
-        }
+       
 
       
 
@@ -134,13 +122,8 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
         eb_beta = conf.interpBeta;
 
         init();
-        if(N ==3 and conf.dims[0]> 120){
-            size_t check_idx = 22448644;
-            std::cout<<data[check_idx]<<std::endl;
+   
 
-        }
-
-        std::cout<<"nThreads: "<<nThreads<<std::endl;
         buffer_len =  (max_dim + 2 * AVX_256_parallelism - max_dim % AVX_256_parallelism) * nThreads;
         interp_buffer_1 = new T[buffer_len ];
         interp_buffer_2 = new T[buffer_len ];
@@ -203,22 +186,16 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
                 interpolation(
                     data, block.get_global_index(), end_idx, interpolators[interp_id],
                     [&](size_t idx, T &d, T pred) {
-                        const size_t cidx = 22448644;if(num_elements > cidx && idx == cidx) std::cout<<d<<" "<<pred<<" ";
+                        
                         quant_inds[idx] = (quantizer.quantize_and_overwrite(d, pred, idx));
-                        if(num_elements > cidx && idx == cidx) std::cout<<quant_inds[idx]<<" "<< d<<std::endl;
+                       
                     },
                     direction_sequence_id, stride);
             }
         }
         quantizer.set_eb(eb);
         quantizer.postcompress_data();
-        if(N ==3 and conf.dims[0] > 120){
-            size_t check_idx = 22448644;
-            std::cout<<data[check_idx]<<std::endl;
-            std::cout<<quant_inds[check_idx]<<std::endl;
-
-        }
-        
+       
 
 
 
@@ -461,12 +438,9 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
             strides[direction] = 2;
             foreach_omp 
                 <T, N>(data, offset, begins, ends, strides, dim_offsets, [&](T *d) {
-                    const size_t cidx = 22448644;
-                    auto idx = d - data;
-                    if(num_elements > cidx && idx == cidx) 
-                        std::cout<<"core "<<stride<<" "<<*(d - stride3x)<<" "<<*(d - stride)<<" "<<*(d + stride)<<" "<<*(d + stride3x)<<std::endl;
                     quantize_func(d - data, *d,
                                   interp_cubic(*(d - stride3x), *(d - stride), *(d + stride), *(d + stride3x)));
+                }
                 });
             std::vector<size_t> boundaries;
             boundaries.push_back(1);
@@ -496,29 +470,17 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
                             else
                                 quantize_func(d - data, *d, interp_linear1(*(d - stride3x), *(d - stride)));
                         } else {
-                            if (boundary + 3 < n){
-                                const size_t cidx = 22448644;
-                                auto idx = d - data;
-                                if(num_elements > cidx && idx == cidx) 
-                                    std::cout<<"boundary"<<" "<<boundary<<" "<<stride<<" "<<*(d - stride)<<" "<<*(d + stride)<<" "<<*(d + stride3x)<<std::endl;
-                                
+                            if (boundary + 3 < n)
                                 quantize_func(d - data, *d,
                                               interp_quad_1(*(d - stride), *(d + stride), *(d + stride3x)));
-                            }
-                            else if (boundary + 1 < n){
-                                const size_t cidx = 22448644;
-                            auto idx = d - data;
-                            if(num_elements > cidx && idx == cidx) 
-                                std::cout<<"boundary"<<" "<<boundary<<" "<<stride<<" "<<*(d - stride)<<" "<<*(d + stride)<<" "<<*(d + stride3x)<<std::endl;
+                            
+                            else if (boundary + 1 < n)
+                               
                                 quantize_func(d - data, *d, interp_linear(*(d - stride), *(d + stride)));
-                            }
-                            else{
-                                const size_t cidx = 22448644;
-                                auto idx = d - data;
-                                if(num_elements > cidx && idx == cidx) 
-                                    std::cout<<"boundary"<<" "<<boundary<<" "<<stride<<" "<<*(d - stride)<<" "<<*(d + stride)<<" "<<*(d + stride3x)<<std::endl;
+                            
+                            else
                                 quantize_func(d - data, *d, *(d - stride));
-                            }
+                            
                         }
                     });
             }
