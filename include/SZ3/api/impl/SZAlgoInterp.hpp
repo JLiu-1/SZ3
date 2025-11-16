@@ -74,7 +74,6 @@ uint64_t interp_compress_test(
         make_decomposition_interpolation<T, N>(conf, LinearQuantizer<T>(conf.absErrorBound, conf.quantbinCnt / 2));
      #endif
    
-        return 10;
     uint64_t abs_q_aggregated = 0.0;
     int radius = conf.quantbinCnt/2;
     //std::vector<int> total_quant_bins;
