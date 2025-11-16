@@ -266,7 +266,7 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
             testConfig.interpAlpha = alpha;
             testConfig.interpBeta = beta;
             aq = interp_compress_test<T, N>(sampled_blocks, testConfig, sampleBlockSize, buffer, bufferCap);
-            if (aq > best_interp_aq * 0.98) {
+            if (aq < best_interp_aq * 0.98) {
                 best_interp_aq = aq;
                 conf.interpAlpha = alpha;
                 conf.interpBeta = beta;
@@ -318,12 +318,12 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
         //     }
         // }
 
-        if (conf.relErrorBound < 1.01e-6 && best_lorenzo_ratio > 5 && lorenzo_config.quantbinCnt != 16384) {
+        if (conf.relErrorBound < 1.01e-6&& lorenzo_config.quantbinCnt != 16384) {
             auto quant_num = lorenzo_config.quantbinCnt;
             lorenzo_config.quantbinCnt = 16384;
-            ratio = lorenzo_compress_test<T, N>(sampled_blocks, lorenzo_config, buffer, bufferCap);
-            if (ratio > best_lorenzo_ratio * 1.02) {
-                best_lorenzo_ratio = ratio;
+            aq = lorenzo_compress_test<T, N>(sampled_blocks, lorenzo_config, buffer, bufferCap);
+            if (aq < best_lorenzo_aq * 0.98) {
+                best_lorenzo_aq = aq;
             } else {
                 lorenzo_config.quantbinCnt = quant_num;
             }
