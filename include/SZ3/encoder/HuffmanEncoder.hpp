@@ -574,12 +574,12 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
                 }
 
                 // 归并到全局
-                #pragma omp critical
-                {
+               
                     for (size_t k = 0; k < ui16_range; ++k) {
+                        #pragma omp atomic
                         frenqencies[k] += local_freq[k];
                     }
-                }
+
             }
         #else
             for (size_t i = 0; i < length; i++) {
