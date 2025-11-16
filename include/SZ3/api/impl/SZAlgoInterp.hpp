@@ -125,7 +125,7 @@ uint64_t lorenzo_compress_test(
     // auto sz = make_decomposition_lorenzo_regression<T, N>(conf, LinearQuantizer<T>(conf.absErrorBound,
     // conf.quantbinCnt / 2));
     uint64_t abs_q_aggregated = 0.0;
-    size_t radius = conf.quantbinCnt/2;
+    int radius = conf.quantbinCnt/2;
     for (size_t k = 0; k < sampled_blocks.size(); k++) {
         auto cur_block = sampled_blocks[k];
         auto quant_bins = sz.compress(conf, cur_block.data());
