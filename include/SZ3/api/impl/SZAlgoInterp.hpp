@@ -102,7 +102,7 @@ double interp_compress_test(
     auto default_nthreads = omp_get_max_threads();
     //std::cout<<default_nthreads<<" "<<quant_inds_size<<std::endl;
     auto best_num_threads = std::min(default_nthreads, (int)(quant_inds_size / (1024)));
-    //std::cout<<best_num_threads<<std::endl;
+    std::cout<<best_num_threads<<std::endl;
     if (best_num_threads > 1) {
         omp_set_num_threads(best_num_threads);
         uchar * offset_block_pos = buffer_pos + sizeof(int);
