@@ -294,6 +294,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
                     z = z >> 1;
                     level++;
                 }
+                assert(level < interp_level);
                 auto reordered_idx = x * reduced_dim_offsets[level][0] + y * reduced_dim_offsets[level][1] + z ;
                 if(level  < interp_level - 1){//non-anchor or not last level
                     reordered_idx += level_prefix[level] - ((x + 1) >> 1) * reduced_dim_offsets[level + 1][0] - (x % 2 == 0) * ((y + 1) >> 1) * reduced_dim_offsets[level + 1][1] - (z % 2 == 0 && y % 2 == 0) * ((x + 1) >> 1);
