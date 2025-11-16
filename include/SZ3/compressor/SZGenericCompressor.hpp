@@ -167,7 +167,7 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
         int compression_thread_num = 0;
         read(compression_thread_num, bufferPos);
         std::vector<int> quant_inds; // todo: it should better match the encoder output type,
-        if(compression_thread_num <=1){
+        if(compression_thread_num <=0){
             size_t offset;
             read(offset, bufferPos);
             quant_inds = encoder.decode(bufferPos, quant_inds_size);
