@@ -107,8 +107,8 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
             throw std::invalid_argument("Huffman bins should not be empty");
         }
         init(bins, num_bin);
-        for (unsigned int i = 0; i < huffmanTree->stateNum; i++)
-            if (huffmanTree->cout[i] != 0) nodeCount++;
+        for (unsigned int i = 0; i < huffmanTree->stateNum; ++i)
+            if (huffmanTree->cout[i] != 0) ++nodeCount;
         nodeCount = nodeCount * 2 - 1;
     }
 
@@ -588,14 +588,14 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
                 omp_set_num_threads(default_nthreads);
             }
             else{
-                for (size_t i = 0; i < length; i++) {
-                    frenqencies[s[i]]++;
+                for (size_t i = 0; i < length; ++i) {
+                    ++frenqencies[s[i]];
                 }
             }
 
         #else
-            for (size_t i = 0; i < length; i++) {
-                frenqencies[s[i]]++;
+            for (size_t i = 0; i < length; ++i) {
+                ++frenqencies[s[i]];
             }
         #endif
 
@@ -621,14 +621,14 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
 */  
         //Timer timer(true);
 
-        for (int i = 0; i < ui16_range; i++) {
+        for (int i = 0; i < ui16_range; ++i) {
             if (frenqencies[i] != 0) {
                 offset = i;
                 break;
             }
 
         }
-        for (int i = ui16_range - 1; i >= 0 ; i--) {
+        for (int i = ui16_range - 1; i >= 0 ; --i) {
             if (frenqencies[i] != 0) {
                 max = i;
                 break;
@@ -643,7 +643,7 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
         huffmanTree = createHuffmanTree(stateNum);
         // to produce the same huffman three on linux & win, we need to iterate through ordered_map in a fixed order
         
-        for (int i = offset; i <= max; i++) {
+        for (int i = offset; i <= max; ++i) {
             if (frenqencies[i] != 0) {
                 qinsert(new_node(frenqencies[i], i - offset, nullptr, nullptr));
             }

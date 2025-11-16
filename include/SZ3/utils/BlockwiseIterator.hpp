@@ -82,7 +82,7 @@ class block_data : public std::enable_shared_from_this<block_data<T, N>> {
             auto ds = get_dim_strides();
             auto idx = std::array<size_t, N>{static_cast<size_t>(std::forward<Idx>(args))...};
             size_t off = 0;
-            for (uint i = 0; i < N; i++) {
+            for (uint i = 0; i < N; ++i) {
                 off += (idx[i] + offset[i]) * ds[i];
             }
             return mddata->dataptr() + off;
@@ -107,31 +107,31 @@ class block_data : public std::enable_shared_from_this<block_data<T, N>> {
             auto range = block.get_block_range();
             if constexpr (N == 1) {
                 T *d = block.get_block_data(0);
-                for (size_t i = 0; i < range[0].second - range[0].first; i++) {
+                for (size_t i = 0; i < range[0].second - range[0].first; ++i) {
                     func(d++, {i});
                 }
             } else if constexpr (N == 2) {
-                for (size_t i = 0; i < range[0].second - range[0].first; i++) {
+                for (size_t i = 0; i < range[0].second - range[0].first; ++i) {
                     T *d = block.get_block_data(i, 0);
-                    for (size_t j = 0; j < range[1].second - range[1].first; j++) {
+                    for (size_t j = 0; j < range[1].second - range[1].first; ++j) {
                         func(d++, {i, j});
                     }
                 }
             } else if constexpr (N == 3) {
-                for (size_t i = 0; i < range[0].second - range[0].first; i++) {
-                    for (size_t j = 0; j < range[1].second - range[1].first; j++) {
+                for (size_t i = 0; i < range[0].second - range[0].first; ++i) {
+                    for (size_t j = 0; j < range[1].second - range[1].first; ++j) {
                         T *d = block.get_block_data(i, j, 0);
-                        for (size_t k = 0; k < range[2].second - range[2].first; k++) {
+                        for (size_t k = 0; k < range[2].second - range[2].first; ++k) {
                             func(d++, {i, j, k});
                         }
                     }
                 }
             } else if constexpr (N == 4) {
-                for (size_t i = 0; i < range[0].second - range[0].first; i++) {
-                    for (size_t j = 0; j < range[1].second - range[1].first; j++) {
-                        for (size_t k = 0; k < range[2].second - range[2].first; k++) {
+                for (size_t i = 0; i < range[0].second - range[0].first; ++i) {
+                    for (size_t j = 0; j < range[1].second - range[1].first; ++j) {
+                        for (size_t k = 0; k < range[2].second - range[2].first; ++k) {
                             T *d = block.get_block_data(i, j, k, 0);
-                            for (size_t t = 0; t < range[3].second - range[3].first; t++) {
+                            for (size_t t = 0; t < range[3].second - range[3].first; ++t) {
                                 func(d++, {i, j, k, t});
                             }
                         }
@@ -159,7 +159,7 @@ class block_data : public std::enable_shared_from_this<block_data<T, N>> {
                 func(block.get_block_data(0), {0});
                 func(block.get_block_data(min_size - 1), {min_size - 1});
             } else if constexpr (N <= 4) {
-                for (size_t i = 0; i < min_size; i++) {
+                for (size_t i = 0; i < min_size; ++i) {
                     size_t j = min_size - 1 - i;
                     if constexpr (N == 2) {
                         func(block.get_block_data(i, i), {i, i});
@@ -229,7 +229,7 @@ class block_data : public std::enable_shared_from_this<block_data<T, N>> {
    private:
     ALWAYS_INLINE void cal_dim_strides() {
         size_t cur_stride = 1, cur_stride_pading = 1;
-        for (int i = N - 1; i >= 0; i--) {
+        for (int i = N - 1; i >= 0; --i) {
             ds[i] = cur_stride;
             ds_padding[i] = cur_stride_pading;
             cur_stride *= dims[i];
@@ -248,20 +248,20 @@ class block_data : public std::enable_shared_from_this<block_data<T, N>> {
         if constexpr (N == 1) {
             memcpy(&dst[0], &src[0], dims[0] * sizeof(T));
         } else if constexpr (N == 2) {
-            for (size_t i = 0; i < dims[0]; i++) {
+            for (size_t i = 0; i < dims[0]; ++i) {
                 memcpy(&dst[i * dst_stride[0]], &src[i * src_stride[0]], dims[1] * sizeof(T));
             }
         } else if constexpr (N == 3) {
-            for (size_t i = 0; i < dims[0]; i++) {
-                for (size_t j = 0; j < dims[1]; j++) {
+            for (size_t i = 0; i < dims[0]; ++i) {
+                for (size_t j = 0; j < dims[1]; ++j) {
                     memcpy(&dst[i * dst_stride[0] + j * dst_stride[1]], &src[i * src_stride[0] + j * src_stride[1]],
                            dims[2] * sizeof(T));
                 }
             }
         } else if constexpr (N == 4) {
-            for (size_t i = 0; i < dims[0]; i++) {
-                for (size_t j = 0; j < dims[1]; j++) {
-                    for (size_t k = 0; k < dims[2]; k++) {
+            for (size_t i = 0; i < dims[0]; ++i) {
+                for (size_t j = 0; j < dims[1]; ++j) {
+                    for (size_t k = 0; k < dims[2]; ++k) {
                         memcpy(&dst[i * dst_stride[0] + j * dst_stride[1] + k * dst_stride[2]],
                                &src[i * src_stride[0] + j * src_stride[1] + k * src_stride[2]], dims[3] * sizeof(T));
                     }
