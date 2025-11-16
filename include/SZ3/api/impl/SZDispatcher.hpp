@@ -52,7 +52,9 @@ size_t SZ_compress_dispatcher(Config &conf, const T *data, uchar *cmpData, size_
                 throw;
             }
         }
+        delete [] dataCopy;
     }
+
 
     // do lossless only compression if 1) cmpr algorithm is lossless or 2) compressed buffer not large enough for lossy
     if (conf.cmprAlgo == ALGO_LOSSLESS || !isCmpCapSufficient) {
