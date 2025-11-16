@@ -16,7 +16,7 @@
 #include "SZ3/utils/Iterator.hpp"
 #include "SZ3/utils/MemoryUtil.hpp"
 #include "SZ3/utils/Timer.hpp"
-
+#include "SZ3/utils/BlockwiseIterator.hpp"
 
 
 namespace SZ3 {
