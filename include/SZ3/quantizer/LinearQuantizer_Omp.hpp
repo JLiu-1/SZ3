@@ -44,15 +44,22 @@ class LinearQuantizerOMP : public concepts::QuantizerOMPInterface<T, int> {
         T diff = data - pred;
         int quant_index = std::llrint(std::abs(diff) * this->double_error_bound_reciprocal);
         if (quant_index < this->radius ) {
-            if(data_idx == 22448644)
+            if(data_idx == 22448644){
               std::cout<<"ss"<<std::endl;
-            if (diff < 0) 
-                quant_index = -quant_index;
-            auto quant_index_shifted = this->radius + quant_index;
+              std::cout<<data<<std::endl;
+              std::cout<<pred<<std::endl;
+              std::cout<<quant_index<<std::endl;
+              std::cout<<this->double_error_bound<<std::endl;
+            }
+           
             T decompressed_data = pred + quant_index * this->double_error_bound;
             // if data is NaN, the error is NaN, and NaN <= error_bound is false
             if (fabs(decompressed_data - data) <= this->error_bound) {
                 data = decompressed_data;
+                if (diff < 0) 
+                    quant_index = -quant_index;
+                auto quant_index_shifted = this->radius + quant_index;
+                
                 return quant_index_shifted;
             } else {
                 if(data_idx == 22448644)
