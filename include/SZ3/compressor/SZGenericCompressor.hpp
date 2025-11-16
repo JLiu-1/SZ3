@@ -177,7 +177,7 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
             #endif
             for(int tid=0; tid < compression_thread_num;tid++){
                 
-                size_t start_idx = ((size_t)tid * quant_inds_size) / (size_t)nthreads, cur_len = ((size_t)(tid+1) * quant_inds_size) / (size_t)nthreads - start_idx;
+                size_t start_idx = ((size_t)tid * quant_inds_size) / (size_t)compression_thread_num, cur_len = ((size_t)(tid+1) * quant_inds_size) / (size_t)compression_thread_num - start_idx;
                 size_t block_byte_offset = block_byte_offsets[tid];
                 auto temp_buffer_pos = bufferPos + block_byte_offset;
                 auto cur_quant_inds = encoder.decode(temp_buffer_pos, cur_len);
