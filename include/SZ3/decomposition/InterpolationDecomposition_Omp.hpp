@@ -274,40 +274,62 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
         delete [] pred_buffer;
 
         omp_set_num_threads(default_nThreads);
-        /*
+        
         if(N==3){
             std::vector<int> quant_inds_vec_reordered(num_elements);
-            #pragma omp parallel for
-            for(size_t idx = 0; idx < num_elements ; idx++){
-                //quant_inds_vec_reordered[idx] = quant_inds_vec[idx];
-                
-                size_t x = idx / original_dim_offsets[0];
-                auto temp = idx % original_dim_offsets[0];
-                size_t y = temp / original_dim_offsets[1];
-                size_t z = temp % original_dim_offsets[1];
-                int level = 0;
-                //std::cout<<interp_level<<std::endl;
+            auto* __restrict dst = quant_inds_vec_reordered.data();
+            auto const* __restrict src = quant_inds_vec.data();
 
-                while(x % 2 == 0 and y % 2 == 0 and z % 2 == 0 and level < interp_level - 1){
-                    x = x >> 1;
-                    y = y >> 1;
-                    z = z >> 1;
-                    level++;
+            #pragma omp parallel for collapse(3) schedule(static)
+            for (size_t x0 = 0; x0 < dim_x; ++x0) {
+                for (size_t y0 = 0; y0 < dim_y; ++y0) {
+                    for (size_t z0 = 0; z0 < dim_z; ++z0) {
+                        const size_t idx = x0 * dim_y * dim_z + y0 * dim_z + z0;
+
+                        size_t x = x0, y = y0, z = z0;
+
+                        const int max_level = interp_level - 1;
+                        unsigned level = 0;
+                        if (max_level > 0) {
+                            unsigned tzx = x ? __builtin_ctzll(x) : 32;
+                            unsigned tzy = y ? __builtin_ctzll(y) : 32;
+                            unsigned tzz = z ? __builtin_ctzll(z) : 32;
+                            unsigned l = std::min<unsigned>(max_level,
+                                                            std::min(tzx, std::min(tzy, tzz)));
+                            level = l;
+                            x >>= l;
+                            y >>= l;
+                            z >>= l;
+                        }
+
+                        size_t reordered_idx =
+                            x * reduced_dim_offsets[level][0] +
+                            y * reduced_dim_offsets[level][1] +
+                            z;
+
+                        if (level < (unsigned)max_level) {
+                            const auto* off_next = reduced_dim_offsets[level + 1];
+
+                            size_t t0 = ((x + 1) >> 1) * off_next[0];
+                            size_t t1 = ((y + 1) >> 1) * off_next[1];
+                            size_t t2 = ((z + 1) >> 1);
+
+                            reordered_idx += level_prefix[level]
+                                           - t0
+                                           - ((x % 2 == 0) ? t1 : 0)
+                                           - ((x % 2 == 0 && y % 2 == 0) ? t2 : 0);
+                        }
+
+                        dst[reordered_idx] = src[idx];
+                    }
                 }
-                //if(level >= interp_level)
-                auto reordered_idx = x * reduced_dim_offsets[level][0] + y * reduced_dim_offsets[level][1] + z ;
-                if(level  < interp_level - 1){//non-anchor or not last level
-                    reordered_idx += level_prefix[level] - ((x + 1) >> 1) * reduced_dim_offsets[level + 1][0] - (x % 2 == 0) * ((y + 1) >> 1) * reduced_dim_offsets[level + 1][1] - (x % 2 == 0 && y % 2 == 0) * ((z + 1) >> 1);
-                }
-               
-                quant_inds_vec_reordered [reordered_idx] = quant_inds_vec[idx];
-                
             }
+
          
            
             return quant_inds_vec_reordered;
 
-        }*/
+        }
 
 
         return quant_inds_vec;
