@@ -203,8 +203,9 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
                 interpolation(
                     data, block.get_global_index(), end_idx, interpolators[interp_id],
                     [&](size_t idx, T &d, T pred) {
-                        const size_t cidx = 22448644;if(num_elements > cidx && idx == cidx) std::cout<<d<<" "<<pred<<" "<<quant_inds[idx]<<std::endl;
+                        
                         quant_inds[idx] = (quantizer.quantize_and_overwrite(d, pred, idx));
+                        const size_t cidx = 22448644;if(num_elements > cidx && idx == cidx) std::cout<<d<<" "<<pred<<" "<<quant_inds[idx]<<std::endl;
                     },
                     direction_sequence_id, stride);
             }
