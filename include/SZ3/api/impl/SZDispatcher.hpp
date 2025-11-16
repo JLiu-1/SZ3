@@ -22,23 +22,29 @@ size_t SZ_compress_dispatcher(Config &conf, const T *data, uchar *cmpData, size_
     // do lossy compression
     bool isCmpCapSufficient = true;
     if (conf.cmprAlgo != ALGO_LOSSLESS) {
+        T * dataCopy = nullptr;
         try {
             Timer timer(true);
-            std::vector<T> dataCopy(data, data + conf.num);
+           // std::vector<T> dataCopy(data, data + conf.num);
+
+            dataCopy = new T[conf.num];
+            memcpy(dataCopy,data, conf.num * sizeof(T));
              timer.stop("datacopy");
             if (conf.cmprAlgo == ALGO_LORENZO_REG) {
-                cmpSize = SZ_compress_LorenzoReg<T, N>(conf, dataCopy.data(), cmpData, cmpCap);
+                cmpSize = SZ_compress_LorenzoReg<T, N>(conf, dataCopy, cmpData, cmpCap);
             } else if (conf.cmprAlgo == ALGO_INTERP) {
-                cmpSize = SZ_compress_Interp<T, N>(conf, dataCopy.data(), cmpData, cmpCap);
+                cmpSize = SZ_compress_Interp<T, N>(conf, dataCopy, cmpData, cmpCap);
             } else if (conf.cmprAlgo == ALGO_INTERP_LORENZO) {
-                cmpSize = SZ_compress_Interp_lorenzo<T, N>(conf, dataCopy.data(), cmpData, cmpCap);
+                cmpSize = SZ_compress_Interp_lorenzo<T, N>(conf, dataCopy, cmpData, cmpCap);
             } else if (conf.cmprAlgo == ALGO_NOPRED) {
-                cmpSize = SZ_compress_nopred<T, N>(conf, dataCopy.data(), cmpData, cmpCap);
+                cmpSize = SZ_compress_nopred<T, N>(conf, dataCopy, cmpData, cmpCap);
             } else {
                 throw std::invalid_argument("Unknown compression algorithm");
             }
 
         } catch (std::length_error &e) {
+            if(dataCopy)
+                delete [] dataCopy;
             if (std::string(e.what()) == SZ3_ERROR_COMP_BUFFER_NOT_LARGE_ENOUGH) {
                 isCmpCapSufficient = false;
                 printf("SZ is downgraded to lossless mode because the buffer for compressed data is not large enough.\n");
