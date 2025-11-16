@@ -75,7 +75,7 @@ double interp_compress_test(
      #endif
    
         return 10;
-    /*
+    
     std::vector<int> total_quant_bins;
     for (size_t k = 0; k < sampled_blocks.size(); k++) {
         auto cur_block = sampled_blocks[k];
@@ -83,7 +83,8 @@ double interp_compress_test(
         total_quant_bins.insert(total_quant_bins.end(), quant_bins.begin(),
                                 quant_bins.end());  // merge the quant bins. Lossless them together
     }
-
+    return 10.0;
+    /*
     auto encoder = HuffmanEncoder<int>();
     auto lossless = Lossless_zstd();
     encoder.preprocess_encode(total_quant_bins, sz.get_out_range().second);
@@ -101,6 +102,8 @@ double interp_compress_test(
     free(buffer);
     auto compression_ratio = conf.num * sampled_blocks.size() * sizeof(T) * 1.0 / cmpSize;
     return compression_ratio;*/
+    double maq = 0.0;
+
 }
 
 template <class T, uint N>
