@@ -1118,7 +1118,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
     int *quant_inds;
     size_t quant_index = 0;
     double max_error;
-    Quantizer quantizer;
+    QuantizerOMP quantizer;
     size_t num_elements;
     std::array<size_t, N> original_dimensions;
     std::array<size_t, N> original_dim_offsets;
