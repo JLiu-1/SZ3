@@ -281,6 +281,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
                 auto temp = idx % original_dim_offsets[0];
                 size_t y = temp / original_dim_offsets[1];
                 size_t z = temp % original_dim_offsets[1];
+                 std::cout<<x<<" "<<y<<" "<<z<<std::endl;
                 int level = 0;
                 while(x % 2 == 0 and y % 2 == 0 and z % 2 == 0 and level < interp_level){
                     x = x >> 1;
