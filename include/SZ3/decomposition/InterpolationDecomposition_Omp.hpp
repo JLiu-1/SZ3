@@ -32,15 +32,15 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
         init();
 
 
-        buffer_len =  (max_dim + 2 * AVX_256_parallelism - max_dim % AVX_256_parallelism) * nThreads;
+        buffer_len =  (max_dim + 2 * AVX_256_parallelism - max_dim % AVX_256_parallelism) ;
+        size_t total_buffer_len = buffer_len * nThreads
+        interp_buffer_1 = new T[total_buffer_len];
 
-        interp_buffer_1 = new T[buffer_len ];
+        interp_buffer_2 = new T[total_buffer_len];
+        interp_buffer_3 = new T[total_buffer_len];
+        interp_buffer_4 = new T[total_buffer_len];
 
-        interp_buffer_2 = new T[buffer_len ];
-        interp_buffer_3 = new T[buffer_len ];
-        interp_buffer_4 = new T[buffer_len];
-
-        pred_buffer = new T[buffer_len];
+        pred_buffer = new T[total_buffer_len];
         #pragma omp parallel for
         for(size_t i =0;i<buffer_len;i++)
             pred_buffer[i] = interp_buffer_1[i] = interp_buffer_2[i] = interp_buffer_3[i] = interp_buffer_4[i] = T(0);
@@ -124,12 +124,14 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
         init();
    
 
-        buffer_len =  (max_dim + 2 * AVX_256_parallelism - max_dim % AVX_256_parallelism) * nThreads;
-        interp_buffer_1 = new T[buffer_len ];
-        interp_buffer_2 = new T[buffer_len ];
-        interp_buffer_3 = new T[buffer_len];
-        interp_buffer_4 = new T[buffer_len];
-        pred_buffer = new T[buffer_len];
+        bbuffer_len =  (max_dim + 2 * AVX_256_parallelism - max_dim % AVX_256_parallelism) ;
+        size_t total_buffer_len = buffer_len * nThreads
+        interp_buffer_1 = new T[total_buffer_len];
+        interp_buffer_2 = new T[total_buffer_len];
+        interp_buffer_3 = new T[total_buffer_len];
+        interp_buffer_4 = new T[total_buffer_len];
+
+        pred_buffer = new T[total_buffer_len];
         #pragma omp parallel for
         for(size_t i =0;i < buffer_len;i++)
             pred_buffer[i] = interp_buffer_1[i] = interp_buffer_2[i] = interp_buffer_3[i] = interp_buffer_4[i] = T(0);
@@ -686,7 +688,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
             #pragma omp parallel for
             for (size_t j = begins[1]; j < ends[1]; j += strides[1]) {
                 auto tid = omp_get_thread_num();
-                auto buffer_offset = nThreads * tid;
+                auto buffer_offset = buffer_len * tid;
                 auto cur_buffer_1 = interp_buffer_1 + buffer_offset;
                 auto cur_buffer_2 = interp_buffer_2 + buffer_offset;
                 auto cur_buffer_3 = interp_buffer_3 + buffer_offset;
@@ -847,7 +849,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
             #pragma omp parallel for
             for (size_t i = begins[0]; i < ends[0]; i += strides[0]) {
                 auto tid = omp_get_thread_num();
-                auto buffer_offset = nThreads * tid;
+                auto buffer_offset = buffer_len * tid;
                 auto cur_buffer_1 = interp_buffer_1 + buffer_offset;
                 auto cur_buffer_2 = interp_buffer_2 + buffer_offset;
                 auto cur_buffer_3 = interp_buffer_3 + buffer_offset;
@@ -1010,7 +1012,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
                 
                 for(size_t j = begins[1]; j < ends[1]; j += strides[1]){
                     auto tid = omp_get_thread_num();
-                    auto buffer_offset = nThreads * tid;
+                    auto buffer_offset = buffer_len * tid;
                     auto cur_buffer = interp_buffer_1 + buffer_offset;
                     auto cur_pred_buffer = pred_buffer + buffer_offset;
 
