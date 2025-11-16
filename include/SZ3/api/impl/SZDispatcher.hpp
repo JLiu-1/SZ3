@@ -7,6 +7,9 @@
 #include "SZ3/utils/Config.hpp"
 #include "SZ3/utils/Statistic.hpp"
 #include "SZ3/utils/Timer.hpp"
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 namespace SZ3 {
 template <class T, uint N>
 size_t SZ_compress_dispatcher(Config &conf, const T *data, uchar *cmpData, size_t cmpCap) {
@@ -26,9 +29,38 @@ size_t SZ_compress_dispatcher(Config &conf, const T *data, uchar *cmpData, size_
         try {
             Timer timer(true);
            // std::vector<T> dataCopy(data, data + conf.num);
+            auto n = conf.num
+            dataCopy = new T[n];
 
-            dataCopy = new T[conf.num];
-            memcpy(dataCopy,data, conf.num * sizeof(T));
+            #ifdef _OPENMP
+
+                int max_threads = omp_get_max_threads();
+                auto n_threads = std::min(max_threads, n / 65536);
+
+                if(n_threads > 1){
+                    omp_set_max_threads(n_threads);
+                    #pragma omp parallel
+                    {
+                        int tid  = omp_get_thread_num();
+                        int nth  = omp_get_num_threads();
+
+                        std::size_t begin = (std::size_t)tid * n / (std::size_t)nth;
+                        std::size_t end   = (std::size_t)(tid + 1) * n / (std::size_t)nth;
+
+                        std::size_t len   = end - begin;
+                        if (len > 0) {
+                            std::memcpy(dataCopy + begin, data + begin, len * sizeof(T));
+                        }
+                    }
+                    omp_set_max_threads(max_threads);
+                }
+                else
+                    std::memcpy(dataCopy, data, n * sizeof(T));
+            #else
+                std::memcpy(dataCopy, data, n * sizeof(T));
+            #endif
+            }
+            
              timer.stop("datacopy");
             if (conf.cmprAlgo == ALGO_LORENZO_REG) {
                 cmpSize = SZ_compress_LorenzoReg<T, N>(conf, dataCopy, cmpData, cmpCap);
