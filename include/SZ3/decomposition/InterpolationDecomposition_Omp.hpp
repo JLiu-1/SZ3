@@ -331,7 +331,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
         if (interp_func == "linear" || n < 5) {
             // if (pb == PB_predict_overwrite) {
             #pragma omp parallel for
-            for (size_t i = 1; i + 1 < n; i += 2) {
+            for (size_t i = 1; i < n - 1; i += 2) {
                 T *d = data + begin + i * stride;
                 quantize_func(d - data, *d, interp_linear(*(d - stride), *(d + stride)));
             }
@@ -348,7 +348,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
             T *d;
             size_t i;
             #pragma omp parallel for
-            for (i = 3; i + 3 < n; i += 2) {
+            for (i = 3; i < n - 3; i += 2) {
                 d = data + begin + i * stride;
                 quantize_func(d - data, *d,
                               interp_cubic(*(d - stride3x), *(d - stride), *(d + stride), *(d + stride3x)));
