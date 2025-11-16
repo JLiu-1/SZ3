@@ -1136,9 +1136,9 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
     //std::vector<int> visited;
 };
 
-template <class T, uint N, class Quantizer>
-InterpolationDecomposition_OMP<T, N, Quantizer> make_decomposition_interpolation_omp(const Config &conf, Quantizer quantizer) {
-    return InterpolationDecomposition_OMP<T, N, Quantizer>(conf, quantizer);
+template <class T, uint N, class QuantizerOMP>
+InterpolationDecomposition_OMP<T, N, QuantizerOMP> make_decomposition_interpolation_omp(const Config &conf, QuantizerOMP quantizer_omp) {
+    return InterpolationDecomposition_OMP<T, N, QuantizerOMP>(conf, quantizer_omp);
 }
 
 }  // namespace SZ3
