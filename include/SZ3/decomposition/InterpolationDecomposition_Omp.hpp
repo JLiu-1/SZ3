@@ -307,6 +307,8 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
                 if(level  < interp_level - 1){//non-anchor or not last level
                     reordered_idx += level_prefix[level] - ((x + 1) >> 1) * reduced_dim_offsets[level + 1][0] - (x % 2 == 0) * ((y + 1) >> 1) * reduced_dim_offsets[level + 1][1] - (z % 2 == 0 && y % 2 == 0) * ((x + 1) >> 1);
                 }
+                if(idx >= conf.num || reordered_idx >=conf.num)
+                    std::cout<<idx<<" "<<reordered_idx<<std::endl;
                  assert( idx < quant_inds_vec.size() && reordered_idx < quant_inds_vec_reordered.size());
                 quant_inds_vec_reordered [reordered_idx] = quant_inds_vec[idx];
                 
