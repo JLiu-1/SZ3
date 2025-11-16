@@ -93,7 +93,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
         //std::cout<<"max threads: "<<default_nThreads<<std::endl;
 
         size_t max_usable_threads = default_nThreads;
-        for (uint i = 1; i < N; i++) 
+        for (uint i = 1; i < N; ++i) 
             max_usable_threads = std::min(max_usable_threads, original_dimensions[i]);
         omp_set_num_threads(max_usable_threads);
 
@@ -111,11 +111,11 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
 
         pred_buffer = new T[total_buffer_len];
         #pragma omp parallel for
-        for(size_t i =0;i<total_buffer_len;i++)
+        for(size_t i =0;i<total_buffer_len;++i)
             pred_buffer[i] = interp_buffer_1[i] = interp_buffer_2[i] = interp_buffer_3[i] = interp_buffer_4[i] = T(0);
 
         #pragma omp parallel for
-        for(size_t i =0; i<num_elements;i++)
+        for(size_t i =0; i<num_elements;++i)
             dec_data[i] = T(0);
         quantizer.unpack_unpred(dec_data);
 
@@ -153,7 +153,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
             auto inter_end = inter_block_range->end();
             for (auto block = inter_begin; block != inter_end; ++block) {
                 auto end_idx = block.get_global_index();
-                for (uint i = 0; i < N; i++) {
+                for (uint i = 0; i < N; ++i) {
                     end_idx[i] += interp_block_size;
                     if (end_idx[i] > original_dimensions[i] - 1) {
                         end_idx[i] = original_dimensions[i] - 1;
@@ -204,7 +204,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
         //std::cout<<"max threads: "<<default_nThreads<<std::endl;
 
         size_t max_usable_threads = default_nThreads;
-        for (uint i = 1; i < N; i++) 
+        for (uint i = 1; i < N; ++i) 
             max_usable_threads = std::min(max_usable_threads, original_dimensions[i]);
         omp_set_num_threads(max_usable_threads);
 
@@ -221,7 +221,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
 
         pred_buffer = new T[total_buffer_len];
         #pragma omp parallel for
-        for(size_t i =0;i < total_buffer_len;i++)
+        for(size_t i =0;i < total_buffer_len;++i)
             pred_buffer[i] = interp_buffer_1[i] = interp_buffer_2[i] = interp_buffer_3[i] = interp_buffer_4[i] = T(0);
        
 
@@ -266,7 +266,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
 
             for (auto block = inter_begin; block != inter_end; ++block) {
                 auto end_idx = block.get_global_index();
-                for (uint i = 0; i < N; i++) {
+                for (uint i = 0; i < N; ++i) {
                     end_idx[i] += interp_block_size;
                     if (end_idx[i] > original_dimensions[i] - 1) {
                         end_idx[i] = original_dimensions[i] - 1;
@@ -397,7 +397,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
         interp_level = -1;
 	    bool use_anchor = false;
         max_dim = 1;
-        for (uint i = 0; i < N; i++) {
+        for (uint i = 0; i < N; ++i) {
             if (interp_level < ceil(log2(original_dimensions[i]))) {
                 interp_level = static_cast<int>(ceil(log2(original_dimensions[i])));
             }
@@ -417,13 +417,13 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
         }
 
         original_dim_offsets[N - 1] = 1;
-        for (int i = N - 2; i >= 0; i--) {
+        for (int i = N - 2; i >= 0; --i) {
             original_dim_offsets[i] = original_dim_offsets[i + 1] * original_dimensions[i + 1];
         }
 
         dim_sequences = std::vector<std::array<int, N>>();
         auto sequence = std::array<int, N>();
-        for (uint i = 0; i < N; i++) {
+        for (uint i = 0; i < N; ++i) {
             sequence[i] = i;
         }
         do {
@@ -452,7 +452,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
                     d_size[2] = (d_size[2] + 1) >> 1;
                     level_prefix[level] = d_size[0] *  d_size[1] * d_size[2];
                 }
-                level++;
+                ++level;
             }  
         }
          
@@ -561,7 +561,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
                                               const std::array<size_t, N> &end_idx, const size_t &direction,
                                               std::array<size_t, N> &strides, const size_t &math_stride,
                                               const std::string &interp_func, QuantizeFunc &&quantize_func) {
-        for (size_t i = 0; i < N; i++) {
+        for (size_t i = 0; i < N; ++i) {
             if (end_idx[i] < begin_idx[i]) return 0;
         }
         size_t math_begin_idx = begin_idx[direction], math_end_idx = end_idx[direction];
@@ -573,7 +573,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
         size_t offset = 0;
         size_t stride = math_stride * original_dim_offsets[direction];
         std::array<size_t, N> begins, ends, dim_offsets;
-        for (size_t i = 0; i < N; i++) {
+        for (size_t i = 0; i < N; ++i) {
             begins[i] = 0;
             ends[i] = end_idx[i] - begin_idx[i] + 1;
             dim_offsets[i] = original_dim_offsets[i];
@@ -806,7 +806,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
                                               std::array<size_t, N> &strides, const size_t &math_stride,
                                               const std::string &interp_func, QuantizeFunc &&quantize_func) {
         assert(direction==0  && N==3);
-        for (size_t i = 0; i < N; i++) {
+        for (size_t i = 0; i < N; ++i) {
             if (end_idx[i] < begin_idx[i]) return 0;
         }
         size_t math_begin_idx = begin_idx[direction], math_end_idx = end_idx[direction];
@@ -882,7 +882,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
                            //cur_buffer_3[buffer_idx] = data[0];
                             cur_buffer_4[buffer_idx] = data[cur_offset +  stride3x];
                           //  cur_buffer_4[buffer_idx] = data[0];
-                            buffer_idx++;
+                            ++buffer_idx;
 
                         }
                     }
@@ -967,7 +967,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
                                               std::array<size_t, N> &strides, const size_t &math_stride,
                                               const std::string &interp_func, QuantizeFunc &&quantize_func) {
         assert(direction==1  && N==3);
-        for (size_t i = 0; i < N; i++) {
+        for (size_t i = 0; i < N; ++i) {
             if (end_idx[i] < begin_idx[i]) return 0;
         }
         size_t math_begin_idx = begin_idx[direction], math_end_idx = end_idx[direction];
@@ -979,7 +979,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
         size_t offset = 0;
         size_t stride = math_stride * original_dim_offsets[direction];
         std::array<size_t, N> begins, ends, dim_offsets;
-        for (size_t i = 0; i < N; i++) {
+        for (size_t i = 0; i < N; ++i) {
             begins[i] = 0;
             ends[i] = end_idx[i] - begin_idx[i] + 1;
             dim_offsets[i] = original_dim_offsets[i];
@@ -1129,7 +1129,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
                                               std::array<size_t, N> &strides, const size_t &math_stride,
                                               const std::string &interp_func, QuantizeFunc &&quantize_func) {
         assert(direction==2 && N==3);
-        for (size_t i = 0; i < N; i++) {
+        for (size_t i = 0; i < N; ++i) {
             if (end_idx[i] < begin_idx[i]) return 0;
         }
         size_t math_begin_idx = begin_idx[direction], math_end_idx = end_idx[direction];
@@ -1141,7 +1141,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
         size_t offset = 0;
         size_t stride = math_stride * original_dim_offsets[direction];
         std::array<size_t, N> begins, ends, dim_offsets;
-        for (size_t i = 0; i < N; i++) {
+        for (size_t i = 0; i < N; ++i) {
             begins[i] = 0;
             ends[i] = end_idx[i] - begin_idx[i] + 1;
             dim_offsets[i] = original_dim_offsets[i];
@@ -1192,7 +1192,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
                     }
                     
                     avx_interp_cubic_1D(cur_buffer,cur_pred_buffer, n);
-                    for (size_t k = 0; k < odd_len; k ++){
+                    for (size_t k = 0; k < odd_len; ++k ){
                         auto pred = cur_pred_buffer[k];
                         auto d = data + cur_ij_offset + (2 * k + 1) * dim_offsets[2];
                       // if (d-data < 0 || d-data>=num_elements)
@@ -1242,7 +1242,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
             std::array<size_t, N> strides;
             std::array<size_t, N> begin_idx = begin, end_idx = end;
             strides[dims[0]] = 1;
-            for (uint i = 1; i < N; i++) {
+            for (uint i = 1; i < N; ++i) {
                 begin_idx[dims[i]] = (begin[dims[i]] ? begin[dims[i]] + stride2x : 0);
                 strides[dims[i]] = stride2x;
             }
@@ -1279,7 +1279,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
 
             else{
                 predict_error += interpolation_1d_fastest_dim_first(data, begin_idx, end_idx, dims[0], strides, stride, interp_func, quantize_func);
-                for (uint i = 1; i < N; i++) {
+                for (uint i = 1; i < N; ++i) {
                 begin_idx[dims[i]] = begin[dims[i]];
                 begin_idx[dims[i - 1]] = (begin[dims[i - 1]] ? begin[dims[i - 1]] + stride : 0);
                 strides[dims[i - 1]] = stride;
