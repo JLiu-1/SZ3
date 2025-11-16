@@ -75,7 +75,7 @@ class LinearQuantizerOMP : public concepts::QuantizerOMPInterface<T, int> {
 
     //ALWAYS_INLINE T recover_unpred() { return unpred[index++]; }
 
-    ALWAYS_INLINE int save_unpred(T ori, size_t data_idx) override {
+    ALWAYS_INLINE int save_unpred(T ori, size_t data_idx){
         #ifdef _OPENMP
         #pragma omp critical 
         {
@@ -94,7 +94,7 @@ class LinearQuantizerOMP : public concepts::QuantizerOMPInterface<T, int> {
         #ifdef _OPENMP
            #pragma omp parallel for
         #endif
-           for(size_t i = 0; i < unpred.size() i++){
+           for(size_t i = 0; i < unpred.size(); i++){
                 data[unpred_idx[i]] = unpred[i];
            } 
 
