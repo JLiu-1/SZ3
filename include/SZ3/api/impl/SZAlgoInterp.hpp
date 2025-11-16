@@ -102,7 +102,7 @@ double interp_compress_test(
     auto default_nthreads = omp_get_max_threads();
     //std::cout<<default_nthreads<<" "<<quant_inds_size<<std::endl;
     auto best_num_threads = std::min(default_nthreads, (int)(quant_inds_size / (1024)));
-    std::cout<<best_num_threads<<std::endl;
+    //std::cout<<best_num_threads<<std::endl;
     if (best_num_threads > 1) {
         omp_set_num_threads(best_num_threads);
         uchar * offset_block_pos = buffer_pos + sizeof(int);
@@ -308,7 +308,7 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
         auto testConfig = conf;
         std::vector<size_t> dims(N, sampleBlockSize + 1);
         testConfig.setDims(dims.begin(), dims.end());
-        for (auto &interp_op : {INTERP_ALGO_LINEAR, INTERP_ALGO_CUBIC}) {
+        for (auto &interp_op : {INTERP_ALGO_CUBIC}) {//removed linear
             testConfig.interpAlgo = interp_op;
             ratio = interp_compress_test<T, N>(sampled_blocks, testConfig, sampleBlockSize, buffer, bufferCap);
             if (ratio > best_interp_ratio) {
@@ -326,8 +326,8 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
         }
         testConfig.interpDirection = conf.interpDirection;
         // test more alpha-beta pairs for best compression ratio,
-        auto alphalist = std::vector<double>{1.25, 1.5, 2.0};//fixed, to discuss: add 1+1 back
-        auto betalist = std::vector<double>{1.5, 2.5, 3.0};//fixed
+        auto alphalist = std::vector<double>{1.25,  2.0};//fixed, to discuss: add 1+1 back
+        auto betalist = std::vector<double>{1.5, 3.0};//fixed
         for (size_t i = 0; i < alphalist.size(); i++) {
             auto alpha = alphalist[i];
             auto beta = betalist[i];
