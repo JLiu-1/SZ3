@@ -74,8 +74,8 @@ double interp_compress_test(
         make_decomposition_interpolation<T, N>(conf, LinearQuantizer<T>(conf.absErrorBound, conf.quantbinCnt / 2));
      #endif
    
-
-
+        return 10;
+    /*
     std::vector<int> total_quant_bins;
     for (size_t k = 0; k < sampled_blocks.size(); k++) {
         auto cur_block = sampled_blocks[k];
@@ -100,7 +100,7 @@ double interp_compress_test(
     auto cmpSize = lossless.compress(buffer, buffer_pos - buffer, cmpData, cmpCap);
     free(buffer);
     auto compression_ratio = conf.num * sampled_blocks.size() * sizeof(T) * 1.0 / cmpSize;
-    return compression_ratio;
+    return compression_ratio;*/
 }
 
 template <class T, uint N>
