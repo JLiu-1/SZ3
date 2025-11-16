@@ -51,9 +51,10 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
                 if(level  < interp_level - 1){//non-anchor or not last level
                     reordered_idx += level_prefix[level] - ((x + 1) >> 1) * reduced_dim_offsets[level + 1][0] - (x % 2 == 0) * ((y + 1) >> 1) * reduced_dim_offsets[level + 1][1] - (z % 2 == 0 && y % 2 == 0) * ((x + 1) >> 1);
                 }
+                 assert( reordered_idx < quant_inds_vec.size() && idx < quant_inds_vec_reordered.size());
                 quant_inds_vec_reordered[idx]  = quant_inds[reordered_idx];
             }
-            assert( reordered_idx < quant_inds_vec.size() && idx < quant_inds_vec_reordered.size());
+           
             quant_inds.clear();
             quant_inds.shrink_to_fit();
             quant_inds= std::move( quant_inds_vec_reordered);
@@ -297,9 +298,10 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
                 if(level  < interp_level - 1){//non-anchor or not last level
                     reordered_idx += level_prefix[level] - ((x + 1) >> 1) * reduced_dim_offsets[level + 1][0] - (x % 2 == 0) * ((y + 1) >> 1) * reduced_dim_offsets[level + 1][1] - (z % 2 == 0 && y % 2 == 0) * ((x + 1) >> 1);
                 }
+                 assert( idx < quant_inds_vec.size() && reordered_idx < quant_inds_vec_reordered.size());
                 quant_inds_vec_reordered [reordered_idx] = quant_inds[idx];
             }
-            assert( idx < quant_inds_vec.size() && reordered_idx < quant_inds_vec_reordered.size());
+           
             return quant_inds_vec_reordered;
 
         }
