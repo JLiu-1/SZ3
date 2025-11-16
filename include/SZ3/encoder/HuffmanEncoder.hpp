@@ -2,7 +2,9 @@
 #define SZ3_HUFFMAN_ENCODER_HPP
 
 #include <cstdint>
-
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 #include "SZ3/def.hpp"
 #include "SZ3/encoder/Encoder.hpp"
 #include "SZ3/utils/ByteUtil.hpp"
