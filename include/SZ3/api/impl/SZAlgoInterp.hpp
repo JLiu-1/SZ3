@@ -63,7 +63,7 @@ void SZ_decompress_Interp(const Config &conf, const uchar *cmpData, size_t cmpSi
 }
 
 template <class T, uint N>
-double interp_compress_test(
+uint64_t interp_compress_test(
     const std::vector<std::vector<T>> sampled_blocks, const Config conf, int block_size, uchar *cmpData,
     size_t cmpCap) {  // test interp cmp on a set of sampled data blocks and return the compression ratio
     #ifdef _OPENMP
@@ -75,15 +75,20 @@ double interp_compress_test(
      #endif
    
         return 10;
-    
-    std::vector<int> total_quant_bins;
+    uint64_t abs_q_aggregated = 0.0;
+    size_t radius = conf.quantbinCnt/2;
+    //std::vector<int> total_quant_bins;
     for (size_t k = 0; k < sampled_blocks.size(); k++) {
         auto cur_block = sampled_blocks[k];
         auto quant_bins = sz.compress(conf, cur_block.data());
-        total_quant_bins.insert(total_quant_bins.end(), quant_bins.begin(),
-                                quant_bins.end());  // merge the quant bins. Lossless them together
+        for (auto &q:quant_bins)
+            abs_q_aggregated += std::abs(q - radius);
+        //total_quant_bins.insert(total_quant_bins.end(), quant_bins.begin(),
+       //                         quant_bins.end());  // merge the quant bins. Lossless them together
     }
-    return 10.0;
+    return abs_q_aggregated;
+
+
     /*
     auto encoder = HuffmanEncoder<int>();
     auto lossless = Lossless_zstd();
@@ -102,12 +107,12 @@ double interp_compress_test(
     free(buffer);
     auto compression_ratio = conf.num * sampled_blocks.size() * sizeof(T) * 1.0 / cmpSize;
     return compression_ratio;*/
-    double maq = 0.0;
+    
 
 }
 
 template <class T, uint N>
-double lorenzo_compress_test(
+uint64_t lorenzo_compress_test(
     const std::vector<std::vector<T>> sampled_blocks, const Config &conf, uchar *cmpData,
     size_t cmpCap) {  // test lorenzo cmp on a set of sampled data blocks and return the compression ratio
     std::vector<int> total_quant_bins;
@@ -119,12 +124,17 @@ double lorenzo_compress_test(
                                                  LinearQuantizer<T>(conf.absErrorBound, conf.quantbinCnt / 2));
     // auto sz = make_decomposition_lorenzo_regression<T, N>(conf, LinearQuantizer<T>(conf.absErrorBound,
     // conf.quantbinCnt / 2));
+    uint64_t abs_q_aggregated = 0.0;
+    size_t radius = conf.quantbinCnt/2;
     for (size_t k = 0; k < sampled_blocks.size(); k++) {
         auto cur_block = sampled_blocks[k];
         auto quant_bins = sz.compress(conf, cur_block.data());
-        total_quant_bins.insert(total_quant_bins.end(), quant_bins.begin(),
-                                quant_bins.end());  // merge the quant bins. Lossless them together
+        for (auto &q:quant_bins)
+            abs_q_aggregated += std::abs(q - radius);
+       // total_quant_bins.insert(total_quant_bins.end(), quant_bins.begin(),
+        //                        quant_bins.end());  // merge the quant bins. Lossless them together
     }
+    /*
     auto encoder = HuffmanEncoder<int>();
     auto lossless = Lossless_zstd();
     encoder.preprocess_encode(total_quant_bins, conf.quantbinCnt);
@@ -147,6 +157,7 @@ double lorenzo_compress_test(
     // else{
     //     return 0.0;
     // }
+    */
 }
 
 template <class T, uint N>
@@ -213,7 +224,10 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
     }
     timer.stop("sampling");
     timer.start();
-    double best_lorenzo_ratio = 0, best_interp_ratio = 0, ratio;
+    //double best_lorenzo_ratio = 0, best_interp_ratio = 0, ratio;
+    uint64_t best_lorenzo_aq = std::numeric_limits<uint64_t>::max();
+    uint64_t best_interp_aq = std::numeric_limits<uint64_t>::max();
+    uint64_t aq;
     size_t bufferCap = conf.num * sizeof(T);
     auto buffer = static_cast<uchar *>(malloc(bufferCap));
     Config lorenzo_config = conf;
@@ -228,17 +242,17 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
         testConfig.setDims(dims.begin(), dims.end());
         for (auto &interp_op : {INTERP_ALGO_LINEAR, INTERP_ALGO_CUBIC}) {
             testConfig.interpAlgo = interp_op;
-            ratio = interp_compress_test<T, N>(sampled_blocks, testConfig, sampleBlockSize, buffer, bufferCap);
-            if (ratio > best_interp_ratio) {
-                best_interp_ratio = ratio;
+            aq = interp_compress_test<T, N>(sampled_blocks, testConfig, sampleBlockSize, buffer, bufferCap);
+            if (aq < best_interp_aq) {
+                best_interp_aq = aq;
                 conf.interpAlgo = interp_op;
             }
         }
 
         testConfig.interpAlgo = conf.interpAlgo;
         testConfig.interpDirection = factorial(N) - 1;
-        ratio = interp_compress_test<T, N>(sampled_blocks, testConfig, sampleBlockSize, buffer, bufferCap);
-        if (ratio > best_interp_ratio * 1.02) {
+        aq = interp_compress_test<T, N>(sampled_blocks, testConfig, sampleBlockSize, buffer, bufferCap);
+        if (aq < best_interp_aq * 0.98) {
             best_interp_ratio = ratio;
             conf.interpDirection = testConfig.interpDirection;
         }
@@ -251,9 +265,9 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
             auto beta = betalist[i];
             testConfig.interpAlpha = alpha;
             testConfig.interpBeta = beta;
-            ratio = interp_compress_test<T, N>(sampled_blocks, testConfig, sampleBlockSize, buffer, bufferCap);
-            if (ratio > best_interp_ratio * 1.02) {
-                best_interp_ratio = ratio;
+            aq = interp_compress_test<T, N>(sampled_blocks, testConfig, sampleBlockSize, buffer, bufferCap);
+            if (aq > best_aq_ratio * 0.98) {
+                best_interp_aq = aq;
                 conf.interpAlpha = alpha;
                 conf.interpBeta = beta;
             }
@@ -272,15 +286,14 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
             lorenzo_config.openmp = false;
             lorenzo_config.blockSize = 5;
             //        lorenzo_config.quantbinCnt = 65536 * 2;
-            best_lorenzo_ratio = lorenzo_compress_test<T, N>(sampled_blocks, lorenzo_config, buffer, bufferCap);
+            best_lorenzo_aq = lorenzo_compress_test<T, N>(sampled_blocks, lorenzo_config, buffer, bufferCap);
             //            delete[]cmprData;
             //    printf("Lorenzo ratio = %.2f\n", ratio);
         }
     }
 
 
-    bool useInterp = !(best_lorenzo_ratio >= best_interp_ratio * 1.1 && best_lorenzo_ratio < 50 &&
-                       best_interp_ratio < 50);  // 1.1 is a fix coefficient. subject to revise
+    bool useInterp = !(best_lorenzo_aq <= best_interp_ratio * 0.9);  // 0.9 is a fix coefficient. subject to revise
     size_t cmpSize = 0;
     timer.stop("interp tuning");
     timer.start();
