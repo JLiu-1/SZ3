@@ -30,7 +30,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
 
     T *decompress(const Config &conf, std::vector<int> &quant_inds, T *dec_data) override {
         init();
-
+        /*
         if(N==3){
             std::vector<int> quant_inds_vec_reordered(num_elements);
 
@@ -61,7 +61,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
 
 
 
-        }
+        }*/
 
 
         auto default_nThreads = omp_get_max_threads();
@@ -274,12 +274,10 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
         delete [] pred_buffer;
 
         omp_set_num_threads(default_nThreads);
-        
+        /*
         if(N==3){
             std::vector<int> quant_inds_vec_reordered(num_elements);
             #pragma omp parallel for
-
-            
             for(size_t idx = 0; idx < num_elements ; idx++){
                 //quant_inds_vec_reordered[idx] = quant_inds_vec[idx];
                 
@@ -309,7 +307,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
            
             return quant_inds_vec_reordered;
 
-        }
+        }*/
 
 
         return quant_inds_vec;
