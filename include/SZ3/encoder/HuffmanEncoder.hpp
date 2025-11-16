@@ -555,32 +555,41 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
 
 
         #ifdef _OPENMP
-            int nthreads = 1;
-            #pragma omp parallel
-            {
-                int tid = omp_get_thread_num();
-                #pragma omp single
+
+            auto nthreads = omp_get_max_threads();
+            if (nthreads > 1 && length >= 1u << 18) {
+                auto best_num_threads = std::min(nthreads, length / ui16_range);
+                omp_set_num_threads(best_num_threads);
+                #pragma omp parallel
                 {
-                    nthreads = omp_get_num_threads();
-                }
-                // 每个线程一个局部 freq
-                std::vector<size_t> local_freq(ui16_range, 0);
 
-                #pragma omp for
-                for (long long i = 0; i < (long long)length; ++i) {
-                    auto v = s[i];
-                    // 假设 v 已经在 [0, ui16_range)
-                    local_freq[(unsigned)v]++;
-                }
+                    int tid = omp_get_thread_num();
+                    
+                    // 每个线程一个局部 freq
+                    std::vector<size_t> local_freq(ui16_range, 0);
 
-                // 归并到全局
-               
-                    for (size_t k = 0; k < ui16_range; ++k) {
-                        #pragma omp atomic
-                        frenqencies[k] += local_freq[k];
+                    #pragma omp for
+                    for (long long i = 0; i < (long long)length; ++i) {
+                        auto v = s[i];
+                        // 假设 v 已经在 [0, ui16_range)
+                        local_freq[(unsigned)v]++;
                     }
 
+                    // 归并到全局
+                   
+                        for (size_t k = 0; k < ui16_range; ++k) {
+                            #pragma omp atomic
+                            frenqencies[k] += local_freq[k];
+                        }
+
+                }
             }
+            else{
+                for (size_t i = 0; i < length; i++) {
+                    frenqencies[s[i]]++;
+                }
+            }
+
         #else
             for (size_t i = 0; i < length; i++) {
                 frenqencies[s[i]]++;
