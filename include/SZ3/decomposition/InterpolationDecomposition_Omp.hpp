@@ -263,7 +263,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
 
 
         
-      std::cout<<"ended"<<std::endl;    
+      std::cout<<"dagoujiao"<<std::endl;    
 
 
 
