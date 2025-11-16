@@ -82,7 +82,7 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
                 #pragma omp single
                 {
                     nthreads = omp_get_num_threads();
-                    std::cout<<nthreads<<std::endl;
+                    //std::cout<<nthreads<<std::endl;
                     block_byte_offsets.resize(nthreads);
                     write<int>(nthreads, buffer_pos);
                     offset_chunk_size = nthreads * sizeof (size_t);
