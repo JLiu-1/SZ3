@@ -34,7 +34,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
         auto default_nThreads = omp_get_max_threads();
         std::cout<<"max threads: "<<default_nThreads<<std::endl;
 
-        size_t max_usable_threads = original_dimensions[0];
+        size_t max_usable_threads = default_nThreads;
         for (uint i = 1; i < N; i++) 
             max_usable_threads = std::min(max_usable_threads, original_dimensions[i]);
         omp_set_num_threads(max_usable_threads);
@@ -145,7 +145,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
         auto default_nThreads = omp_get_max_threads();
         std::cout<<"max threads: "<<default_nThreads<<std::endl;
 
-        size_t max_usable_threads = original_dimensions[0];
+        size_t max_usable_threads = default_nThreads;
         for (uint i = 1; i < N; i++) 
             max_usable_threads = std::min(max_usable_threads, original_dimensions[i]);
         omp_set_num_threads(max_usable_threads);
