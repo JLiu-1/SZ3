@@ -74,7 +74,7 @@ double interp_compress_test(
         make_decomposition_interpolation<T, N>(conf, LinearQuantizer<T>(conf.absErrorBound, conf.quantbinCnt / 2));
      #endif
    
-   
+
 
     std::vector<int> total_quant_bins;
     for (size_t k = 0; k < sampled_blocks.size(); k++) {
@@ -243,8 +243,8 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
         }
         testConfig.interpDirection = conf.interpDirection;
         // test more alpha-beta pairs for best compression ratio,
-        auto alphalist = std::vector<double>{1.0, 1.5, 2.0};
-        auto betalist = std::vector<double>{1.0, 2.5, 3.0};
+        auto alphalist = std::vector<double>{1.25, 1.5, 2.0};
+        auto betalist = std::vector<double>{1.5, 2.5, 3.0};
         for (size_t i = 0; i < alphalist.size(); i++) {
             auto alpha = alphalist[i];
             auto beta = betalist[i];
