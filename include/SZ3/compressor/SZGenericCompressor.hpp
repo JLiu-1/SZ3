@@ -114,8 +114,11 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
 
                 free(cur_buffer);
 
+
             }
             buffer_pos += offset_chunk_size + total_huffman_size;
+        }
+            
         else{
             write<int>(1, buffer_pos); //1 thread
             write<size_t>(0, buffer_pos); //offset = 0;
@@ -164,7 +167,7 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
             std::vector<size_t>block_byte_offsets(compression_thread_num);
 
             read(block_byte_offsets.data(),compression_thread_num,bufferPos);
-             #ifdef _OPENMP
+            #ifdef _OPENMP
             #pragma omp parallel for 
             #endif
             for(int tid=0; tid < compression_thread_num;tid++){
