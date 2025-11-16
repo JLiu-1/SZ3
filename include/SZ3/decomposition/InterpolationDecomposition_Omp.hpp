@@ -393,7 +393,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
                     d_size[0] = (d_size[0] + 1) >> 1;
                     d_size[1] = (d_size[1] + 1) >> 1;
                     d_size[2] = (d_size[2] + 1) >> 1;
-                    prefix_nums[level] = d_size[0] *  d_size[1] * d_size[2];
+                    level_prefix[level] = d_size[0] *  d_size[1] * d_size[2];
                 }
                 level++;
             }  
