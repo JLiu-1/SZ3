@@ -81,7 +81,7 @@ double interp_compress_test(
         auto cur_block = sampled_blocks[k];
         auto cur_quant_inds = sz.compress(conf, cur_block.data());
         quant_inds.insert(quant_inds.end(), cur_quant_inds.begin(),
-                                qcur_quant_indss.end());  // merge the quant bins. Lossless them together
+                                cur_quant_inds.end());  // merge the quant bins. Lossless them together
     }
 
     auto encoder = HuffmanEncoder<int>();
