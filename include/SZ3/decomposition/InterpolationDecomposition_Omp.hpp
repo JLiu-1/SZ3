@@ -20,7 +20,7 @@
 
 
 namespace SZ3 {
-template <class T, uint N, class Quantizer>
+template <class T, uint N, class QuantizerOMP>
 class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T, int, N> {
    public:
     InterpolationDecomposition_OMP(const Config &conf, QuantizerOMP quantizer) : quantizer(quantizer) {
