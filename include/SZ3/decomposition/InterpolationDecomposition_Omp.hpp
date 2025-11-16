@@ -53,9 +53,12 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
                 }
                 quant_inds_vec_reordered[idx]  = quant_inds[reordered_idx];
             }
+            assert( reordered_idx < quant_inds_vec.size() && idx < quant_inds_vec_reordered.size());
             quant_inds.clear();
             quant_inds.shrink_to_fit();
             quant_inds= std::move( quant_inds_vec_reordered);
+
+
 
         }
 
@@ -274,7 +277,6 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
 
         if(N==3){
             std::vector<int> quant_inds_vec_reordered(num_elements);
-            std::cout<<interp_level<<std::endl;
             #pragma omp parallel for
             for(size_t idx = 0; idx < num_elements ; idx++){
                 size_t x = idx / original_dim_offsets[0];
@@ -290,14 +292,13 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
                     z = z >> 1;
                     level++;
                 }
-                std::cout<<"post: "<<x<<" "<<y<<" "<<z<<" "<<level<<std::endl;
                 auto reordered_idx = x * reduced_dim_offsets[level][0] + y * reduced_dim_offsets[level][1] + z ;
                 if(level  < interp_level - 1){//non-anchor or not last level
                     reordered_idx += level_prefix[level] - ((x + 1) >> 1) * reduced_dim_offsets[level + 1][0] - (x % 2 == 0) * ((y + 1) >> 1) * reduced_dim_offsets[level + 1][1] - (z % 2 == 0 && y % 2 == 0) * ((x + 1) >> 1);
                 }
-                std::cout<<reordered_idx<<" "<<idx<<std::endl;
                 quant_inds_vec_reordered [reordered_idx] = quant_inds[idx];
             }
+            assert( idx < quant_inds_vec.size() && reordered_idx < quant_inds_vec_reordered.size());
             return quant_inds_vec_reordered;
 
         }
