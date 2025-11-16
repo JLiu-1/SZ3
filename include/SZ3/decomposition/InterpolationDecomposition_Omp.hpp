@@ -9,7 +9,7 @@
 #include "Decomposition.hpp"
 #include "SZ3/def.hpp"
 #include "SZ3/quantizer/Quantizer.hpp"
-#include "SZ3/quantizer/QuantizerOMP.hpp"
+#include "SZ3/quantizer/Quantizer_Omp.hpp"
 #include "SZ3/utils/Config.hpp"
 #include "SZ3/utils/FileUtil.hpp"
 #include "SZ3/utils/Interpolators.hpp"
