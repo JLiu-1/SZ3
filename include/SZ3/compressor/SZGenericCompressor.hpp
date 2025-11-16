@@ -107,7 +107,7 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
                     for (size_t i = 0; i < nthreads; i++){
                         //std::cout<<"prefix, tid: "<<i<<", outsize: "<<block_byte_offsets[i]<<std::endl;
                         auto next_prefix_sum = prefix_sum + block_byte_offsets[i];
-                        block_byte_offsets[i] = next_prefix_sum;
+                        block_byte_offsets[i] = prefix_sum;
                         prefix_sum = next_prefix_sum;
                        // std::cout<<" offset: "<<block_byte_offsets[i]<<std::endl;
 
