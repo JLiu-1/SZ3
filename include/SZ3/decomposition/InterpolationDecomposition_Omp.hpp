@@ -31,6 +31,17 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
     T *decompress(const Config &conf, std::vector<int> &quant_inds, T *dec_data) override {
         init();
 
+        auto default_nThreads = omp_get_max_threads();
+        std::cout<<"max threads: "<<default_nThreads<<std::endl;
+
+        size_t max_usable_threads = original_dimensions[0];
+        for (uint i = 1; i < N; i++) 
+            nThreads = std::max(max_usable_threads, original_dimensions[i]);
+        omp_set_num_threads(std::min(nThreads,max_usable_threads));
+
+        nThreads = omp_get_max_threads(); // for safety
+        std::cout<<"used threads: "<<nThreads<<std::endl;
+
 
         buffer_len =  (max_dim + 2 * AVX_256_parallelism - max_dim % AVX_256_parallelism) ;
         size_t total_buffer_len = buffer_len * nThreads;
@@ -107,11 +118,17 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
         delete [] interp_buffer_3;
         delete [] interp_buffer_4;
         delete [] pred_buffer;
+
+        omp_set_num_threads(default_nThreads);
         return dec_data;
     }
 
     // compress given the error bound
     std::vector<int> compress(const Config &conf, T *data) override {
+
+
+
+
         std::copy_n(conf.dims.begin(), N, original_dimensions.begin());
         
         interp_id = conf.interpAlgo;
@@ -122,6 +139,19 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
         eb_beta = conf.interpBeta;
 
         init();
+
+
+
+        auto default_nThreads = omp_get_max_threads();
+        std::cout<<"max threads: "<<default_nThreads<<std::endl;
+
+        size_t max_usable_threads = original_dimensions[0];
+        for (uint i = 1; i < N; i++) 
+            nThreads = std::max(max_usable_threads, original_dimensions[i]);
+        omp_set_num_threads(std::min(nThreads,max_usable_threads));
+
+        nThreads = omp_get_max_threads(); // for safety
+        std::cout<<"used threads: "<<nThreads<<std::endl;
    
 
         buffer_len =  (max_dim + 2 * AVX_256_parallelism - max_dim % AVX_256_parallelism) ;
@@ -209,6 +239,8 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
         delete [] interp_buffer_3;
         delete [] interp_buffer_4;
         delete [] pred_buffer;
+
+        omp_set_num_threads(default_nThreads);
         return quant_inds_vec;
     }
 
@@ -242,17 +274,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
 
    private:
     void init() {
-        nThreads = omp_get_max_threads();
-        std::cout<<"max threads: "<<nThreads<<std::endl;
-
-        size_t max_usable_threads = original_dimensions[0];
-        for (uint i = 1; i < N; i++) 
-            max_usable_threads = std::max(max_usable_threads, original_dimensions[i]);
-
-        omp_set_num_threads(std::min(nThreads,max_usable_threads));
-
-        nThreads = omp_get_max_threads(); // for safety
-
+       
         quant_index = 0;
         assert(blocksize % 2 == 0 && "Interpolation block size should be even numbers");
         assert((anchor_stride & anchor_stride - 1) == 0 && "Anchor stride should be 0 or 2's exponentials");
