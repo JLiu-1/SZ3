@@ -281,9 +281,9 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
             auto const* __restrict src = quant_inds_vec.data();
 
             #pragma omp parallel for collapse(3) schedule(static)
-            for (size_t x0 = 0; x0 < dim_x; ++x0) {
-                for (size_t y0 = 0; y0 < dim_y; ++y0) {
-                    for (size_t z0 = 0; z0 < dim_z; ++z0) {
+            for (size_t x0 = 0; x0 < conf.dims[0]; ++x0) {
+                for (size_t y0 = 0; y0 < conf.dims[1]; ++y0) {
+                    for (size_t z0 = 0; z0 < conf.dims[2]; ++z0) {
                         const size_t idx = x0 * dim_y * dim_z + y0 * dim_z + z0;
 
                         size_t x = x0, y = y0, z = z0;
