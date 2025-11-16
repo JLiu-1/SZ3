@@ -552,7 +552,7 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
          std::vector<size_t> frequencyList(ui16_range, 0);
          auto frenqencies = frequencyList.data();
 
-         /*
+
 
         #ifdef _OPENMP
             int nthreads = 1;
@@ -581,11 +581,11 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
                     }
 
             }
-        #else*/
+        #else
             for (size_t i = 0; i < length; i++) {
                 frenqencies[s[i]]++;
             }
-        //#endif
+        #endif
 
 
 /*
@@ -609,19 +609,6 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
 */  
         //Timer timer(true);
 
-        
-        for (size_t i = 0; i < length; i++) {
-            /*
-            auto k = s[i];
-            if (k > max) {
-                max = k;
-            }
-            if (k < offset) {
-                offset = k;
-            }*/
-            //assert(s[i]>0 && s[i]<ui16_range);
-            frenqencies[s[i]] += 1;
-        }
         for (int i = 0; i < ui16_range; i++) {
             if (frenqencies[i] != 0) {
                 offset = i;
