@@ -31,8 +31,6 @@ class  QuantizerOMPInterface {
      */
     ALWAYS_INLINE virtual Ti recover(Ti pred, To quant_index) = 0;
 
-    virtual To force_save_unpred(Ti ori, size_t data_idx) = 0;
-
 
     virtual void unpack_unpred(Ti *data) const = 0;
 

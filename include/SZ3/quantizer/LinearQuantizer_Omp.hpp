@@ -89,7 +89,7 @@ class LinearQuantizerOMP : public concepts::QuantizerOMPInterface<T, int> {
         return 0;
     }
 
-    void unpack_unpred(T *data) {
+    void unpack_unpred(T *data) const{
 
         #ifdef _OPENMP
            #pragma omp parallel for
