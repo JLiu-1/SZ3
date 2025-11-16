@@ -62,7 +62,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
             interp_level--;
         }
         if(N ==3){
-            size_t check_idx = 140 * original_dim_offsets[0] + 92 * original_dim_offsets[1] + 4;
+            size_t check_idx = 22448644;
             std::cout<<dec_data[check_idx]<<std::endl;
             std::cout<<quant_inds[check_idx]<<std::endl;
 
@@ -105,7 +105,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
         }
         quantizer.postdecompress_data();
         if(N ==3){
-            size_t check_idx = 140 * original_dim_offsets[0] + 92 * original_dim_offsets[1] + 4;
+            size_t check_idx = 22448644;
             std::cout<<dec_data[check_idx]<<std::endl;
             std::cout<<quant_inds[check_idx]<<std::endl;
 
@@ -135,7 +135,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
 
         init();
         if(N ==3 and conf.dims[0]> 120){
-            size_t check_idx = 140 * original_dim_offsets[0] + 92 * original_dim_offsets[1] + 4;
+            size_t check_idx = 22448644;
             std::cout<<data[check_idx]<<std::endl;
 
         }
@@ -213,7 +213,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
         quantizer.set_eb(eb);
         quantizer.postcompress_data();
         if(N ==3 and conf.dims[0] > 120){
-            size_t check_idx = 140 * original_dim_offsets[0] + 92 * original_dim_offsets[1] + 4;
+            size_t check_idx = 22448644;
             std::cout<<data[check_idx]<<std::endl;
             std::cout<<quant_inds[check_idx]<<std::endl;
 
