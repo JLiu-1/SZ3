@@ -266,7 +266,7 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
             testConfig.interpAlpha = alpha;
             testConfig.interpBeta = beta;
             aq = interp_compress_test<T, N>(sampled_blocks, testConfig, sampleBlockSize, buffer, bufferCap);
-            if (aq > best_aq_ratio * 0.98) {
+            if (aq > best_interp_aq * 0.98) {
                 best_interp_aq = aq;
                 conf.interpAlpha = alpha;
                 conf.interpBeta = beta;
@@ -293,7 +293,7 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
     }
 
 
-    bool useInterp = !(best_lorenzo_aq <= best_interp_ratio * 0.9);  // 0.9 is a fix coefficient. subject to revise
+    bool useInterp = !(best_lorenzo_aq <= best_interp_aq * 0.9);  // 0.9 is a fix coefficient. subject to revise
     size_t cmpSize = 0;
     timer.stop("interp tuning");
     timer.start();
