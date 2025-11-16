@@ -1,6 +1,11 @@
 #ifndef SZ3_SZALGO_INTERP_HPP
 #define SZ3_SZALGO_INTERP_HPP
 
+#ifdef _OPENMP
+#include "SZ3/decomposition/InterpolationDecomposition_Omp.hpp"
+#include "SZ3/quantizer/LinearQuantizer_Omp.hpp"
+#endif
+
 #include "SZ3/api/impl/SZAlgoLorenzoReg.hpp"
 #include "SZ3/decomposition/BlockwiseDecomposition.hpp"
 #include "SZ3/decomposition/InterpolationDecomposition.hpp"
@@ -23,9 +28,18 @@ size_t SZ_compress_Interp(Config &conf, T *data, uchar *cmpData, size_t cmpCap) 
         conf.interpAnchorStride = anchor_strides[N - 1];
     }
 
+    #ifdef _OPENMP
+
     auto sz = make_compressor_sz_generic<T, N>(
+        make_decomposition_interpolation_omp<T, N>(conf, LinearQuantizerOMP<T>(conf.absErrorBound, conf.quantbinCnt / 2)),
+        HuffmanEncoder<int>(), Lossless_zstd());
+
+    #else
+        auto sz = make_compressor_sz_generic<T, N>(
         make_decomposition_interpolation<T, N>(conf, LinearQuantizer<T>(conf.absErrorBound, conf.quantbinCnt / 2)),
         HuffmanEncoder<int>(), Lossless_zstd());
+    #endif
+
     return sz->compress(conf, data, cmpData, cmpCap);
 }
 
@@ -33,10 +47,18 @@ template <class T, uint N>
 void SZ_decompress_Interp(const Config &conf, const uchar *cmpData, size_t cmpSize, T *decData) {
     assert(conf.cmprAlgo == ALGO_INTERP);
     auto cmpDataPos = cmpData;
-   // std::cout<<"decomp started"<<std::endl; 
+   // std::cout<<"decomp started"<<std::endl;
+    #ifdef _OPENMP
+
+    auto sz = make_compressor_sz_generic<T, N>(
+        make_decomposition_interpolation_omp<T, N>(conf, LinearQuantizerOMP<T>(conf.absErrorBound, conf.quantbinCnt / 2)),
+        HuffmanEncoder<int>(), Lossless_zstd());
+
+    #else
     auto sz = make_compressor_sz_generic<T, N>(
         make_decomposition_interpolation<T, N>(conf, LinearQuantizer<T>(conf.absErrorBound, conf.quantbinCnt / 2)),
         HuffmanEncoder<int>(), Lossless_zstd());
+    #endif
     sz->decompress(conf, cmpDataPos, cmpSize, decData);
 }
 
