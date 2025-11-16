@@ -95,7 +95,7 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
                 size_t cur_bufferSize = std::max<size_t>(1000, 1.2 * sizeof(T) * cur_len);
                 auto cur_buffer = static_cast<uchar *>(malloc(cur_bufferSize)); 
                 auto cur_buffer_pos = cur_buffer;
-                auto cur_outSize = encoder.encode(quant_inds_data, cur_len, cur_buffer_pos);
+                auto cur_outSize = encoder.encode(quant_inds_data + start_idx, cur_len, cur_buffer_pos);
 
                 block_byte_offsets[tid] = cur_outSize;
                  #pragma omp critical
