@@ -308,10 +308,9 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
                             z;
 
                         if (level < (unsigned)max_level) {
-                            const auto* off_next = reduced_dim_offsets[level + 1];
 
-                            size_t t0 = ((x + 1) >> 1) * off_next[0];
-                            size_t t1 = ((y + 1) >> 1) * off_next[1];
+                            size_t t0 = ((x + 1) >> 1) * reduced_dim_offsets[level + 1][0];
+                            size_t t1 = ((y + 1) >> 1) * reduced_dim_offsets[level + 1][1];
                             size_t t2 = ((z + 1) >> 1);
 
                             reordered_idx += level_prefix[level]
