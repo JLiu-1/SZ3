@@ -167,7 +167,7 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
         int compression_thread_num = 0;
         read(compression_thread_num, bufferPos);
         std::vector<int> quant_inds; // todo: it should better match the encoder output type,
-        if(compression_thread_num <=0){
+        if(compression_thread_num <=1){
             size_t offset;
             read(offset, bufferPos);
             quant_inds = encoder.decode(bufferPos, quant_inds_size);
@@ -178,7 +178,7 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
 
             read(block_byte_offsets.data(),compression_thread_num,bufferPos);
             #ifdef _OPENMP
-            #pragma omp parallel for 
+            #pragma omp parallel for num_threads(1)
             #endif
             for(int tid=0; tid < compression_thread_num;tid++){
                 
