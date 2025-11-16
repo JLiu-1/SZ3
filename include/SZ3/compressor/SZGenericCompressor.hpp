@@ -97,6 +97,8 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
                 auto cur_buffer_pos = cur_buffer;
                 auto cur_outSize = encoder.encode(quant_inds_data + start_idx, cur_len, cur_buffer_pos);
 
+                cur_outSize += sizeof(size_t);
+
                 block_byte_offsets[tid] = cur_outSize;
                 // #pragma omp critical
                 //std::cout<<"tid: "<<tid<<" outsize: "<<cur_outSize<<std::endl;
