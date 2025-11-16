@@ -80,7 +80,7 @@ double interp_compress_test(
     for (size_t k = 0; k < sampled_blocks.size(); k++) {
         auto cur_block = sampled_blocks[k];
         auto cur_quant_inds = sz.compress(conf, cur_block.data());
-        quant_inds.insert(total_quant_bins.end(), cur_quant_inds.begin(),
+        quant_inds.insert(quant_inds.end(), cur_quant_inds.begin(),
                                 qcur_quant_indss.end());  // merge the quant bins. Lossless them together
     }
 
