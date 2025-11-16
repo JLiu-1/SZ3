@@ -63,8 +63,8 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
         }
         if(N ==3){
             size_t check_idx = 148 * original_dim_offsets[0] + 90 * original_dim_offsets[1] + 2;
-            std::cout<<dec_data[check_idx];
-            std::cout<<quant_inds[check_idx];
+            std::cout<<dec_data[check_idx]<<std::endl;
+            std::cout<<quant_inds[check_idx]<<std::endl;
 
         }
 
@@ -106,8 +106,8 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
         quantizer.postdecompress_data();
         if(N ==3){
             size_t check_idx = 148 * original_dim_offsets[0] + 90 * original_dim_offsets[1] + 2;
-            std::cout<<dec_data[check_idx];
-            std::cout<<quant_inds[check_idx];
+            std::cout<<dec_data[check_idx]<<std::endl;
+            std::cout<<quant_inds[check_idx]<<std::endl;
 
         }
 
@@ -125,12 +125,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
     // compress given the error bound
     std::vector<int> compress(const Config &conf, T *data) override {
         std::copy_n(conf.dims.begin(), N, original_dimensions.begin());
-        if(N ==3 and conf.dims[0]> 120){
-            size_t check_idx = 148 * original_dim_offsets[0] + 90 * original_dim_offsets[1] + 2;
-            std::cout<<data[check_idx];
-
-        }
-
+        
         interp_id = conf.interpAlgo;
         direction_sequence_id = conf.interpDirection;
         anchor_stride = conf.interpAnchorStride;
@@ -139,6 +134,12 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
         eb_beta = conf.interpBeta;
 
         init();
+        if(N ==3 and conf.dims[0]> 120){
+            size_t check_idx = 148 * original_dim_offsets[0] + 90 * original_dim_offsets[1] + 2;
+            std::cout<<data[check_idx]<<std::endl;
+
+        }
+
         std::cout<<"nThreads: "<<nThreads<<std::endl;
         buffer_len =  (max_dim + 2 * AVX_256_parallelism - max_dim % AVX_256_parallelism) * nThreads;
         interp_buffer_1 = new T[buffer_len ];
@@ -209,10 +210,10 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
         }
         quantizer.set_eb(eb);
         quantizer.postcompress_data();
-        if(N ==3 and conf.dims[0]> 120){
+        if(N ==3 and conf.dims[0] > 120){
             size_t check_idx = 148 * original_dim_offsets[0] + 90 * original_dim_offsets[1] + 2;
-            std::cout<<data[check_idx];
-            std::cout<<quant_inds[check_idx];
+            std::cout<<data[check_idx]<<std::endl;
+            std::cout<<quant_inds[check_idx]<<std::endl;
 
         }
         
