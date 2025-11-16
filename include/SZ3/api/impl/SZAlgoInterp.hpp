@@ -84,11 +84,12 @@ double interp_compress_test(
         std::cout<<"ended"<<std::endl;
         total_quant_bins.insert(total_quant_bins.end(), quant_bins.begin(),
                                 quant_bins.end());  // merge the quant bins. Lossless them together
+        std::cout<<"222"<<std::endl;
     }
 
     auto encoder = HuffmanEncoder<int>();
     auto lossless = Lossless_zstd();
-    
+    std::cout<<"333"<<std::endl;
     encoder.preprocess_encode(total_quant_bins, sz.get_out_range().second);
     size_t bufferSize =
         std::max<size_t>(1000, 1.2 * (sz.size_est() + encoder.size_est() + sizeof(T) * total_quant_bins.size()));
