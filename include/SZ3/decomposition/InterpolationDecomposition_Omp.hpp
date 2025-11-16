@@ -30,15 +30,16 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
 
     T *decompress(const Config &conf, std::vector<int> &quant_inds, T *dec_data) override {
         init();
-        buffer_len = max_dim +  2 * AVX_256_parallelism - max_dim % AVX_256_parallelism;
+         std::cout<<"nThreads: "<<nThreads<<std::endl;
+        buffer_len =  (max_dim + 2 * AVX_256_parallelism - max_dim % AVX_256_parallelism) * nThreads;
 
-        interp_buffer_1 = new T[buffer_len * nThreads];
+        interp_buffer_1 = new T[buffer_len ];
 
-        interp_buffer_2 = new T[buffer_len * nThreads];
-        interp_buffer_3 = new T[buffer_len * nThreads];
-        interp_buffer_4 = new T[buffer_len * nThreads];
+        interp_buffer_2 = new T[buffer_len ];
+        interp_buffer_3 = new T[buffer_len ];
+        interp_buffer_4 = new T[buffer_len];
 
-        pred_buffer = new T[buffer_len * nThreads];
+        pred_buffer = new T[buffer_len];
         #pragma omp parallel for
         for(size_t i =0;i<buffer_len;i++)
             pred_buffer[i] = interp_buffer_1[i] = interp_buffer_2[i] = interp_buffer_3[i] = interp_buffer_4[i] = T(0);
@@ -121,14 +122,15 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
         eb_beta = conf.interpBeta;
 
         init();
-        buffer_len = max_dim + 2 * AVX_256_parallelism - max_dim % AVX_256_parallelism;
-        interp_buffer_1 = new T[buffer_len * nThreads];
-        interp_buffer_2 = new T[buffer_len * nThreads];
-        interp_buffer_3 = new T[buffer_len * nThreads];
-        interp_buffer_4 = new T[buffer_len * nThreads];
-        pred_buffer = new T[buffer_len * nThreads];
+        std::cout<<"nThreads: "<<nThreads<<std::endl;
+        buffer_len =  (max_dim + 2 * AVX_256_parallelism - max_dim % AVX_256_parallelism) * nThreads;
+        interp_buffer_1 = new T[buffer_len ];
+        interp_buffer_2 = new T[buffer_len ];
+        interp_buffer_3 = new T[buffer_len];
+        interp_buffer_4 = new T[buffer_len];
+        pred_buffer = new T[buffer_len];
         #pragma omp parallel for
-        for(size_t i =0;i<buffer_len;i++)
+        for(size_t i =0;i < buffer_len;i++)
             pred_buffer[i] = interp_buffer_1[i] = interp_buffer_2[i] = interp_buffer_3[i] = interp_buffer_4[i] = T(0);
        
 
@@ -291,7 +293,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
         std::fill(strides.begin(), strides.end(), anchor_stride);
         foreach_omp
             <T, N>(data, 0, begins, original_dimensions, strides, original_dim_offsets,
-                   [&](T *d) { auto idx = d - data; quant_inds[d - data] = quantizer.save_unpred(d - data, *d);});
+                   [&](T *d) { auto idx = d - data; quant_inds[idx] = quantizer.save_unpred( *d, idx);});
     }
 
     void recover_anchor_grid(T *data) {  // recover anchor points. steplength: anchor_stride on each dimension
