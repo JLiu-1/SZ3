@@ -1242,11 +1242,15 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
             std::array<size_t, N> strides;
             std::array<size_t, N> begin_idx = begin, end_idx = end;
             strides[dims[0]] = 1;
+            size_t max_interp_seq_length = 0;
+             for (uint i = 0; i < N; ++i) 
+                max_interp_seq_length = std::max(max_interp_seq_length, (ends[i]-begins[i])/stride2x );
             for (uint i = 1; i < N; ++i) {
+                max_interp_seq_length = std::max(max_interp_seq_length, ends[i]-begins[i])
                 begin_idx[dims[i]] = (begin[dims[i]] ? begin[dims[i]] + stride2x : 0);
                 strides[dims[i]] = stride2x;
             }
-            if(N==3  &&stride<=2){//avx
+            if(N==3  && max_interp_seq_length >= 2 * AVX_256_parallelism){//avx
                 if(direction ==0 ){//xyz
                     predict_error += interpolation_1d_simd_3d_x(data, begin_idx, end_idx, dims[0], strides, stride, interp_func, quantize_func);
                     //predict_error += interpolation_1d_fastest_dim_first(data, begin_idx, end_idx, dims[0], strides, stride, interp_func, quantize_func);
