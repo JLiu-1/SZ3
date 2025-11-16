@@ -38,7 +38,7 @@ size_t SZ_compress_dispatcher(Config &conf, const T *data, uchar *cmpData, size_
                 auto n_threads = std::min(max_threads, (int) n / 65536);
 
                 if(n_threads > 1){
-                    omp_set_max_threads(n_threads);
+                    omp_set_num_threads(n_threads);
                     #pragma omp parallel
                     {
                         int tid  = omp_get_thread_num();
@@ -52,7 +52,7 @@ size_t SZ_compress_dispatcher(Config &conf, const T *data, uchar *cmpData, size_
                             std::memcpy(dataCopy + begin, data + begin, len * sizeof(T));
                         }
                     }
-                    omp_set_max_threads(max_threads);
+                    omp_set_num_threads(max_threads);
                 }
                 else
                     std::memcpy(dataCopy, data, n * sizeof(T));
