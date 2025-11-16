@@ -30,6 +30,8 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
 
     T *decompress(const Config &conf, std::vector<int> &quant_inds, T *dec_data) override {
         init();
+
+
          std::cout<<"nThreads: "<<nThreads<<std::endl;
         buffer_len =  (max_dim + 2 * AVX_256_parallelism - max_dim % AVX_256_parallelism) * nThreads;
 
@@ -59,7 +61,12 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
            // recover_anchor_grid(dec_data);  // recover anchor points, not needed because because all outliers were previously unpacked.
             interp_level--;
         }
-        
+        if(N ==3){
+            size_t check_idx = 148 * original_dim_offsets[0] + 90 * original_dim_offsets[1] + 2;
+            std::cout<<dec_data[check_idx];
+            std::cout<<quant_inds[check_idx];
+
+        }
 
         for (int level = interp_level; level > 0 && level <= interp_level; level--) {
             // set level-wise error bound
@@ -97,7 +104,12 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
             }
         }
         quantizer.postdecompress_data();
+        if(N ==3){
+            size_t check_idx = 148 * original_dim_offsets[0] + 90 * original_dim_offsets[1] + 2;
+            std::cout<<dec_data[check_idx];
+            std::cout<<quant_inds[check_idx];
 
+        }
 
       
 
@@ -113,6 +125,11 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
     // compress given the error bound
     std::vector<int> compress(const Config &conf, T *data) override {
         std::copy_n(conf.dims.begin(), N, original_dimensions.begin());
+        if(N ==3){
+            size_t check_idx = 148 * original_dim_offsets[0] + 90 * original_dim_offsets[1] + 2;
+            std::cout<<data[check_idx];
+
+        }
 
         interp_id = conf.interpAlgo;
         direction_sequence_id = conf.interpDirection;
@@ -192,6 +209,13 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
         }
         quantizer.set_eb(eb);
         quantizer.postcompress_data();
+        if(N ==3){
+            size_t check_idx = 148 * original_dim_offsets[0] + 90 * original_dim_offsets[1] + 2;
+            std::cout<<data[check_idx];
+            std::cout<<quant_inds[check_idx];
+
+        }
+        
 
 
 
