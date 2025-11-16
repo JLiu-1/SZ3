@@ -59,7 +59,6 @@ size_t SZ_compress_dispatcher(Config &conf, const T *data, uchar *cmpData, size_
             #else
                 std::memcpy(dataCopy, data, n * sizeof(T));
             #endif
-            }
             
              timer.stop("datacopy");
             if (conf.cmprAlgo == ALGO_LORENZO_REG) {
