@@ -59,10 +59,11 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
         write<size_t>(quant_inds.size(), buffer_pos);
         encoder.encode(quant_inds, buffer_pos);
         encoder.postprocess_encode();
-        timer.stop("phuff");
-        
+        timer.stop("huff");
+         timer.start();
         auto cmpSize = lossless.compress(buffer, buffer_pos - buffer, cmpData, cmpCap);
         free(buffer);
+         timer.stop("zstd");
 
         return cmpSize;
     }
