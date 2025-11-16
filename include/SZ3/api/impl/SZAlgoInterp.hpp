@@ -80,17 +80,18 @@ double interp_compress_test(
     for (size_t k = 0; k < sampled_blocks.size(); k++) {
         auto cur_block = sampled_blocks[k];
         auto quant_bins = sz.compress(conf, cur_block.data());
+        std::cout<<"ended"<<std::endl;
         total_quant_bins.insert(total_quant_bins.end(), quant_bins.begin(),
                                 quant_bins.end());  // merge the quant bins. Lossless them together
     }
 
     auto encoder = HuffmanEncoder<int>();
     auto lossless = Lossless_zstd();
-
+    
     encoder.preprocess_encode(total_quant_bins, sz.get_out_range().second);
     size_t bufferSize =
         std::max<size_t>(1000, 1.2 * (sz.size_est() + encoder.size_est() + sizeof(T) * total_quant_bins.size()));
-
+   std::cout<<"hajimi"<<std::endl;
     auto buffer = static_cast<uchar *>(malloc(bufferSize));
     uchar *buffer_pos = buffer;
     sz.save(buffer_pos);
@@ -100,6 +101,7 @@ double interp_compress_test(
     encoder.encode(total_quant_bins, buffer_pos);
     encoder.postprocess_encode();
     auto cmpSize = lossless.compress(buffer, buffer_pos - buffer, cmpData, cmpCap);
+    std::cout<<"dingdongji"<<std::endl;
     free(buffer);
     auto compression_ratio = conf.num * sampled_blocks.size() * sizeof(T) * 1.0 / cmpSize;
     return compression_ratio;
@@ -243,7 +245,7 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
         }
         testConfig.interpDirection = conf.interpDirection;
         // test more alpha-beta pairs for best compression ratio,
-        auto alphalist = std::vector<double>{1.25, 1.5, 2.0};//fixed, to discuss: add 1/1 back
+        auto alphalist = std::vector<double>{1.25, 1.5, 2.0};//fixed, to discuss: add 1+1 back
         auto betalist = std::vector<double>{1.5, 2.5, 3.0};//fixed
         for (size_t i = 0; i < alphalist.size(); i++) {
             auto alpha = alphalist[i];
