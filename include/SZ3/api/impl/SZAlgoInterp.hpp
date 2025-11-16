@@ -145,9 +145,11 @@ template <class T, uint N>
 size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t cmpCap) {
     assert(conf.cmprAlgo == ALGO_INTERP_LORENZO);
 
-    //        Timer timer(true);
-    calAbsErrorBound(conf, data);
+           Timer timer(true);
 
+    calAbsErrorBound(conf, data);
+    timer.stop("abseb compute");
+    timer.start();
     if (conf.interpAnchorStride < 0) {  // set default anchor stride
         std::array<size_t, 4> anchor_strides = {4096, 128, 32, 16};
         conf.interpAnchorStride = anchor_strides[N - 1];
@@ -181,6 +183,8 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
         conf.cmprAlgo = ALGO_INTERP;
         return SZ_compress_Interp<T, N>(conf, data, cmpData, cmpCap);
     }
+    timer.stop("preparation");
+    timer.start();
     std::vector<std::vector<T>> sampled_blocks;
     size_t per_block_ele_num = pow(sampleBlockSize + 1, N);
     size_t sampling_num;
@@ -199,6 +203,8 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
         conf.cmprAlgo = ALGO_INTERP;
         return SZ_compress_Interp<T, N>(conf, data, cmpData, cmpCap);
     }
+    timer.stop("sampling");
+    timer.start();
     double best_lorenzo_ratio = 0, best_interp_ratio = 0, ratio;
     size_t bufferCap = conf.num * sizeof(T);
     auto buffer = static_cast<uchar *>(malloc(bufferCap));
@@ -264,9 +270,12 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
         }
     }
 
+
     bool useInterp = !(best_lorenzo_ratio >= best_interp_ratio * 1.1 && best_lorenzo_ratio < 50 &&
                        best_interp_ratio < 50);  // 1.1 is a fix coefficient. subject to revise
     size_t cmpSize = 0;
+    timer.stop("interp tuning");
+    timer.start();
     if (useInterp) {
         conf.cmprAlgo = ALGO_INTERP;
         cmpSize = SZ_compress_Interp<T, N>(conf, data, cmpData, cmpCap);
