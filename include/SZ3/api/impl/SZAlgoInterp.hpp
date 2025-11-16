@@ -318,7 +318,7 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
         //     }
         // }
 
-        if (conf.relErrorBound < 1.01e-6&& lorenzo_config.quantbinCnt != 16384) {
+        if (conf.relErrorBound < 1.01e-6 && lorenzo_config.quantbinCnt != 16384) {
             auto quant_num = lorenzo_config.quantbinCnt;
             lorenzo_config.quantbinCnt = 16384;
             aq = lorenzo_compress_test<T, N>(sampled_blocks, lorenzo_config, buffer, bufferCap);
