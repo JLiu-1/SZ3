@@ -190,7 +190,7 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
                 auto temp_buffer_pos = bufferPos + block_byte_offset;
                 auto cur_quant_inds = encoder.decode(temp_buffer_pos, cur_len);
                  #pragma omp critical
-                std::cout<<"tid: "<<<<", ended_at: "<<temp_buffer_pos - bufferPos - block_byte_offset<<" ,"<<cur_quant_inds.size()<<" bins extracted."<<std::endl;
+                std::cout<<"tid: "<<", ended at: "<<temp_buffer_pos - bufferPos - block_byte_offset<<" ,"<<cur_quant_inds.size()<<" bins extracted."<<std::endl;
                 std::move(cur_quant_inds.begin(), cur_quant_inds.end(), quant_inds.begin() + start_idx);
 
 
