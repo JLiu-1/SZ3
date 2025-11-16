@@ -79,21 +79,16 @@ double interp_compress_test(
     std::vector<int> total_quant_bins;
     for (size_t k = 0; k < sampled_blocks.size(); k++) {
         auto cur_block = sampled_blocks[k];
-         std::cout<<"start"<<std::endl;
         auto quant_bins = sz.compress(conf, cur_block.data());
-        std::cout<<"ended"<<std::endl;
         total_quant_bins.insert(total_quant_bins.end(), quant_bins.begin(),
                                 quant_bins.end());  // merge the quant bins. Lossless them together
-        std::cout<<"222"<<std::endl;
     }
 
     auto encoder = HuffmanEncoder<int>();
     auto lossless = Lossless_zstd();
-    std::cout<<"333"<<std::endl;
     encoder.preprocess_encode(total_quant_bins, sz.get_out_range().second);
     size_t bufferSize =
         std::max<size_t>(1000, 1.2 * (sz.size_est() + encoder.size_est() + sizeof(T) * total_quant_bins.size()));
-   std::cout<<"hajimi"<<std::endl;
     auto buffer = static_cast<uchar *>(malloc(bufferSize));
     uchar *buffer_pos = buffer;
     sz.save(buffer_pos);
@@ -103,7 +98,6 @@ double interp_compress_test(
     encoder.encode(total_quant_bins, buffer_pos);
     encoder.postprocess_encode();
     auto cmpSize = lossless.compress(buffer, buffer_pos - buffer, cmpData, cmpCap);
-    std::cout<<"dingdongji"<<std::endl;
     free(buffer);
     auto compression_ratio = conf.num * sampled_blocks.size() * sizeof(T) * 1.0 / cmpSize;
     return compression_ratio;

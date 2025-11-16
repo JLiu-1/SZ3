@@ -49,9 +49,9 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
                 }
                 auto reordered_idx = x * reduced_dim_offsets[level][0] + y * reduced_dim_offsets[level][1] + z ;
                 if(level  < interp_level - 1){//non-anchor or not last level
-                    reordered_idx += level_prefix[level] - ((x + 1) >> 1) * reduced_dim_offsets[level + 1][0] - (x % 2 == 0) * ((y + 1) >> 1) * reduced_dim_offsets[level + 1][1] - (z % 2 == 0 && y % 2 == 0) * ((x + 1) >> 1);
+                    reordered_idx += level_prefix[level] - ((x + 1) >> 1) * reduced_dim_offsets[level + 1][0] - (x % 2 == 0) * ((y + 1) >> 1) * reduced_dim_offsets[level + 1][1] - (x % 2 == 0 && y % 2 == 0) * ((z + 1) >> 1);
                 }
-                 assert( reordered_idx < quant_inds_vec.size() && idx < quant_inds_vec_reordered.size());
+               //  assert( reordered_idx < quant_inds_vec.size() && idx < quant_inds_vec_reordered.size());
                 quant_inds_vec_reordered[idx]  = quant_inds[reordered_idx];
             }
            
@@ -263,7 +263,6 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
 
 
         
-      std::cout<<"dagoujiao"<<std::endl;    
 
 
 
@@ -275,7 +274,6 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
         delete [] pred_buffer;
 
         omp_set_num_threads(default_nThreads);
-        std::cout<<"jiankangma"<<std::endl;   
         
         if(N==3){
             std::vector<int> quant_inds_vec_reordered(num_elements);
@@ -290,7 +288,6 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
                 size_t y = temp / original_dim_offsets[1];
                 size_t z = temp % original_dim_offsets[1];
                 int level = 0;
-                std::cout<<"pre: "<<x<<" "<<y<<" "<<z<<std::endl;
                 //std::cout<<interp_level<<std::endl;
 
                 while(x % 2 == 0 and y % 2 == 0 and z % 2 == 0 and level < interp_level - 1){
@@ -300,22 +297,15 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
                     level++;
                 }
                 //if(level >= interp_level)
-                std::cout<<"post: "<<x<<" "<<y<<" "<<z<<std::endl;
                 auto reordered_idx = x * reduced_dim_offsets[level][0] + y * reduced_dim_offsets[level][1] + z ;
                 if(level  < interp_level - 1){//non-anchor or not last level
-                    reordered_idx += level_prefix[level] - ((x + 1) >> 1) * reduced_dim_offsets[level + 1][0] - (x % 2 == 0) * ((y + 1) >> 1) * reduced_dim_offsets[level + 1][1] - (z % 2 == 0 && y % 2 == 0) * ((x + 1) >> 1);
+                    reordered_idx += level_prefix[level] - ((x + 1) >> 1) * reduced_dim_offsets[level + 1][0] - (x % 2 == 0) * ((y + 1) >> 1) * reduced_dim_offsets[level + 1][1] - (x % 2 == 0 && y % 2 == 0) * ((z + 1) >> 1);
                 }
-                if(idx >= conf.num || reordered_idx >=conf.num)
-                    std::cout<<idx<<" "<<reordered_idx<<" "<<level<<std::endl;
-                 assert( idx < quant_inds_vec.size() && reordered_idx < quant_inds_vec_reordered.size());
+               
                 quant_inds_vec_reordered [reordered_idx] = quant_inds_vec[idx];
                 
             }
-            for(int i =0; i < interp_level;i++){
-                std::cout<<reduced_dim_offsets[i][0]<<" "<<reduced_dim_offsets[i][1]<<std::endl;
-                 std::cout<<level_prefix[i]<<std::endl;
-            }
-            std::cout<<"shenfenzheng"<<std::endl;   
+         
            
             return quant_inds_vec_reordered;
 
