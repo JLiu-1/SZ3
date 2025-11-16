@@ -41,6 +41,8 @@ size_t SZ_compress_dispatcher(Config &conf, const T *data, uchar *cmpData, size_
             } else {
                 throw std::invalid_argument("Unknown compression algorithm");
             }
+            
+            delete [] dataCopy;
 
         } catch (std::length_error &e) {
             if(dataCopy)
@@ -52,7 +54,7 @@ size_t SZ_compress_dispatcher(Config &conf, const T *data, uchar *cmpData, size_
                 throw;
             }
         }
-        delete [] dataCopy;
+        
     }
 
 
