@@ -440,8 +440,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
                 <T, N>(data, offset, begins, ends, strides, dim_offsets, [&](T *d) {
                     quantize_func(d - data, *d,
                                   interp_cubic(*(d - stride3x), *(d - stride), *(d + stride), *(d + stride3x)));
-                }
-                });
+            });
             std::vector<size_t> boundaries;
             boundaries.push_back(1);
             if (n % 2 == 1 && n > 3) {
