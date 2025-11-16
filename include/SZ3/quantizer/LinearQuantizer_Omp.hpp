@@ -38,9 +38,14 @@ class LinearQuantizerOMP : public concepts::QuantizerOMPInterface<T, int> {
     // quantize the data with a prediction value, and returns the quantization index and the decompressed data
     // int quantize(T data, T pred, T& dec_data);
     ALWAYS_INLINE int quantize_and_overwrite(T &data, T pred, size_t data_idx) override {
+
+        if(data_idx == 22448644)
+            std::cout<<"quantizing the point"<<std::endl;
         T diff = data - pred;
         int quant_index = std::llrint(std::abs(diff) * this->double_error_bound_reciprocal);
         if (quant_index < this->radius ) {
+            if(data_idx == 22448644)
+              std::cout<<"ss"<<std::endl;
             if (diff < 0) 
                 quant_index = -quant_index;
             auto quant_index_shifted = this->radius + quant_index;
@@ -50,10 +55,14 @@ class LinearQuantizerOMP : public concepts::QuantizerOMPInterface<T, int> {
                 data = decompressed_data;
                 return quant_index_shifted;
             } else {
+                if(data_idx == 22448644)
+              std::cout<<"bb"<<std::endl;
                 save_unpred(data, data_idx);
                 return this->radius;//now we can and we should return center
             }
         } else {
+            if(data_idx == 22448644)
+              std::cout<<"pp"<<std::endl;
             save_unpred(data, data_idx);
             return this->radius;//now we can and we should return center
         }
@@ -95,6 +104,8 @@ class LinearQuantizerOMP : public concepts::QuantizerOMPInterface<T, int> {
            #pragma omp parallel for
         #endif
            for(size_t i = 0; i < unpred.size(); i++){
+            if(unpred_idx[i] == 22448644)
+              std::cout<<"vv"<<std::endl;
                 data[unpred_idx[i]] = unpred[i];
            } 
 
