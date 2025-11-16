@@ -9,6 +9,7 @@
 #include "Decomposition.hpp"
 #include "SZ3/def.hpp"
 #include "SZ3/quantizer/Quantizer.hpp"
+#include "SZ3/quantizer/QuantizerOMP.hpp"
 #include "SZ3/utils/Config.hpp"
 #include "SZ3/utils/FileUtil.hpp"
 #include "SZ3/utils/Interpolators.hpp"
@@ -23,7 +24,7 @@ template <class T, uint N, class Quantizer>
 class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T, int, N> {
    public:
     InterpolationDecomposition_OMP(const Config &conf, QuantizerOMP quantizer) : quantizer(quantizer) {
-        static_assert(std::is_base_of<concepts::QuantizerOMPInterface<T, int>, Quantizer>::value,
+        static_assert(std::is_base_of<concepts::QuantizerOMPInterface<T, int>, QuantizerOMP>::value,
                       "must implement the quantizer interface");
     }
 
