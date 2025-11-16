@@ -97,7 +97,8 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
                 auto cur_buffer_pos = cur_buffer;
                 auto cur_outSize = encoder.encode(quant_inds_data + start_idx, cur_len, cur_buffer_pos);
 
-                cur_outSize += sizeof(size_t);
+                cur_outSize += sizeof(size_t); //the original outsize doesn't contain the size header. Actually, since we already have the offset chunk, write the size in each block is a waste.
+                                               //However, remove it will need to modify the huffman encoding api, which may bring compatability issue. So keep it now. 
 
                 block_byte_offsets[tid] = cur_outSize;
                 // #pragma omp critical
@@ -187,12 +188,12 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
                 size_t start_idx = ((size_t)tid * quant_inds_size) / (size_t)compression_thread_num, cur_len = ((size_t)(tid+1) * quant_inds_size) / (size_t)compression_thread_num - start_idx;
                 size_t block_byte_offset = block_byte_offsets[tid];
                 //size_t block_byte_length = block_byte_offsets[tid + 1];
-                 #pragma omp critical
-                std::cout<<"tid: "<<tid<<", prefix: "<<block_byte_offset<<std::endl;
+               //  #pragma omp critical
+               // std::cout<<"tid: "<<tid<<", prefix: "<<block_byte_offset<<std::endl;
                 auto temp_buffer_pos = bufferPos + block_byte_offset;
                 auto cur_quant_inds = encoder.decode(temp_buffer_pos, cur_len);
-                 #pragma omp critical
-                std::cout<<"tid: "<<tid<<", ended at: "<<temp_buffer_pos - bufferPos<<" ,"<<cur_quant_inds.size()<<" bins extracted."<<std::endl;
+               //  #pragma omp critical
+               // std::cout<<"tid: "<<tid<<", ended at: "<<temp_buffer_pos - bufferPos<<" ,"<<cur_quant_inds.size()<<" bins extracted."<<std::endl;
                 std::copy(cur_quant_inds.begin(), cur_quant_inds.end(), quant_inds.begin() + start_idx);
                 cur_quant_inds.clear();
 
