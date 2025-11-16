@@ -29,13 +29,13 @@ size_t SZ_compress_dispatcher(Config &conf, const T *data, uchar *cmpData, size_
         try {
             Timer timer(true);
            // std::vector<T> dataCopy(data, data + conf.num);
-            auto n = conf.num
+            auto n = conf.num;
             dataCopy = new T[n];
 
             #ifdef _OPENMP
 
                 int max_threads = omp_get_max_threads();
-                auto n_threads = std::min(max_threads, n / 65536);
+                auto n_threads = std::min(max_threads, (int) n / 65536);
 
                 if(n_threads > 1){
                     omp_set_max_threads(n_threads);
