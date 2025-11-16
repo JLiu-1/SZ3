@@ -108,9 +108,10 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
 
                 if(tid == nthreads - 1)
                     total_huffman_size = block_byte_offsets[tid] + cur_outSize + offset_chunk_size;
-                write<size_t>(block_byte_offsets[tid],buffer_pos + tid * sizeof(size_t));
-
-                write<uchar>(cur_buffer, cur_outSize, buffer_pos + offset_chunk_size + block_byte_offsets[tid]);
+                auto temp_buffer_pos = buffer_pos + tid * sizeof(size_t);
+                write<size_t>(block_byte_offsets[tid],temp_buffer_pos);
+                temp_buffer_pos = buffer_pos + offset_chunk_size + block_byte_offsets[tid];
+                write<uchar>(cur_buffer, cur_outSize, temp_buffer_pos);
 
                 free(cur_buffer);
 
