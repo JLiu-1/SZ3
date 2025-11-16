@@ -76,7 +76,7 @@ uint64_t interp_compress_test(
    
         return 10;
     uint64_t abs_q_aggregated = 0.0;
-    size_t radius = conf.quantbinCnt/2;
+    int radius = conf.quantbinCnt/2;
     //std::vector<int> total_quant_bins;
     for (size_t k = 0; k < sampled_blocks.size(); k++) {
         auto cur_block = sampled_blocks[k];
