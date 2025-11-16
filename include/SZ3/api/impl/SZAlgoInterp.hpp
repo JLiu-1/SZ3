@@ -253,7 +253,7 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
         testConfig.interpDirection = factorial(N) - 1;
         aq = interp_compress_test<T, N>(sampled_blocks, testConfig, sampleBlockSize, buffer, bufferCap);
         if (aq < best_interp_aq * 0.98) {
-            best_interp_ratio = ratio;
+            best_interp_aq = aq;
             conf.interpDirection = testConfig.interpDirection;
         }
         testConfig.interpDirection = conf.interpDirection;
