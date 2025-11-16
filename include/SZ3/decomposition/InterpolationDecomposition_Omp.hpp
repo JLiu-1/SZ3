@@ -41,14 +41,14 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
                 size_t y = temp / original_dim_offsets[1];
                 size_t z = temp % original_dim_offsets[1];
                 int level = 0;
-                while(x % 2 == 0 and y % 2 == 0 and z % 2 == 0 and level < interp_level){
+                while(x % 2 == 0 and y % 2 == 0 and z % 2 == 0 and level  < interp_level -1 ){
                     x = x >> 1;
                     y = y >> 1;
                     z = z >> 1;
                     level++;
                 }
                 auto reordered_idx = x * reduced_dim_offsets[level][0] + y * reduced_dim_offsets[level][1] + z ;
-                if(level < interp_level){//non-anchor or not last level
+                if(level  < interp_level - 1){//non-anchor or not last level
                     reordered_idx += level_prefix[level] - ((x + 1) >> 1) * reduced_dim_offsets[level + 1][0] - (x % 2 == 0) * ((y + 1) >> 1) * reduced_dim_offsets[level + 1][1] - (z % 2 == 0 && y % 2 == 0) * ((x + 1) >> 1);
                 }
                 quant_inds_vec_reordered[idx]  = quant_inds[reordered_idx];
@@ -281,16 +281,15 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
                 auto temp = idx % original_dim_offsets[0];
                 size_t y = temp / original_dim_offsets[1];
                 size_t z = temp % original_dim_offsets[1];
-                 std::cout<<x<<" "<<y<<" "<<z<<std::endl;
                 int level = 0;
-                while(x % 2 == 0 and y % 2 == 0 and z % 2 == 0 and level < interp_level){
+                while(x % 2 == 0 and y % 2 == 0 and z % 2 == 0 and level < interp_level - 1){
                     x = x >> 1;
                     y = y >> 1;
                     z = z >> 1;
                     level++;
                 }
                 auto reordered_idx = x * reduced_dim_offsets[level][0] + y * reduced_dim_offsets[level][1] + z ;
-                if(level < interp_level){//non-anchor or not last level
+                if(level  < interp_level - 1){//non-anchor or not last level
                     reordered_idx += level_prefix[level] - ((x + 1) >> 1) * reduced_dim_offsets[level + 1][0] - (x % 2 == 0) * ((y + 1) >> 1) * reduced_dim_offsets[level + 1][1] - (z % 2 == 0 && y % 2 == 0) * ((x + 1) >> 1);
                 }
                 quant_inds_vec_reordered [reordered_idx] = quant_inds[idx];
@@ -377,11 +376,11 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
         if(N==3){
        
             auto d_size = original_dimensions;
-            reduced_dim_offsets.resize(interp_level + 1);
-            level_prefix.resize(interp_level + 1, 0);
+            reduced_dim_offsets.resize(interp_level );
+            level_prefix.resize(interp_level , 0);
             
             int level = 0;
-            while(level <= interp_level){
+            while(level < interp_level){
                 //grid_leaps[level][0] = 1;
                 reduced_dim_offsets[level][2] = 1;
                 reduced_dim_offsets[level][1] = d_size[2];
@@ -390,7 +389,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
                
                 
                 
-                if(level < interp_level ){
+                if(level + 1 < interp_level ){
                     d_size[0] = (d_size[0] + 1) >> 1;
                     d_size[1] = (d_size[1] + 1) >> 1;
                     d_size[2] = (d_size[2] + 1) >> 1;
