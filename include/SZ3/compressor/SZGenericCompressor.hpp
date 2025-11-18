@@ -65,7 +65,10 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
     T *decompress(const Config &conf, uchar const *cmpData, size_t cmpSize, T *decData) override {
         uchar *buffer = nullptr;
         size_t bufferSize = 0;
+        Timer timer(true);
         lossless.decompress(cmpData, cmpSize, buffer, bufferSize);
+        timer.stop("interp");
+
 
         uchar const *bufferPos = buffer;
 
@@ -74,12 +77,15 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
 
         size_t quant_inds_size = 0;
         read(quant_inds_size, bufferPos);
+        timer.start();
         auto quant_inds = encoder.decode(bufferPos, quant_inds_size);
         encoder.postprocess_decode();
+        timer.stop("Huffman");
 
         free(buffer);
-
+        timer.start();
         decomposition.decompress(conf, quant_inds, decData);
+        timer.stop("Zstd");
         return decData;
     }
 
