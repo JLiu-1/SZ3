@@ -71,6 +71,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                 dec_data, std::begin(original_dimensions), std::end(original_dimensions), interp_block_size, 0);
             auto inter_begin = inter_block_range->begin();
             auto inter_end = inter_block_range->end();
+            size_t total_interp_cycles = 0;
             for (auto block = inter_begin; block != inter_end; ++block) {
                 auto end_idx = block.get_global_index();
                 for (uint i = 0; i < N; i++) {
