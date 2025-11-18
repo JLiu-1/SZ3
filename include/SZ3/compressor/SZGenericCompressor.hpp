@@ -67,7 +67,7 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
         size_t bufferSize = 0;
         Timer timer(true);
         lossless.decompress(cmpData, cmpSize, buffer, bufferSize);
-        timer.stop("interp");
+        timer.stop("Zstd");
 
 
         uchar const *bufferPos = buffer;
@@ -85,7 +85,7 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
         free(buffer);
         timer.start();
         decomposition.decompress(conf, quant_inds, decData);
-        timer.stop("Zstd");
+        timer.stop("interp");
         return decData;
     }
 
