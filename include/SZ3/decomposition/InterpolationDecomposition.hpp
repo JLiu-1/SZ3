@@ -1034,30 +1034,43 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                 begin_idx[dims[i]] = (begin[dims[i]] ? begin[dims[i]] + stride2x : 0);
                 strides[dims[i]] = stride2x;
             }
+            Timer timer(true)''
             if(N==3  &&stride<=2){//avx
                 if(direction ==0 ){//xyz
+                    timer.start();
                     predict_error += interpolation_1d_simd_3d_x(data, begin_idx, end_idx, dims[0], strides, stride, interp_func, quantize_func);
+                      timer.stop("one dim interp");
                     begin_idx[1] = begin[1];
                     begin_idx[0] = (begin[0] ? begin[0] + stride : 0);
                     strides[0] = stride;
+                    timer.start();
                     predict_error += interpolation_1d_simd_3d_y(data, begin_idx, end_idx, dims[1], strides, stride, interp_func, quantize_func);
+                      timer.stop("one dim interp");
                     begin_idx[2] = begin[2];
                     begin_idx[1] = (begin[1] ? begin[1] + stride : 0);
                     strides[1] = stride;
+                    timer.start();
                     //predict_error += interpolation_1d_fastest_dim_first(data, begin_idx, end_idx, dims[2], strides, stride, interp_func, quantize_func);
                     predict_error += interpolation_1d_simd_3d_z(data, begin_idx, end_idx, dims[2], strides, stride, interp_func, quantize_func);
+                     timer.stop("one dim interp");
                 }
                 else{//zyx
+                    timer.start();
                     predict_error += interpolation_1d_simd_3d_z(data, begin_idx, end_idx, dims[0], strides, stride, interp_func, quantize_func);
+                     timer.stop("one dim interp");
                     //predict_error += interpolation_1d_fastest_dim_first(data, begin_idx, end_idx, dims[0], strides, stride, interp_func, quantize_func);
                     begin_idx[1] = begin[1];
                     begin_idx[2] = (begin[2] ? begin[2] + stride : 0);
                     strides[2] = stride;
+                     timer.start();
                     predict_error += interpolation_1d_simd_3d_y(data, begin_idx, end_idx, dims[1], strides, stride, interp_func, quantize_func);
+                     timer.stop("one dim interp");
                     begin_idx[0] = begin[0];
                     begin_idx[1] = (begin[1] ? begin[1] + stride : 0);
                     strides[1] = stride;
+                     timer.start();
                     predict_error += interpolation_1d_simd_3d_x(data, begin_idx, end_idx, dims[2], strides, stride, interp_func, quantize_func);
+                     timer.stop("one dim interp");
                 }
             }
 
