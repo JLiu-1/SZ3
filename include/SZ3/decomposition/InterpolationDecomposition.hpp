@@ -49,7 +49,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         
 
         for (int level = interp_level; level > 0 && level <= interp_level; level--) {
-            Timer timer(true);
+            //Timer timer(true);
             // set level-wise error bound
             if (eb_alpha < 0) {
                 if (level >= 3) {
@@ -71,7 +71,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                 dec_data, std::begin(original_dimensions), std::end(original_dimensions), interp_block_size, 0);
             auto inter_begin = inter_block_range->begin();
             auto inter_end = inter_block_range->end();
-            //size_t total_interp_cycles = 0;
+            size_t total_interp_cycles = 0;
             for (auto block = inter_begin; block != inter_end; ++block) {
                 auto end_idx = block.get_global_index();
                 for (uint i = 0; i < N; i++) {
@@ -80,17 +80,17 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                         end_idx[i] = original_dimensions[i] - 1;
                     }
                 }
-              //  auto c00 = __rdtsc();
+                auto c00 = __rdtsc();
                 interpolation(
                     dec_data, block.get_global_index(), end_idx, interpolators[interp_id],
-                    [&](size_t idx, T &d, T pred) { d = quantizer.recover(pred, quant_inds[quant_index++]); },
+                    [&](size_t idx, T &d, T pred) {auto c0 = __rdtsc(); d = quantizer.recover(pred, quant_inds[quant_index++]); time+=__rdtsc() - c0;},
                     direction_sequence_id, stride);
-              //  total_interp_cycles += __rdtsc() - c00;
+                total_interp_cycles += __rdtsc() - c00;
             }
 
-            timer.stop("level interp");
-           // std::cout<<"level interp cycle "<<total_interp_cycles<<std::endl;
-           // std::cout<<"level quant cycle "<<time<<std::endl;
+            //timer.stop("level interp");
+            std::cout<<"level interp cycle "<<total_interp_cycles<<std::endl;
+            std::cout<<"level quant cycle "<<time<<std::endl;
         }
         quantizer.postdecompress_data();
 
@@ -166,7 +166,8 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
             auto inter_begin = inter_block_range->begin();
             auto inter_end = inter_block_range->end();
-
+             time = 0;
+             size_t total_interp_cycles = 0;
             for (auto block = inter_begin; block != inter_end; ++block) {
                 auto end_idx = block.get_global_index();
                 for (uint i = 0; i < N; i++) {
@@ -175,14 +176,17 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                         end_idx[i] = original_dimensions[i] - 1;
                     }
                 }
-
+                  auto c00 = __rdtsc();
                 interpolation(
                     data, block.get_global_index(), end_idx, interpolators[interp_id],
-                    [&](size_t idx, T &d, T pred) {
+                    [&](size_t idx, T &d, T pred) { auto c0 = __rdtsc(); 
                         quant_inds[quant_index++] = (quantizer.quantize_and_overwrite(d, pred));
+                        time+=__rdtsc() - c0;
                     },
                     direction_sequence_id, stride);
             }
+            std::cout<<"level interp cycle "<<total_interp_cycles<<std::endl;
+            std::cout<<"level quant cycle "<<time<<std::endl;
         }
         quantizer.set_eb(eb);
         quantizer.postcompress_data();
@@ -1046,38 +1050,38 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                 if(direction ==0 ){//xyz
                     timer.start();
                     predict_error += interpolation_1d_simd_3d_x(data, begin_idx, end_idx, dims[0], strides, stride, interp_func, quantize_func);
-                      timer.stop("one dim interp");
+                    //  timer.stop("one dim interp");
                     begin_idx[1] = begin[1];
                     begin_idx[0] = (begin[0] ? begin[0] + stride : 0);
                     strides[0] = stride;
                     timer.start();
                     predict_error += interpolation_1d_simd_3d_y(data, begin_idx, end_idx, dims[1], strides, stride, interp_func, quantize_func);
-                      timer.stop("one dim interp");
+                    //  timer.stop("one dim interp");
                     begin_idx[2] = begin[2];
                     begin_idx[1] = (begin[1] ? begin[1] + stride : 0);
                     strides[1] = stride;
                     timer.start();
                     //predict_error += interpolation_1d_fastest_dim_first(data, begin_idx, end_idx, dims[2], strides, stride, interp_func, quantize_func);
                     predict_error += interpolation_1d_simd_3d_z(data, begin_idx, end_idx, dims[2], strides, stride, interp_func, quantize_func);
-                     timer.stop("one dim interp");
+                   //  timer.stop("one dim interp");
                 }
                 else{//zyx
                     timer.start();
                     predict_error += interpolation_1d_simd_3d_z(data, begin_idx, end_idx, dims[0], strides, stride, interp_func, quantize_func);
-                     timer.stop("one dim interp");
+                   //  timer.stop("one dim interp");
                     //predict_error += interpolation_1d_fastest_dim_first(data, begin_idx, end_idx, dims[0], strides, stride, interp_func, quantize_func);
                     begin_idx[1] = begin[1];
                     begin_idx[2] = (begin[2] ? begin[2] + stride : 0);
                     strides[2] = stride;
                      timer.start();
                     predict_error += interpolation_1d_simd_3d_y(data, begin_idx, end_idx, dims[1], strides, stride, interp_func, quantize_func);
-                     timer.stop("one dim interp");
+                  //   timer.stop("one dim interp");
                     begin_idx[0] = begin[0];
                     begin_idx[1] = (begin[1] ? begin[1] + stride : 0);
                     strides[1] = stride;
                      timer.start();
                     predict_error += interpolation_1d_simd_3d_x(data, begin_idx, end_idx, dims[2], strides, stride, interp_func, quantize_func);
-                     timer.stop("one dim interp");
+                   //  timer.stop("one dim interp");
                 }
             }
 
