@@ -24,22 +24,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
     }
 
     T *decompress(const Config &conf, std::vector<int> &quant_inds, T *dec_data) override {
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
-
-        unsigned long long t0 = __rdtsc();
-        auto start = std::chrono::high_resolution_clock::now();
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(100)); // 100ms测量更稳定
-
-        unsigned long long t1 = __rdtsc();
-        auto end = std::chrono::high_resolution_clock::now();
-
-        double ns = std::chrono::duration<double, std::nano>(end - start).count();
-        double cycles = double(t1 - t0);
-        double GHz = cycles / ns;  // (cycles) / (nanoseconds) = GHz
-
-        std::cout << "CPU freq = " << GHz  << " GHz\n";
+        std::cout << "CPU freq = " << measure_cpu_freq() << " GHz\n";
         init();
 
         this->quant_inds = quant_inds.data();
@@ -96,51 +81,19 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             //timer.stop("level interp");
             std::cout<<"level interp cycle "<<total_interp_cycles<<std::endl;
             std::cout<<"level quant cycle "<<time<<std::endl;
+            std::cout << "CPU freq = " << measure_cpu_freq() << " GHz\n";
         }
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
-
-        unsigned long long t0 = __rdtsc();
-        auto start = std::chrono::high_resolution_clock::now();
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(100)); // 100ms测量更稳定
-
-        unsigned long long t1 = __rdtsc();
-        auto end = std::chrono::high_resolution_clock::now();
-
-        double ns = std::chrono::duration<double, std::nano>(end - start).count();
-        double cycles = double(t1 - t0);
-        double GHz = cycles / ns;  // (cycles) / (nanoseconds) = GHz
-
-        std::cout << "CPU freq = " <<GHz  << " GHz\n";
-
 
 
         quantizer.postdecompress_data();
+        std::cout << "CPU freq = " << measure_cpu_freq() << " GHz\n";
 
         return dec_data;
     }
 
     // compress given the error bound
     std::vector<int> compress(const Config &conf, T *data) override {
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
-
-        unsigned long long t0 = __rdtsc();
-        auto start = std::chrono::high_resolution_clock::now();
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(100)); // 100ms测量更稳定
-
-        unsigned long long t1 = __rdtsc();
-        auto end = std::chrono::high_resolution_clock::now();
-
-        double ns = std::chrono::duration<double, std::nano>(end - start).count();
-        double cycles = double(t1 - t0);
-        double GHz = cycles / ns;  // (cycles) / (nanoseconds) = GHz
-
-        std::cout << "CPU freq = " << GHz  << " GHz\n";
-
-
+        std::cout << "CPU freq = " << measure_cpu_freq() << " GHz\n";
         std::copy_n(conf.dims.begin(), N, original_dimensions.begin());
 
         interp_id = conf.interpAlgo;
@@ -209,25 +162,12 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             }
             std::cout<<"level interp cycle "<<total_interp_cycles<<std::endl;
             std::cout<<"level quant cycle "<<time<<std::endl;
+            std::cout << "CPU freq = " << measure_cpu_freq() << " GHz\n";
         }
         quantizer.set_eb(eb);
         quantizer.postcompress_data();
+        std::cout << "CPU freq = " << measure_cpu_freq() << " GHz\n";
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
-
-        unsigned long long t0 = __rdtsc();
-        auto start = std::chrono::high_resolution_clock::now();
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(100)); // 100ms测量更稳定
-
-        unsigned long long t1 = __rdtsc();
-        auto end = std::chrono::high_resolution_clock::now();
-
-        double ns = std::chrono::duration<double, std::nano>(end - start).count();
-        double cycles = double(t1 - t0);
-        double GHz = cycles / ns;  // (cycles) / (nanoseconds) = GHz
-
-        std::cout << "CPU freq = " <<GHz  << " GHz\n";
         return quant_inds_vec;
     }
 
@@ -258,6 +198,28 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
     std::pair<int, int> get_out_range() override { return quantizer.get_out_range(); }
 
    private:
+
+    double measure_cpu_freq()
+    {
+        // 让线程稳定下来
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
+        unsigned long long t0 = __rdtsc();
+        auto start = std::chrono::high_resolution_clock::now();
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(100)); // 100ms测量更稳定
+
+        unsigned long long t1 = __rdtsc();
+        auto end = std::chrono::high_resolution_clock::now();
+
+        double ns = std::chrono::duration<double, std::nano>(end - start).count();
+        double cycles = double(t1 - t0);
+        double GHz = cycles / ns;  // (cycles) / (nanoseconds) = GHz
+
+        return GHz;
+    }
+
+
     void init() {
         quant_index = 0;
         assert(blocksize % 2 == 0 && "Interpolation block size should be even numbers");
