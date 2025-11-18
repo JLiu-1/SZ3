@@ -436,19 +436,26 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             std::array<size_t, N> strides;
             std::array<size_t, N> begin_idx = begin, end_idx = end;
             strides[dims[0]] = 1;
+
             for (uint i = 1; i < N; i++) {
                 begin_idx[dims[i]] = (begin[dims[i]] ? begin[dims[i]] + stride2x : 0);
                 strides[dims[i]] = stride2x;
             }
-
+            Timer timer(true);
             predict_error += interpolation_1d_fastest_dim_first(data, begin_idx, end_idx, dims[0], strides, stride,
                                                                 interp_func, quantize_func);
+            timer.stop("one dim interp");
+
             for (uint i = 1; i < N; i++) {
+
                 begin_idx[dims[i]] = begin[dims[i]];
                 begin_idx[dims[i - 1]] = (begin[dims[i - 1]] ? begin[dims[i - 1]] + stride : 0);
                 strides[dims[i - 1]] = stride;
+                timer.start();
                 predict_error += interpolation_1d_fastest_dim_first(data, begin_idx, end_idx, dims[i], strides, stride,
                                                                     interp_func, quantize_func);
+                 timer.stop("one dim interp");
+
             }
             return predict_error;
         } else {
