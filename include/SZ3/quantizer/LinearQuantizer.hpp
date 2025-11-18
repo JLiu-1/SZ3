@@ -35,16 +35,16 @@ class LinearQuantizer : public concepts::QuantizerInterface<T, int> {
     // int quantize(T data, T pred, T& dec_data);
     ALWAYS_INLINE int quantize_and_overwrite(T &data, T pred) override {
         T diff = data - pred;
-        int quant_index = std::llrint(std::abs(diff) * this->double_error_bound_reciprocal);
-        if (quant_index < this->radius ) {
-            if (diff < 0) 
-                quant_index = -quant_index;
-            auto quant_index_shifted = this->radius + quant_index;
+        int quant_index = (std::llrint(diff) * this->double_error_bound_reciprocal);
+        if (std::abs(quant_index) < this->radius ) {
+            //if (diff < 0) 
+            //    quant_index = -quant_index;
+            //auto quant_index_shifted = this->radius + quant_index;
             T decompressed_data = pred + quant_index * this->double_error_bound;
             // if data is NaN, the error is NaN, and NaN <= error_bound is false
             if (fabs(decompressed_data - data) <= this->error_bound) {
                 data = decompressed_data;
-                return quant_index_shifted;
+                return quant_index_shifted + quant_index;
             } else {
                 unpred.push_back(data);
                 return 0;
