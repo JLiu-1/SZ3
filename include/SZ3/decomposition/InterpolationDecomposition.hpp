@@ -3,7 +3,7 @@
 
 #include <cmath>
 #include <cstring>
-
+#include <x86intrin.h>
 #include "Decomposition.hpp"
 #include "SZ3/def.hpp"
 #include "SZ3/quantizer/Quantizer.hpp"
@@ -69,7 +69,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                 }
                 interpolation(
                     dec_data, block.get_global_index(), end_idx, interpolators[interp_id],
-                    [&](size_t idx, T &d, T pred) {quant_timer.start(); d = quantizer.recover(pred, quant_inds[quant_index++]); time+=quant_timer.stop();},
+                    [&](size_t idx, T &d, T pred) {auto c0 = __rdtsc(); d = quantizer.recover(pred, quant_inds[quant_index++]); time+=__rdtsc() - c0;},
                     direction_sequence_id, stride);
             }
 
@@ -486,7 +486,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
     double eb_beta = -1;
     double eb_ratio = 0.5;  // To be deprecated
     double time = 0;
-    Timer quant_timer = Timer(false);
+    //Timer quant_timer = Timer(false);
 };
 
 template <class T, uint N, class Quantizer>
