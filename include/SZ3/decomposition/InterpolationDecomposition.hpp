@@ -1,6 +1,7 @@
 #ifndef SZ3_INTERPOLATION_DECOMPOSITION_HPP
 #define SZ3_INTERPOLATION_DECOMPOSITION_HPP
-
+#include <chrono>
+#include <thread>
 #include <cmath>
 #include <cstring>
 #include <immintrin.h>
@@ -26,6 +27,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
     }
 
     T *decompress(const Config &conf, std::vector<int> &quant_inds, T *dec_data) override {
+        std::cout << "CPU freq = " << measure_cpu_freq() << " GHz\n";
         init();
         auto buffer_len = max_dim +  2 * AVX_256_parallelism - max_dim % AVX_256_parallelism;
         interp_buffer_1 = new T[buffer_len];
@@ -96,7 +98,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
 
       
-
+        std::cout << "CPU freq = " << measure_cpu_freq() << " GHz\n";
 
         delete [] interp_buffer_1;
         delete [] interp_buffer_2;
@@ -108,6 +110,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
     // compress given the error bound
     std::vector<int> compress(const Config &conf, T *data) override {
+        std::cout << "CPU freq = " << measure_cpu_freq() << " GHz\n";
         std::copy_n(conf.dims.begin(), N, original_dimensions.begin());
 
         interp_id = conf.interpAlgo;
@@ -196,7 +199,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
 
 
-
+        std::cout << "CPU freq = " << measure_cpu_freq() << " GHz\n";
         delete [] interp_buffer_1;
         delete [] interp_buffer_2;
         delete [] interp_buffer_3;
@@ -234,6 +237,27 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
     std::pair<int, int> get_out_range() override { return quantizer.get_out_range(); }
 
    private:
+
+    double measure_cpu_freq()
+    {
+        // 让线程稳定下来
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
+        unsigned long long t0 = __rdtsc();
+        auto start = std::chrono::high_resolution_clock::now();
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(100)); // 100ms测量更稳定
+
+        unsigned long long t1 = __rdtsc();
+        auto end = std::chrono::high_resolution_clock::now();
+
+        double ns = std::chrono::duration<double, std::nano>(end - start).count();
+        double cycles = double(t1 - t0);
+        double GHz = cycles / ns;  // (cycles) / (nanoseconds) = GHz
+
+        return GHz;
+    }
+
     void init() {
         quant_index = 0;
         assert(blocksize % 2 == 0 && "Interpolation block size should be even numbers");
