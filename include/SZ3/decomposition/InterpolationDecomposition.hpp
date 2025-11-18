@@ -37,7 +37,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         }
 
         for (int level = interp_level; level > 0 && level <= interp_level; level--) {
-            Timer timer(true);
+            auto c00 = __rdtsc();
             // set level-wise error bound
             if (eb_alpha < 0) {
                 if (level >= 3) {
@@ -73,7 +73,8 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                     direction_sequence_id, stride);
             }
 
-            timer.stop("level interp");
+            //timer.stop("level interp");
+            std::cout<<__rdtsc()- c00<<std::endl;
             std::cout<<"level quant "<<time<<std::endl;
         }
         quantizer.postdecompress_data();
