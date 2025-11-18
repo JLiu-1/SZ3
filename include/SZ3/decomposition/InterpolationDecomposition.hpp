@@ -39,7 +39,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         double cycles = double(t1 - t0);
         double GHz = cycles / ns;  // (cycles) / (nanoseconds) = GHz
 
-        std::cout << "CPU freq = " << measure_cpu_freq() << " GHz\n";
+        std::cout << "CPU freq = " << GHz  << " GHz\n";
         init();
 
         this->quant_inds = quant_inds.data();
@@ -112,7 +112,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         double cycles = double(t1 - t0);
         double GHz = cycles / ns;  // (cycles) / (nanoseconds) = GHz
 
-        std::cout << "CPU freq = " << measure_cpu_freq() << " GHz\n";
+        std::cout << "CPU freq = " <<GHz  << " GHz\n";
 
 
 
@@ -138,7 +138,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         double cycles = double(t1 - t0);
         double GHz = cycles / ns;  // (cycles) / (nanoseconds) = GHz
 
-        std::cout << "CPU freq = " << measure_cpu_freq() << " GHz\n";
+        std::cout << "CPU freq = " << GHz  << " GHz\n";
 
 
         std::copy_n(conf.dims.begin(), N, original_dimensions.begin());
@@ -227,7 +227,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         double cycles = double(t1 - t0);
         double GHz = cycles / ns;  // (cycles) / (nanoseconds) = GHz
 
-        std::cout << "CPU freq = " << measure_cpu_freq() << " GHz\n";
+        std::cout << "CPU freq = " <<GHz  << " GHz\n";
         return quant_inds_vec;
     }
 
