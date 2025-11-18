@@ -52,6 +52,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                 }
                 quantizer.set_eb(eb / cur_ratio);
             }
+            time = 0;
             size_t stride = 1U << (level - 1);
             auto interp_block_size = blocksize * stride;
             auto inter_block_range = std::make_shared<multi_dimensional_range<T, N>>(
@@ -68,10 +69,12 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                 }
                 interpolation(
                     dec_data, block.get_global_index(), end_idx, interpolators[interp_id],
-                    [&](size_t idx, T &d, T pred) { d = quantizer.recover(pred, quant_inds[quant_index++]); },
+                    [&](size_t idx, T &d, T pred) {quant_timer.start(); d = quantizer.recover(pred, quant_inds[quant_index++]); time+=quant_timer.stop();},
                     direction_sequence_id, stride);
             }
+
             timer.stop("level interp");
+            std::cout<<"level quant "<<time<<std::endl;
         }
         quantizer.postdecompress_data();
 
@@ -213,6 +216,8 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         do {
             dim_sequences.push_back(sequence);
         } while (std::next_permutation(sequence.begin(), sequence.end()));
+
+        time = 0;
     }
 
     void build_anchor_grid(T *data) {  // store anchor points. steplength: anchor_stride on each dimension
@@ -480,6 +485,8 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
     double eb_alpha = -1;
     double eb_beta = -1;
     double eb_ratio = 0.5;  // To be deprecated
+    double time = 0;
+    Timer quant_timer(true);
 };
 
 template <class T, uint N, class Quantizer>
