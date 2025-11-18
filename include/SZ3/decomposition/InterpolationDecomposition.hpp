@@ -134,7 +134,8 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
 
             auto inter_begin = inter_block_range->begin();
             auto inter_end = inter_block_range->end();
-
+            time = 0;
+             size_t total_interp_cycles = 0;
             for (auto block = inter_begin; block != inter_end; ++block) {
                 auto end_idx = block.get_global_index();
                 for (uint i = 0; i < N; i++) {
@@ -143,14 +144,17 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                         end_idx[i] = original_dimensions[i] - 1;
                     }
                 }
-
+                  auto c00 = __rdtsc();
                 interpolation(
                     data, block.get_global_index(), end_idx, interpolators[interp_id],
-                    [&](size_t idx, T &d, T pred) {
+                    [&](size_t idx, T &d, T pred) { auto c0 = __rdtsc(); 
                         quant_inds[quant_index++] = (quantizer.quantize_and_overwrite(d, pred));
+                        time+=__rdtsc() - c0;
                     },
                     direction_sequence_id, stride);
             }
+            std::cout<<"level interp cycle "<<total_interp_cycles<<std::endl;
+            std::cout<<"level quant cycle "<<time<<std::endl;
         }
         quantizer.set_eb(eb);
         quantizer.postcompress_data();
@@ -454,7 +458,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
             Timer timer(true);
             predict_error += interpolation_1d_fastest_dim_first(data, begin_idx, end_idx, dims[0], strides, stride,
                                                                 interp_func, quantize_func);
-            timer.stop("one dim interp");
+       //     timer.stop("one dim interp");
 
             for (uint i = 1; i < N; i++) {
 
@@ -464,7 +468,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                 timer.start();
                 predict_error += interpolation_1d_fastest_dim_first(data, begin_idx, end_idx, dims[i], strides, stride,
                                                                     interp_func, quantize_func);
-                 timer.stop("one dim interp");
+            //     timer.stop("one dim interp");
 
             }
             return predict_error;
