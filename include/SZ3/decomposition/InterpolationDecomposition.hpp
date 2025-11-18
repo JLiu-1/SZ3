@@ -49,7 +49,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         
 
         for (int level = interp_level; level > 0 && level <= interp_level; level--) {
-            //Timer timer(true);
+            Timer timer(true);
             // set level-wise error bound
             if (eb_alpha < 0) {
                 if (level >= 3) {
@@ -71,7 +71,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                 dec_data, std::begin(original_dimensions), std::end(original_dimensions), interp_block_size, 0);
             auto inter_begin = inter_block_range->begin();
             auto inter_end = inter_block_range->end();
-            size_t total_interp_cycles = 0;
+            //size_t total_interp_cycles = 0;
             for (auto block = inter_begin; block != inter_end; ++block) {
                 auto end_idx = block.get_global_index();
                 for (uint i = 0; i < N; i++) {
@@ -80,17 +80,17 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                         end_idx[i] = original_dimensions[i] - 1;
                     }
                 }
-                auto c00 = __rdtsc();
+              //  auto c00 = __rdtsc();
                 interpolation(
                     dec_data, block.get_global_index(), end_idx, interpolators[interp_id],
-                    [&](size_t idx, T &d, T pred) {auto c0 = __rdtsc(); d = quantizer.recover(pred, quant_inds[quant_index++]); time+=__rdtsc() - c0;},
+                    [&](size_t idx, T &d, T pred) { d = quantizer.recover(pred, quant_inds[quant_index++]); },
                     direction_sequence_id, stride);
-                total_interp_cycles += __rdtsc() - c00;
+              //  total_interp_cycles += __rdtsc() - c00;
             }
 
-            //timer.stop("level interp");
-            std::cout<<"level interp cycle "<<total_interp_cycles<<std::endl;
-            std::cout<<"level quant cycle "<<time<<std::endl;
+            timer.stop("level interp");
+           // std::cout<<"level interp cycle "<<total_interp_cycles<<std::endl;
+           // std::cout<<"level quant cycle "<<time<<std::endl;
         }
         quantizer.postdecompress_data();
 
