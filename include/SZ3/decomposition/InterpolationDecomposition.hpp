@@ -106,7 +106,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         interp_id = conf.interpAlgo;
         direction_sequence_id = conf.interpDirection;
         anchor_stride = conf.interpAnchorStride;
-        blocksize = 256;  // a empirical value. Can be very large but not helpful
+        blocksize = 512;  // a empirical value. Can be very large but not helpful
         eb_alpha = conf.interpAlpha;
         eb_beta = conf.interpBeta;
 
