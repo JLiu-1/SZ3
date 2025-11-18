@@ -49,7 +49,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         
 
         for (int level = interp_level; level > 0 && level <= interp_level; level--) {
-            Timer timer(true);
+            //Timer timer(true);
             // set level-wise error bound
             if (eb_alpha < 0) {
                 if (level >= 3) {
@@ -64,6 +64,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                 }
                 quantizer.set_eb(eb / cur_ratio);
             }
+            time = 0;
             size_t stride = 1U << (level - 1);
             auto interp_block_size = blocksize * stride;
             auto inter_block_range = std::make_shared<multi_dimensional_range<T, N>>(
@@ -78,12 +79,17 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                         end_idx[i] = original_dimensions[i] - 1;
                     }
                 }
+                auto c00 = __rdtsc();
                 interpolation(
                     dec_data, block.get_global_index(), end_idx, interpolators[interp_id],
-                    [&](size_t idx, T &d, T pred) { d = quantizer.recover(pred, quant_inds[quant_index++]);},
+                    [&](size_t idx, T &d, T pred) {auto c0 = __rdtsc(); d = quantizer.recover(pred, quant_inds[quant_index++]); time+=__rdtsc() - c0;},
                     direction_sequence_id, stride);
+                total_interp_cycles += __rdtsc() - c00;
             }
-            timer.stop("level interp");
+
+            //timer.stop("level interp");
+            std::cout<<"level interp cycle "<<total_interp_cycles<<std::endl;
+            std::cout<<"level quant cycle "<<time<<std::endl;
         }
         quantizer.postdecompress_data();
 
@@ -1111,6 +1117,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
     double eb_ratio = 0.5;  // To be deprecated
     const size_t AVX_256_parallelism = 32 / sizeof(T);
     size_t max_dim = 1;
+    double time = 0.0;
 
     T *interp_buffer_1,*interp_buffer_2,*interp_buffer_3,*interp_buffer_4,*pred_buffer;
     //std::vector<int> visited;
