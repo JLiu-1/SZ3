@@ -1034,7 +1034,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                 begin_idx[dims[i]] = (begin[dims[i]] ? begin[dims[i]] + stride2x : 0);
                 strides[dims[i]] = stride2x;
             }
-            Timer timer(true)''
+            Timer timer(true);
             if(N==3  &&stride<=2){//avx
                 if(direction ==0 ){//xyz
                     timer.start();
