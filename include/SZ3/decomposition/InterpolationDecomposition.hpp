@@ -49,6 +49,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         
 
         for (int level = interp_level; level > 0 && level <= interp_level; level--) {
+            Timer timer(true);
             // set level-wise error bound
             if (eb_alpha < 0) {
                 if (level >= 3) {
@@ -82,6 +83,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                     [&](size_t idx, T &d, T pred) { d = quantizer.recover(pred, quant_inds[quant_index++]);},
                     direction_sequence_id, stride);
             }
+            timer.stop("level interp");
         }
         quantizer.postdecompress_data();
 
