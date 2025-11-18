@@ -1123,7 +1123,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
     double eb_ratio = 0.5;  // To be deprecated
     const size_t AVX_256_parallelism = 32 / sizeof(T);
     size_t max_dim = 1;
-    double time = 0.0;
+    size_t time = 0;
 
     T *interp_buffer_1,*interp_buffer_2,*interp_buffer_3,*interp_buffer_4,*pred_buffer;
     //std::vector<int> visited;
