@@ -1,6 +1,7 @@
 #ifndef SZ3_INTERPOLATION_DECOMPOSITION_HPP
 #define SZ3_INTERPOLATION_DECOMPOSITION_HPP
-
+#include <chrono>
+#include <thread>
 #include <cmath>
 #include <cstring>
 #include <x86intrin.h>
