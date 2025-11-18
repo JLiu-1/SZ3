@@ -486,7 +486,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
     double eb_beta = -1;
     double eb_ratio = 0.5;  // To be deprecated
     double time = 0;
-    Timer quant_timer = Timer(true);
+    Timer quant_timer = Timer(false);
 };
 
 template <class T, uint N, class Quantizer>
