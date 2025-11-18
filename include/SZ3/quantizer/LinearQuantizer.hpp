@@ -44,7 +44,7 @@ class LinearQuantizer : public concepts::QuantizerInterface<T, int> {
             // if data is NaN, the error is NaN, and NaN <= error_bound is false
             if (fabs(decompressed_data - data) <= this->error_bound) {
                 data = decompressed_data;
-                return quant_index_shifted + quant_index;
+                return this->radius + quant_index;
             } else {
                 unpred.push_back(data);
                 return 0;
