@@ -184,6 +184,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                         time+=__rdtsc() - c0;
                     },
                     direction_sequence_id, stride);
+                 total_interp_cycles += __rdtsc() - c00;
             }
             std::cout<<"level interp cycle "<<total_interp_cycles<<std::endl;
             std::cout<<"level quant cycle "<<time<<std::endl;
