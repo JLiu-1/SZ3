@@ -37,8 +37,10 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         }
 
         for (int level = interp_level; level > 0 && level <= interp_level; level--) {
-            auto c00 = __rdtsc();
+            
             // set level-wise error bound
+
+            size_t total_interp_cycles = 0;
             if (eb_alpha < 0) {
                 if (level >= 3) {
                     quantizer.set_eb(eb * eb_ratio);
@@ -67,15 +69,17 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                         end_idx[i] = original_dimensions[i] - 1;
                     }
                 }
+                auto c00 = __rdtsc();
                 interpolation(
                     dec_data, block.get_global_index(), end_idx, interpolators[interp_id],
                     [&](size_t idx, T &d, T pred) {auto c0 = __rdtsc(); d = quantizer.recover(pred, quant_inds[quant_index++]); time+=__rdtsc() - c0;},
                     direction_sequence_id, stride);
+                total_interp_cycles += __rdtsc() - c00;
             }
 
             //timer.stop("level interp");
-            std::cout<<__rdtsc()- c00<<std::endl;
-            std::cout<<"level quant "<<time<<std::endl;
+            std::cout<<"level interp cycle "<<total_interp_cycles<<std::endl;
+            std::cout<<"level quant cycle "<<time<<std::endl;
         }
         quantizer.postdecompress_data();
 
