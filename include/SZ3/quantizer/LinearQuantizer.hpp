@@ -57,11 +57,11 @@ class LinearQuantizer : public concepts::QuantizerInterface<T, int> {
 
     // recover the data using the quantization index
     ALWAYS_INLINE T recover(T pred, int quant_index) override {
-        if (quant_index) {
+        //if (quant_index) {
             return recover_pred(pred, quant_index);
-        } else {
-            return recover_unpred();
-        }
+        //} else {
+        //    return recover_unpred();
+        //}
     }
 
     ALWAYS_INLINE T recover_pred(T pred, int quant_index) {
