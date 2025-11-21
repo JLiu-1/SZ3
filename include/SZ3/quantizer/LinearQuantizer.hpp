@@ -56,7 +56,7 @@ class LinearQuantizer : public concepts::QuantizerInterface<T, int> {
         }
     }
 
-     ALWAYS_INLINE void prerecover_quantbins(std::vector<int> & quant_bins){
+     ALWAYS_INLINE void prerecover_quantbins(std::vector<int> & quant_bins) const{
 
         for(auto &x:quant_bins){
             x-=this->radius;
