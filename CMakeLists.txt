@@ -25,6 +25,10 @@ if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
             "MinSizeRel" "RelWithDebInfo")
 endif ()
 
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -fopt-info-vec-all")
+ endif()
+
 find_package(PkgConfig)
 
 configure_file(
