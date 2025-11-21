@@ -55,7 +55,7 @@ class LinearQuantizer : public concepts::QuantizerInterface<T, int> {
             return 0;
         }
     }
-
+    /*
      ALWAYS_INLINE void prerecover_quantbins(std::vector<int> & quant_bins) const{
 
         for(auto &x:quant_bins){
@@ -63,7 +63,7 @@ class LinearQuantizer : public concepts::QuantizerInterface<T, int> {
         }
      }
 
-
+    */
     // recover the data using the quantization index
     ALWAYS_INLINE T recover(T pred, int quant_index) override {
         if (quant_index != - this->radius) {
@@ -74,7 +74,7 @@ class LinearQuantizer : public concepts::QuantizerInterface<T, int> {
     }
 
     ALWAYS_INLINE T recover_pred(T pred, int quant_index) {
-        return pred + quant_index * this->double_error_bound;
+        return pred + (quant_index - this->radius) * this->double_error_bound;
     }
 
     ALWAYS_INLINE T recover_unpred() { return unpred[index++]; }

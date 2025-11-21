@@ -22,7 +22,7 @@ class   QuantizerInterface {
      */
     ALWAYS_INLINE virtual To quantize_and_overwrite(Ti &data, Ti pred) = 0;
 
-    ALWAYS_INLINE virtual void prerecover_quantbins(std::vector<To> & quant_bins) const = 0;
+   // ALWAYS_INLINE virtual void prerecover_quantbins(std::vector<To> & quant_bins) const = 0;
 
     /**
      * reconstructed the data point
