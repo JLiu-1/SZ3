@@ -334,7 +334,7 @@ ALWAYS_INLINE void foreach_omp (T *data, size_t offset, const std::array<size_t,
             func(d);
         }
     } else if constexpr (N == 2) {
-        #pragma omp parallel for
+        #pragma omp parallel for collapse(2)
         for (size_t i = begins[0]; i < ends[0]; i += strides[0]) {
             for (size_t j = begins[1]; j < ends[1]; j += strides[1]) {
                 T *d = data + offset + i * dim_offsets[0] + j * dim_offsets[1];
@@ -342,7 +342,7 @@ ALWAYS_INLINE void foreach_omp (T *data, size_t offset, const std::array<size_t,
             }
         }
     } else if constexpr (N == 3) {
-        #pragma omp parallel for
+        #pragma omp parallel for collapse(3)
         for (size_t i = begins[0]; i < ends[0]; i += strides[0]) {
             for (size_t j = begins[1]; j < ends[1]; j += strides[1]) {
                 for (size_t k = begins[2]; k < ends[2]; k += strides[2]) {
@@ -352,7 +352,7 @@ ALWAYS_INLINE void foreach_omp (T *data, size_t offset, const std::array<size_t,
             }
         }
     } else if constexpr (N == 4) {
-        #pragma omp parallel for
+        #pragma omp parallel for collapse(4)
         for (size_t i = begins[0]; i < ends[0]; i += strides[0]) {
             for (size_t j = begins[1]; j < ends[1]; j += strides[1]) {
                 for (size_t k = begins[2]; k < ends[2]; k += strides[2]) {
