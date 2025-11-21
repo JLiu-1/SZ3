@@ -46,12 +46,14 @@ class LinearQuantizer : public concepts::QuantizerInterface<T, int> {
             if (err >= -this->error_bound && err <= this->error_bound) {
                 data = decompressed_data;
                 return this->radius + quant_index;
-            } 
-        } 
-
-        unpred.push_back(data);
-        return 0;
-        
+            } else {
+                unpred.push_back(data);
+                return 0;
+            }
+        } else {
+            unpred.push_back(data);
+            return 0;
+        }
     }
 
     // recover the data using the quantization index
