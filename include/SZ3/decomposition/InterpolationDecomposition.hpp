@@ -36,6 +36,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         pred_buffer = new T[buffer_len];
         for(size_t i =0;i<buffer_len;i++)
             pred_buffer[i] = interp_buffer_1[i] = interp_buffer_2[i] = interp_buffer_3[i] = interp_buffer_4[i] = T(0);
+        quantizer.prerecover_quantbins(quant_inds);
         this->quant_inds = quant_inds.data();
         double eb = quantizer.get_eb();
         //visited.resize(num_elements);
