@@ -1184,7 +1184,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
                     auto cur_pred_buffer = pred_buffer + buffer_offset;
 
                     auto cur_ij_offset = offset + i * dim_offsets[0] + j * dim_offsets[1];
-                    size_t odd_len = n/2, even_len = n - odd_len;
+                    size_t odd_len = n/2;//, even_len = n - odd_len;
                         
                     for (size_t k = 0; k < n; k += 2) {
                         auto cur_offset = cur_ij_offset + k * dim_offsets[2];
