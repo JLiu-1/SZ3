@@ -70,7 +70,7 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
         if (best_num_threads > 1) {
             omp_set_num_threads(best_num_threads);
             uchar * offset_block_pos = buffer_pos + sizeof(int);
-            size_t bins_per_thread;
+            //size_t bins_per_thread;
             auto quant_inds_data = quant_inds.data();
             std::vector<size_t>block_byte_offsets;
             size_t offset_chunk_size;
