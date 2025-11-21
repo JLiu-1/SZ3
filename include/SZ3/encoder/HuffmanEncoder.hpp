@@ -565,7 +565,7 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
                 #pragma omp parallel
                 {
 
-                    int tid = omp_get_thread_num();
+                    //int tid = omp_get_thread_num();
                     
                     // 每个线程一个局部 freq
                     std::vector<size_t> local_freq(ui16_range, 0);
