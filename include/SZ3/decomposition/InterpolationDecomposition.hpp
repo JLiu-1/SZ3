@@ -79,7 +79,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
                 }
                 interpolation(
                     dec_data, block.get_global_index(), end_idx, interpolators[interp_id],
-                    [&](size_t idx, T &d, T pred) { d = quantizer.recover(pred, quant_inds[quant_index++]);},
+                    [&](size_t idx, T &d, T pred) { d = quantizer.recover(0, quant_inds[quant_index++]);},
                     direction_sequence_id, stride);
             }
         }
