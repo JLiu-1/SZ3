@@ -26,7 +26,7 @@ if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 endif ()
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -fopt-info-vec-all")
+     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -fopt-info-vec-all=vec.log")
  endif()
 
 find_package(PkgConfig)
