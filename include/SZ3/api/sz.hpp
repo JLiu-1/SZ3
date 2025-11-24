@@ -3,6 +3,7 @@
 
 #include "SZ3/api/impl/SZImpl.hpp"
 #include "SZ3/version.hpp"
+#include "SZ3/utils/Timer.hpp"
 
 /**
  * API for compression
@@ -53,6 +54,7 @@ char *compressedData = SZ_compress(conf, data, outSize);
 template <class T>
 size_t SZ_compress(const SZ3::Config &config, const T *data, char *cmpData, size_t cmpCap) {
     using namespace SZ3;
+    //Timer timer(true);
     Config conf(config);
 
     if (cmpCap < SZ_compress_size_bound<T>(conf)) {
@@ -65,6 +67,8 @@ size_t SZ_compress(const SZ3::Config &config, const T *data, char *cmpData, size
     auto cmpDataCap = cmpCap - conf.size_est();
 
     size_t cmpDataLen = 0;
+    //timer.stop("init");
+
     if (conf.N == 1) {
         cmpDataLen = SZ_compress_impl<T, 1>(conf, data, cmpDataPos, cmpDataCap);
     } else if (conf.N == 2) {
@@ -76,13 +80,13 @@ size_t SZ_compress(const SZ3::Config &config, const T *data, char *cmpData, size
     } else {
         throw std::invalid_argument("Data dimension higher than 4 is not supported.");
     }
-
+    //timer.start();
     auto cmpConfPos = reinterpret_cast<uchar *>(cmpData);
     auto confSize = conf.save(cmpConfPos);
     if (confSize > confEstSize) {
         throw std::length_error("buffer allocated for config is not large enough.");
     }
-
+    //timer.stop("finalize");
     return confSize + cmpDataLen;
 }
 
