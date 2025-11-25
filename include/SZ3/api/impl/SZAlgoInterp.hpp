@@ -12,16 +12,25 @@
 #include "SZ3/utils/Sample.hpp"
 #include "SZ3/utils/Statistic.hpp"
 
+
+//#include "SZ3/sperr/SPERR3D_OMP_C.h"
+#include "SZ3/sperr/SPECK2D_FLT.h"
+#include "SZ3/sperr/SPECK3D_FLT.h"
+//#include "SZ3/sperr/SPERR3D_OMP_D.h"
+#include "SZ3/sperr/sperr_helper.h"
+
+
 namespace SZ3 {
 template <class T, uint N>
 size_t SZ_compress_Interp(Config &conf, T *data, uchar *cmpData, size_t cmpCap) {
     assert(N == conf.N);
     assert(conf.cmprAlgo == ALGO_INTERP);
     calAbsErrorBound(conf, data);
+    /*
     if (conf.interpAnchorStride < 0) {  // set default anchor stride
         std::array<size_t, 4> anchor_strides = {4096, 128, 32, 16};
         conf.interpAnchorStride = anchor_strides[N - 1];
-    }
+    }*/
 
     auto sz = make_compressor_sz_generic<T, N>(
         make_decomposition_interpolation<T, N>(conf, LinearQuantizer<T>(conf.absErrorBound, conf.quantbinCnt / 2)),
@@ -33,6 +42,72 @@ template <class T, uint N>
 void SZ_decompress_Interp(const Config &conf, const uchar *cmpData, size_t cmpSize, T *decData) {
     assert(conf.cmprAlgo == ALGO_INTERP);
     auto cmpDataPos = cmpData;
+
+    if(N==3){
+        auto ori_dims = conf.dims;
+        std::array<size_t,3> downsampled_dims = {(conf.dims[0]+1)/2,(conf.dims[1]+1)/2,(conf.dims[2]+1)/2};
+        size_t downsampled_num = downsampled_dims [0] * downsampled_dims [1] * downsampled_dims [2];
+        size_t offset_y = ori_dims[2], offset_x = ori_dims[1] * offset_y;
+        size_t downsampled_offset_y = downsampled_dims[2], downsampled_offset_x = downsampled_dims[1] * downsampled_offset_y;
+  
+        auto decompressor = std::make_unique<sperr::SPERR3D_FLT>();
+
+          
+        //const auto chunks = sperr::dims_type{1024,1024,1024};//ori 256^3, to tell the truth this is not large enough for scale but I just keep it, maybe set it large later.
+        const auto sperr_dims = sperr::dims_type{downsampled_dims[2],downsampled_dims[1],downsampled_dims[0]};
+        decompressor->set_dims(sperr_dims);
+        size_t SPERR_cmpSize;
+        read(SPERR_cmpSize,cmpDataPos,cmpSize);
+
+
+
+        decompressor->use_bitstream(cmpDataPos, SPERR_cmpSize);
+        cmpDataPos += SPERR_cmpSize;
+        cmpSize -= SPERR_cmpSize;
+        //compressor->set_tolerance(conf.absErrorBound);
+
+
+
+        /*
+        if (std::is_same<T, double>::value)
+            rtn = compressor.copy_data<double>(reinterpret_cast<const double*>(data), conf.num,
+                                    {conf.dims[2], conf.dims[1], conf.dims[0]}, {chunks[0], chunks[1], chunks[2]});
+        else
+            rtn = compressor.copy_data<float>(reinterpret_cast<const float*>(data), conf.num,
+                                    {conf.dims[2], conf.dims[1], conf.dims[0]}, {chunks[0], chunks[1], chunks[2]});
+        compressor.set_tolerance(conf.absErrorBound);*/
+        /*
+        if (std::is_same<T, double>::value)
+            compressor->compress(reinterpret_cast<const double*>(data), conf.num);
+        else{
+            compressor->compress(reinterpret_cast<const float*>(data), conf.num);
+        }*/
+        decompressor->decompress();
+        
+        
+
+        const auto decData_downsampled = decompressor->release_decoded_data();
+
+        for(size_t i = 0; i < downsampled_dims[0]; i++){
+            for(size_t j = 0; j < downsampled_dims[1]; j++){
+                for(size_t k = 0; k < downsampled_dims[2]; k++){
+                    auto downsampled_idx = i * downsampled_offset_x + j * downsampled_offset_y + k;
+                    auto ori_idx = 2 * i * offset_x + 2 * j + offset_y + 2 * k;
+                    decData[ori_idx] = decData_downsampled[downsampled_idx]; 
+
+                }
+
+            }
+        }
+
+
+        decompressor.reset();
+        
+        //return outData;
+    }
+
+
+
    // std::cout<<"decomp started"<<std::endl; 
     auto sz = make_compressor_sz_generic<T, N>(
         make_decomposition_interpolation<T, N>(conf, LinearQuantizer<T>(conf.absErrorBound, conf.quantbinCnt / 2)),
@@ -126,10 +201,108 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
     //        Timer timer(true);
     calAbsErrorBound(conf, data);
 
+    // sperr
+    //uchar * SPERR_cmpData = nullptr;
+    size_t SPERR_cmpSize = 0; 
+    auto cmpDataPos = cmpData;
+    if(N==3){
+        auto ori_dims = conf.dims;
+        std::array<size_t,3> downsampled_dims = {(conf.dims[0]+1)/2,(conf.dims[1]+1)/2,(conf.dims[2]+1)/2};
+        size_t downsampled_num = downsampled_dims [0] * downsampled_dims [1] * downsampled_dims [2];
+        size_t offset_y = ori_dims[2], offset_x = ori_dims[1] * offset_y;
+        size_t downsampled_offset_y = downsampled_dims[2], downsampled_offset_x = downsampled_dims[1] * downsampled_offset_y;
+        std::vector<double> downsampled_data(downsampled_num);
+        for(size_t i = 0; i < downsampled_dims[0]; i++){
+            for(size_t j = 0; j < downsampled_dims[1]; j++){
+                for(size_t k = 0; k < downsampled_dims[2]; k++){
+                    auto downsampled_idx = i * downsampled_offset_x + j * downsampled_offset_y + k;
+                    auto ori_idx = 2 * i * offset_x + 2 * j + offset_y + 2 * k;
+                    downsampled_data [downsampled_idx] = data [ori_idx]; 
+
+                }
+
+            }
+        }
+
+       
+
+        double q_coeff = 1.5;
+        auto compressor = std::make_unique<sperr::SPERR3D_FLT>();
+        //compressor->set_num_threads(1);
+        compressor->set_eb_coeff(q_coeff);
+        compressor->take_data(downsampled_data);
+        auto rtn = sperr::RTNType::Good;
+          
+        //const auto chunks = sperr::dims_type{1024,1024,1024};//ori 256^3, to tell the truth this is not large enough for scale but I just keep it, maybe set it large later.
+        const auto sperr_dims = sperr::dims_type{downsampled_dims[2],downsampled_dims[1],downsampled_dims[0]};
+        compressor->set_dims(sperr_dims);
+        compressor->set_tolerance(conf.absErrorBound);
+
+
+
+        /*
+        if (std::is_same<T, double>::value)
+            rtn = compressor.copy_data<double>(reinterpret_cast<const double*>(data), conf.num,
+                                    {conf.dims[2], conf.dims[1], conf.dims[0]}, {chunks[0], chunks[1], chunks[2]});
+        else
+            rtn = compressor.copy_data<float>(reinterpret_cast<const float*>(data), conf.num,
+                                    {conf.dims[2], conf.dims[1], conf.dims[0]}, {chunks[0], chunks[1], chunks[2]});
+        compressor.set_tolerance(conf.absErrorBound);*/
+        /*
+        if (std::is_same<T, double>::value)
+            compressor->compress(reinterpret_cast<const double*>(data), conf.num);
+        else{
+            compressor->compress(reinterpret_cast<const float*>(data), conf.num);
+        }*/
+        compressor->compress();
+        
+        vec8_type stream(128);
+        compressor->append_encoded_bitstream(stream);
+        
+            
+        //SPERR_cmpData = new uchar[stream.size()];
+        SPERR_cmpSize = stream.size();
+        //std::cout<<outSize<<std::endl;
+
+        //memcpy(outData,stream.data(),stream.size());//maybe not efficient
+        
+
+        write(SPERR_cmpSize,cmpDataPos);
+        write(stream.data(),stream.size(),cmpDataPos);
+        cmpCap -= sizeof(size_t) + SPERR_cmpSize;
+        stream.clear();
+        stream.shrink_to_fit();
+
+        auto decData = compressor->release_decoded_data();
+
+        for(size_t i = 0; i < downsampled_dims[0]; i++){
+            for(size_t j = 0; j < downsampled_dims[1]; j++){
+                for(size_t k = 0; k < downsampled_dims[2]; k++){
+                    auto downsampled_idx = i * downsampled_offset_x + j * downsampled_offset_y + k;
+                    auto ori_idx = 2 * i * offset_x + 2 * j + offset_y + 2 * k;
+                    data[ori_idx] = decData[downsampled_idx]; 
+
+                }
+
+            }
+        }
+
+
+        compressor.reset();
+        
+        //return outData;
+    }
+
+
+
+
+
+
+    /*
     if (conf.interpAnchorStride < 0) {  // set default anchor stride
         std::array<size_t, 4> anchor_strides = {4096, 128, 32, 16};
         conf.interpAnchorStride = anchor_strides[N - 1];
-    }
+    }*/
 
     std::array<double, 4> sample_Rates = {0.005, 0.005, 0.005,
                                           0.005};  // default data sample rate. todo: add a config var to control
@@ -154,100 +327,110 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
             break;
         }
     }
+    bool useInterp = true;
+     size_t cmpSize = 0;
 
     if (!to_tune) {  // if the sampled data would be too many (currently it is 5% of the input), skip the tuning
-        conf.cmprAlgo = ALGO_INTERP;
-        return SZ_compress_Interp<T, N>(conf, data, cmpData, cmpCap);
+        //conf.cmprAlgo = ALGO_INTERP;
+        useInterp = true;
+        //return SZ_compress_Interp<T, N>(conf, data, cmpData, cmpCap);
     }
-    std::vector<std::vector<T>> sampled_blocks;
-    size_t per_block_ele_num = pow(sampleBlockSize + 1, N);
-    size_t sampling_num;
-    std::vector<std::vector<size_t>> starts;
-    auto profStride = sampleBlockSize / 4;  // larger is faster, smaller is better
-    profiling_block<T, N>(data, conf.dims, starts, sampleBlockSize, conf.absErrorBound,
-                          profStride);  // filter out the non-constant data blocks
-    size_t num_filtered_blocks = starts.size();
-    bool profiling = num_filtered_blocks * per_block_ele_num >= 0.5 * sampleRate * conf.num;  // temp. to refine
-    // bool profiling = false;
-    sampleBlocks<T, N>(data, conf.dims, sampleBlockSize, sampled_blocks, sampleRate, profiling,
-                       starts);  // sample out same data blocks
-    sampling_num = sampled_blocks.size() * per_block_ele_num;
+    else{
+        std::vector<std::vector<T>> sampled_blocks;
+        size_t per_block_ele_num = pow(sampleBlockSize + 1, N);
+        size_t sampling_num;
+        std::vector<std::vector<size_t>> starts;
+        auto profStride = sampleBlockSize / 4;  // larger is faster, smaller is better
+        profiling_block<T, N>(data, conf.dims, starts, sampleBlockSize, conf.absErrorBound,
+                              profStride);  // filter out the non-constant data blocks
+        size_t num_filtered_blocks = starts.size();
+        bool profiling = num_filtered_blocks * per_block_ele_num >= 0.5 * sampleRate * conf.num;  // temp. to refine
+        // bool profiling = false;
+        sampleBlocks<T, N>(data, conf.dims, sampleBlockSize, sampled_blocks, sampleRate, profiling,
+                           starts);  // sample out same data blocks
+        sampling_num = sampled_blocks.size() * per_block_ele_num;
 
-    if (sampling_num == 0 || sampling_num >= conf.num * 0.2) {
-        conf.cmprAlgo = ALGO_INTERP;
-        return SZ_compress_Interp<T, N>(conf, data, cmpData, cmpCap);
-    }
-    double best_lorenzo_ratio = 0, best_interp_ratio = 0, ratio;
-    size_t bufferCap = conf.num * sizeof(T);
-    auto buffer = static_cast<uchar *>(malloc(bufferCap));
-    Config lorenzo_config = conf;
+        if (sampling_num == 0 || sampling_num >= conf.num * 0.2) {
+            conf.cmprAlgo = ALGO_INTERP;
+            return SZ_compress_Interp<T, N>(conf, data, cmpData, cmpCap);
+        }
+        double best_lorenzo_ratio = 0, best_interp_ratio = 0, ratio;
+        size_t bufferCap = conf.num * sizeof(T);
+        auto buffer = static_cast<uchar *>(malloc(bufferCap));
+        Config lorenzo_config = conf;
 
-    {
-        // tune interp
-        conf.interpDirection = 0;
-        conf.interpAlpha = 1.25;
-        conf.interpBeta = 2.0;
-        auto testConfig = conf;
-        std::vector<size_t> dims(N, sampleBlockSize + 1);
-        testConfig.setDims(dims.begin(), dims.end());
-        for (auto &interp_op : {INTERP_ALGO_LINEAR, INTERP_ALGO_CUBIC}) {
-            testConfig.interpAlgo = interp_op;
-            ratio = interp_compress_test<T, N>(sampled_blocks, testConfig, sampleBlockSize, buffer, bufferCap);
-            if (ratio > best_interp_ratio) {
-                best_interp_ratio = ratio;
-                conf.interpAlgo = interp_op;
+        {
+            // tune interp
+            conf.interpDirection = 0;
+            conf.interpAlpha = 1.25;
+            conf.interpBeta = 2.0;
+            auto testConfig = conf;
+            std::vector<size_t> dims(N, sampleBlockSize + 1);
+            testConfig.setDims(dims.begin(), dims.end());
+            for (auto &interp_op : {INTERP_ALGO_LINEAR, INTERP_ALGO_CUBIC}) {
+                testConfig.interpAlgo = interp_op;
+                ratio = interp_compress_test<T, N>(sampled_blocks, testConfig, sampleBlockSize, buffer, bufferCap);
+                if (ratio > best_interp_ratio) {
+                    best_interp_ratio = ratio;
+                    conf.interpAlgo = interp_op;
+                }
             }
-        }
 
-        testConfig.interpAlgo = conf.interpAlgo;
-        testConfig.interpDirection = factorial(N) - 1;
-        ratio = interp_compress_test<T, N>(sampled_blocks, testConfig, sampleBlockSize, buffer, bufferCap);
-        if (ratio > best_interp_ratio * 1.02) {
-            best_interp_ratio = ratio;
-            conf.interpDirection = testConfig.interpDirection;
-        }
-        testConfig.interpDirection = conf.interpDirection;
-        // test more alpha-beta pairs for best compression ratio,
-        auto alphalist = std::vector<double>{1.0, 1.5, 2.0};
-        auto betalist = std::vector<double>{1.0, 2.5, 3.0};
-        for (size_t i = 0; i < alphalist.size(); i++) {
-            auto alpha = alphalist[i];
-            auto beta = betalist[i];
-            testConfig.interpAlpha = alpha;
-            testConfig.interpBeta = beta;
+            testConfig.interpAlgo = conf.interpAlgo;
+            testConfig.interpDirection = factorial(N) - 1;
             ratio = interp_compress_test<T, N>(sampled_blocks, testConfig, sampleBlockSize, buffer, bufferCap);
             if (ratio > best_interp_ratio * 1.02) {
                 best_interp_ratio = ratio;
-                conf.interpAlpha = alpha;
-                conf.interpBeta = beta;
+                conf.interpDirection = testConfig.interpDirection;
+            }
+            testConfig.interpDirection = conf.interpDirection;
+            // test more alpha-beta pairs for best compression ratio,
+            /*
+            auto alphalist = std::vector<double>{1.0, 1.5, 2.0};
+            auto betalist = std::vector<double>{1.0, 2.5, 3.0};
+            for (size_t i = 0; i < alphalist.size(); i++) {
+                auto alpha = alphalist[i];
+                auto beta = betalist[i];
+                testConfig.interpAlpha = alpha;
+                testConfig.interpBeta = beta;
+                ratio = interp_compress_test<T, N>(sampled_blocks, testConfig, sampleBlockSize, buffer, bufferCap);
+                if (ratio > best_interp_ratio * 1.02) {
+                    best_interp_ratio = ratio;
+                    conf.interpAlpha = alpha;
+                    conf.interpBeta = beta;
+                }
+            }*/
+        }
+        {
+            // only test lorenzo for 1D
+            if (N == 1 && best_interp_ratio < 50) {
+                std::vector<size_t> sample_dims(N, sampleBlockSize + 1);
+                lorenzo_config.cmprAlgo = ALGO_LORENZO_REG;
+                lorenzo_config.setDims(sample_dims.begin(), sample_dims.end());
+                lorenzo_config.lorenzo = true;
+                lorenzo_config.lorenzo2 = true;
+                lorenzo_config.regression = false;
+                lorenzo_config.regression2 = false;
+                lorenzo_config.openmp = false;
+                lorenzo_config.blockSize = 5;
+                //        lorenzo_config.quantbinCnt = 65536 * 2;
+                best_lorenzo_ratio = lorenzo_compress_test<T, N>(sampled_blocks, lorenzo_config, buffer, bufferCap);
+                //            delete[]cmprData;
+                //    printf("Lorenzo ratio = %.2f\n", ratio);
             }
         }
-    }
-    {
-        // only test lorenzo for 1D
-        if (N == 1 && best_interp_ratio < 50) {
-            std::vector<size_t> sample_dims(N, sampleBlockSize + 1);
-            lorenzo_config.cmprAlgo = ALGO_LORENZO_REG;
-            lorenzo_config.setDims(sample_dims.begin(), sample_dims.end());
-            lorenzo_config.lorenzo = true;
-            lorenzo_config.lorenzo2 = true;
-            lorenzo_config.regression = false;
-            lorenzo_config.regression2 = false;
-            lorenzo_config.openmp = false;
-            lorenzo_config.blockSize = 5;
-            //        lorenzo_config.quantbinCnt = 65536 * 2;
-            best_lorenzo_ratio = lorenzo_compress_test<T, N>(sampled_blocks, lorenzo_config, buffer, bufferCap);
-            //            delete[]cmprData;
-            //    printf("Lorenzo ratio = %.2f\n", ratio);
-        }
-    }
 
-    bool useInterp = !(best_lorenzo_ratio >= best_interp_ratio * 1.1 && best_lorenzo_ratio < 50 &&
-                       best_interp_ratio < 50);  // 1.1 is a fix coefficient. subject to revise
-    size_t cmpSize = 0;
+        useInterp = !(best_lorenzo_ratio >= best_interp_ratio * 1.1 && best_lorenzo_ratio < 50 &&
+                           best_interp_ratio < 50);  // 1.1 is a fix coefficient. subject to revise
+       
+    }
     if (useInterp) {
         conf.cmprAlgo = ALGO_INTERP;
-        cmpSize = SZ_compress_Interp<T, N>(conf, data, cmpData, cmpCap);
+        cmpSize = SZ_compress_Interp<T, N>(conf, data, cmpDataPos, cmpCap);
+        if(N==3)
+            cmpSize += sizeof(size_t) + SPERR_cmpSize;
+
+
     } else {
         // no need to tune lorenzo for 3D anymore
         // if (N == 3) {
