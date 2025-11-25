@@ -231,7 +231,7 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
         //compressor->set_num_threads(1);
         compressor->set_eb_coeff(q_coeff);
         compressor->take_data(std::move(downsampled_data));
-        auto rtn = sperr::RTNType::Good;
+        //auto rtn = sperr::RTNType::Good;
           
         //const auto chunks = sperr::dims_type{1024,1024,1024};//ori 256^3, to tell the truth this is not large enough for scale but I just keep it, maybe set it large later.
         const auto sperr_dims = sperr::dims_type{downsampled_dims[2],downsampled_dims[1],downsampled_dims[0]};
@@ -445,9 +445,7 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
             free(buffer);
        
         }
-
-
-       
+ 
     }
     if (useInterp) {
         conf.cmprAlgo = ALGO_INTERP;

@@ -22,9 +22,9 @@ class Set2D {
   uint16_t part_level = 0;
 
  public:
-  auto is_pixel() const -> bool { return (size_t{length_x} * length_y == 1); };
-  auto is_empty() const -> bool { return (size_t{length_x} * length_y == 0); };
-  void make_empty() { length_x = 0; };
+  auto is_pixel() const -> bool { return (size_t{length_x} * length_y == 1); }
+  auto is_empty() const -> bool { return (size_t{length_x} * length_y == 0); }
+  void make_empty() { length_x = 0; }
 };
 
 //
