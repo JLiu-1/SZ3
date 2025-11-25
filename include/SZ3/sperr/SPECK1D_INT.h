@@ -21,9 +21,9 @@ class Set1D {
   std::array<uint8_t, 16> m_16 = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
  public:
-  void set_start(uint64_t val) { std::memcpy(m_16.data(), &val, 7); };
-  void set_length(uint64_t val) { std::memcpy(m_16.data() + 7, &val, 7); };
-  void set_level(uint16_t val) { std::memcpy(m_16.data() + 14, &val, 2); };
+  void set_start(uint64_t val) { std::memcpy(m_16.data(), &val, 7); }
+  void set_length(uint64_t val) { std::memcpy(m_16.data() + 7, &val, 7); }
+  void set_level(uint16_t val) { std::memcpy(m_16.data() + 14, &val, 2); }
   auto get_start() const -> uint64_t
   {
     auto val = uint64_t{0};

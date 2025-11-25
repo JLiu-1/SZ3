@@ -50,7 +50,7 @@ void SZ_decompress_Interp(const Config &conf, const uchar *cmpData, size_t cmpSi
         size_t offset_y = ori_dims[2], offset_x = ori_dims[1] * offset_y;
         size_t downsampled_offset_y = downsampled_dims[2], downsampled_offset_x = downsampled_dims[1] * downsampled_offset_y;
   
-        auto decompressor = std::make_unique<sperr::SPERR3D_FLT>();
+        auto decompressor = std::make_unique<sperr::SPECK3D_FLT>();
 
           
         //const auto chunks = sperr::dims_type{1024,1024,1024};//ori 256^3, to tell the truth this is not large enough for scale but I just keep it, maybe set it large later.
@@ -227,7 +227,7 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
        
 
         double q_coeff = 1.5;
-        auto compressor = std::make_unique<sperr::SPERR3D_FLT>();
+        auto compressor = std::make_unique<sperr::SPECK3D_FLT>();
         //compressor->set_num_threads(1);
         compressor->set_eb_coeff(q_coeff);
         compressor->take_data(downsampled_data);
@@ -256,7 +256,7 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
         }*/
         compressor->compress();
         
-        vec8_type stream(128);
+        sperr::vec8_type stream(128);
         compressor->append_encoded_bitstream(stream);
         
             
@@ -330,6 +330,11 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
     bool useInterp = true;
      size_t cmpSize = 0;
 
+     double best_lorenzo_ratio = 0, best_interp_ratio = 0, ratio;
+        size_t bufferCap = conf.num * sizeof(T);
+    uchar * buffer = nullptr;
+    Config lorenzo_config;
+
     if (!to_tune) {  // if the sampled data would be too many (currently it is 5% of the input), skip the tuning
         //conf.cmprAlgo = ALGO_INTERP;
         useInterp = true;
@@ -354,10 +359,9 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
             conf.cmprAlgo = ALGO_INTERP;
             return SZ_compress_Interp<T, N>(conf, data, cmpData, cmpCap);
         }
-        double best_lorenzo_ratio = 0, best_interp_ratio = 0, ratio;
-        size_t bufferCap = conf.num * sizeof(T);
-        auto buffer = static_cast<uchar *>(malloc(bufferCap));
-        Config lorenzo_config = conf;
+        
+        buffer = static_cast<uchar *>(malloc(bufferCap));
+        lorenzo_config = conf;
 
         {
             // tune interp
@@ -426,6 +430,7 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
     }
     if (useInterp) {
         conf.cmprAlgo = ALGO_INTERP;
+        free(buffer);
         cmpSize = SZ_compress_Interp<T, N>(conf, data, cmpDataPos, cmpCap);
         if(N==3)
             cmpSize += sizeof(size_t) + SPERR_cmpSize;
@@ -459,13 +464,14 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
                 lorenzo_config.quantbinCnt = quant_num;
             }
         }
+        free(buffer);
         lorenzo_config.setDims(conf.dims.begin(), conf.dims.end());
         conf = lorenzo_config;
         //            double tuning_time = timer.stop();
         cmpSize = SZ_compress_LorenzoReg<T, N>(conf, data, cmpData, cmpCap);
     }
 
-    free(buffer);
+    
     return cmpSize;
 }
 }  // namespace SZ3
