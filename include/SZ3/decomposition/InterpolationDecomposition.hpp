@@ -261,8 +261,10 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         do {
             dim_sequences.push_back(sequence);
         } while (std::next_permutation(sequence.begin(), sequence.end()));
-
-        interp_level = 1; //force to do only the last level
+        if(N==3){
+            interp_level = 1; //force to do only the last level
+            num_elements -= ( (original_dimensions[0]+1)/2 ) * ( (original_dimensions[1]+1)/2 ) * ( (original_dimensions[2]+1)/2 );
+        }
     }
 
     void build_anchor_grid(T *data) {  // store anchor points. steplength: anchor_stride on each dimension
