@@ -270,13 +270,13 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
             
         //SPERR_cmpData = new uchar[stream.size()];
         SPERR_cmpSize = stream.size();
-        //std::cout<<outSize<<std::endl;
+        std::cout<<SPERR_cmpSize<<std::endl;
 
         //memcpy(outData,stream.data(),stream.size());//maybe not efficient
         
 
         write(SPERR_cmpSize,cmpDataPos);
-        write(stream.data(),stream.size(),cmpDataPos);
+        write(stream.data(),SPERR_cmpSize,cmpDataPos);
         cmpCap -= sizeof(size_t) + SPERR_cmpSize;
         stream.clear();
         stream.shrink_to_fit();
