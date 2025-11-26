@@ -289,7 +289,7 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
 
 
         compressor.reset();
-        
+        writefile("aftersperr.sz3.out",data,conf.num);
         //return outData;
     }
 
