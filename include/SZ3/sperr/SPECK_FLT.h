@@ -639,6 +639,8 @@ auto sperr::SPECK_FLT::compress() -> RTNType
         for (auto out : recovered)
           m_vals_d[out.pos] += out.err;
 
+        m_conditioner.inverse_condition(m_vals_d, m_dims, m_condi_bitstream)
+
         //double maxdiff = 0.0;
         //for(size_t i=0;i<m_vals_orig.size();i++){
         //  maxdiff = std::max(maxdiff,std::abs(m_vals_orig[i]-m_vals_d[i]));
