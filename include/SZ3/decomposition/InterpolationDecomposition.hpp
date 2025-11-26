@@ -39,14 +39,14 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         this->quant_inds = quant_inds.data();
         double eb = quantizer.get_eb();
         //visited.resize(num_elements);
-        /*
-        if (anchor_stride == 0) {                                               // check whether used anchor points
-            *dec_data = quantizer.recover(0, this->quant_inds[quant_index++]);  // no anchor points
-        } else {
-            recover_anchor_grid(dec_data);  // recover anchor points
-            interp_level--;
+        if(N!=3){
+            if (anchor_stride == 0) {                                               // check whether used anchor points
+                *dec_data = quantizer.recover(0, this->quant_inds[quant_index++]);  // no anchor points
+            } else {
+                recover_anchor_grid(dec_data);  // recover anchor points
+                interp_level--;
+            }
         }
-        */
         
 
         for (int level = interp_level; level > 0 && level <= interp_level; level--) {
@@ -125,14 +125,14 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         //visited.resize(num_elements);
         quant_inds = quant_inds_vec.data();
         double eb = quantizer.get_eb();
-        /*
-        if (anchor_stride == 0) {  // check whether to use anchor points
-            quant_inds[quant_index++] = quantizer.quantize_and_overwrite(*data, 0);  // no
-        } else {
-            build_anchor_grid(data);  // losslessly saving anchor points
-            interp_level--;
+        if(N!=3){
+            if (anchor_stride == 0) {  // check whether to use anchor points
+                quant_inds[quant_index++] = quantizer.quantize_and_overwrite(*data, 0);  // no
+            } else {
+                build_anchor_grid(data);  // losslessly saving anchor points
+                interp_level--;
+            }
         }
-*/
         for (int level = interp_level; level > 0 && level <= interp_level; level--) {
             std::cout<<"level: "<<level<<std::endl;
             double cur_eb = eb;
