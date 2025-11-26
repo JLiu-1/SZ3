@@ -101,12 +101,13 @@ void SZ_decompress_Interp(const Config &conf, const uchar *cmpData, size_t cmpSi
         }
 
 
+
         decompressor.reset();
         
         //return outData;
     }
 
-
+    writefile("afterinvsperr.sz3.out",data,conf.num);
 
    // std::cout<<"decomp started"<<std::endl; 
     auto sz = make_compressor_sz_generic<T, N>(
