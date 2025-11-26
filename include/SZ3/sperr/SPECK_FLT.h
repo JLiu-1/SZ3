@@ -618,7 +618,8 @@ auto sperr::SPECK_FLT::compress() -> RTNType
       else {
         m_has_outlier = true;
         //std::cout<<LOS.size()<<std::endl;
-        std::cout<<m_quality<<std::endl;
+       // std::cout<<m_quality<<std::endl;
+        auto los_copy = LOS;
         m_out_coder.set_length(total_vals);
         m_out_coder.set_tolerance(m_quality);
         m_out_coder.use_outlier_list(std::move(LOS));
@@ -633,6 +634,11 @@ auto sperr::SPECK_FLT::compress() -> RTNType
             return rtn;
         */
         const auto& recovered = m_out_coder.view_outlier_list();
+        double maxdiff = 0.0;
+        for(size_t i=0;i<los_copy.size();i++){
+          maxdiff = std::max(std::abs(los_copy[i].err-recovered[i].err));
+        }
+        std::cout<<maxdiff<<std::endl;
         //std::cout<<recovered.size()<<std::endl;
         for (auto out : recovered)
           m_vals_d[out.pos] += out.err;
