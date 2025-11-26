@@ -636,7 +636,7 @@ auto sperr::SPECK_FLT::compress() -> RTNType
         const auto& recovered = m_out_coder.view_outlier_list();
         double maxdiff = 0.0;
         for(size_t i=0;i<los_copy.size();i++){
-          maxdiff = std::max(std::abs(los_copy[i].err-recovered[i].err));
+          maxdiff = std::max(maxdiff,std::abs(los_copy[i].err-recovered[i].err));
         }
         std::cout<<maxdiff<<std::endl;
         //std::cout<<recovered.size()<<std::endl;
