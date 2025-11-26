@@ -474,7 +474,7 @@ public:
     int interpAnchorStride = -1; // -1: using dynamic default setting
     double interpAlpha = 1.25;   // level-wise eb reduction rate
     double interpBeta = 2.0;     // maximum eb reduction rate
-     double q_coeff = 1.5;
+    double q_coeff = 1.25;
    
 };
 
