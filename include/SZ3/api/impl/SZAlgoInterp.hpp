@@ -454,6 +454,8 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
         if(N==3)
             cmpSize += sizeof(size_t) + SPERR_cmpSize;
 
+        writefile("aftercmp.sz3.out",data,conf.num);
+
 
     } else {
         // no need to tune lorenzo for 3D anymore
