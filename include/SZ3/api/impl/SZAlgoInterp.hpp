@@ -289,7 +289,7 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
             for(size_t j = 0; j < downsampled_dims[1]; j++){
                 for(size_t k = 0; k < downsampled_dims[2]; k++){
                     auto downsampled_idx = i * downsampled_offset_x + j * downsampled_offset_y + k;
-                    auto ori_idx = 2 * i * offset_x + 2 * j + offset_y + 2 * k;
+                    auto ori_idx = 2 * i * offset_x + 2 * j * offset_y + 2 * k;
                     data[ori_idx] = decData[downsampled_idx]; 
 
                 }
