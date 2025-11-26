@@ -133,6 +133,7 @@ class InterpolationDecomposition : public concepts::DecompositionInterface<T, in
         }
 */
         for (int level = interp_level; level > 0 && level <= interp_level; level--) {
+            std::cout<<"level: "<<level<<std::endl;
             double cur_eb = eb;
             // set level-wise error bound
             if (eb_alpha < 0) {

@@ -277,11 +277,11 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
         auto decData = compressor->release_decoded_data();
 
 
-        double maxdiff = 0.0;
-        for(size_t i=0;i<decData.size();i++){
-          maxdiff = std::max(maxdiff,std::abs(downsampled_data_copy[i]-decData[i]));
-        }
-        std::cout<<maxdiff<<std::endl;
+        //double maxdiff = 0.0;
+        //for(size_t i=0;i<decData.size();i++){
+        //  maxdiff = std::max(maxdiff,std::abs(downsampled_data_copy[i]-decData[i]));
+        //}
+        //std::cout<<maxdiff<<std::endl;
 
         for(size_t i = 0; i < downsampled_dims[0]; i++){
             for(size_t j = 0; j < downsampled_dims[1]; j++){
