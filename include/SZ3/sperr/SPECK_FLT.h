@@ -634,14 +634,16 @@ auto sperr::SPECK_FLT::compress() -> RTNType
             return rtn;
         */
         const auto& recovered = m_out_coder.view_outlier_list();
-        double maxdiff = 0.0;
-        for(size_t i=0;i<los_copy.size();i++){
-          maxdiff = std::max(maxdiff,std::abs(los_copy[i].err-recovered[i].err));
-        }
-        std::cout<<maxdiff<<std::endl;
+        
         //std::cout<<recovered.size()<<std::endl;
         for (auto out : recovered)
           m_vals_d[out.pos] += out.err;
+
+        double maxdiff = 0.0;
+        for(size_t i=0;i<m_vals_orig.size();i++){
+          maxdiff = std::max(maxdiff,std::abs(m_vals_orig[i]-m_vals_d[i].err));
+        }
+        std::cout<<maxdiff<<std::endl;
       }
     }
 
