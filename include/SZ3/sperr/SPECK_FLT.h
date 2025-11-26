@@ -617,12 +617,24 @@ auto sperr::SPECK_FLT::compress() -> RTNType
         m_has_outlier = false;
       else {
         m_has_outlier = true;
+        std::cout<<LOS.size()<<std::endl;
         m_out_coder.set_length(total_vals);
         m_out_coder.set_tolerance(m_quality);
         m_out_coder.use_outlier_list(std::move(LOS));
-        rtn = m_out_coder.encode();
+        rtn = m_out_coder.encode(true);
         if (rtn != RTNType::Good)
           return rtn;
+
+        //added for release decompressed data after compression
+        /*
+        rtn = m_out_coder.decode();
+        if (rtn != RTNType::Good)
+            return rtn;
+        */
+        const auto& recovered = m_out_coder.view_outlier_list();
+        std::cout<<recovered.size()<<std::endl;
+        for (auto out : recovered)
+          m_vals_d[out.pos] += out.err;
       }
     }
 
@@ -814,7 +826,7 @@ auto sperr::SPECK_FLT::decompress(bool multi_res) -> RTNType
     // Side step: outlier correction, if needed
     if (m_has_outlier) {
       m_out_coder.set_length(m_dims[0] * m_dims[1] * m_dims[2]);
-      m_out_coder.set_tolerance(m_q / 1.5);  // `m_quality` is not set during decompression.
+      m_out_coder.set_tolerance(m_q / m_eb_coeff);  // `m_quality` is not set during decompression.
       rtn = m_out_coder.decode();
       if (rtn != RTNType::Good)
         return rtn;

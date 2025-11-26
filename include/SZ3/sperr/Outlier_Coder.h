@@ -43,7 +43,7 @@ class Outlier_Coder {
   //
   // Action items
   //
-  auto encode() -> RTNType;
+  auto encode(bool retrieve) -> RTNType;
   auto decode() -> RTNType;
 
  private:
@@ -139,7 +139,7 @@ auto sperr::Outlier_Coder::use_bitstream(const void* p, size_t len) -> RTNType
   return RTNType::Good;
 }
 
-auto sperr::Outlier_Coder::encode() -> RTNType
+auto sperr::Outlier_Coder::encode(bool retrieve=true) -> RTNType
 {
   // Sanity check: whether we can proceed with encoding.
   if (m_total_len == 0 || m_tol <= 0.0 || m_LOS.empty())
@@ -172,6 +172,10 @@ auto sperr::Outlier_Coder::encode() -> RTNType
 
   // Step 2: quantize the outliers.
   m_quantize();
+
+  //added: for retrieve decoded outliers during encoding
+  if(retrieve)
+      m_inverse_quantize();
 
   // Step 3: integer SPECK encoding.
   std::visit([len = m_total_len](auto&& enc) { enc.set_dims({len, 1, 1}); }, m_encoder);
