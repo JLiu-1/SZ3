@@ -211,14 +211,14 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
         size_t downsampled_num = downsampled_dims [0] * downsampled_dims [1] * downsampled_dims [2];
         size_t offset_y = ori_dims[2], offset_x = ori_dims[1] * offset_y;
         size_t downsampled_offset_y = downsampled_dims[2], downsampled_offset_x = downsampled_dims[1] * downsampled_offset_y;
-        std::cout<<downsampled_dims [0]<<" "<<downsampled_dims [1]<<" "<<downsampled_dims [2]<<std::endl;
-        std::cout<<offset_x<<" "<<offset_y<<" "<<downsampled_offset_x<<" "<<downsampled_offset_y<<std::endl;
+       // std::cout<<downsampled_dims [0]<<" "<<downsampled_dims [1]<<" "<<downsampled_dims [2]<<std::endl;
+        //std::cout<<offset_x<<" "<<offset_y<<" "<<downsampled_offset_x<<" "<<downsampled_offset_y<<std::endl;
         std::vector<double> downsampled_data(downsampled_num);
         for(size_t i = 0; i < downsampled_dims[0]; i++){
             for(size_t j = 0; j < downsampled_dims[1]; j++){
                 for(size_t k = 0; k < downsampled_dims[2]; k++){
                     auto downsampled_idx = i * downsampled_offset_x + j * downsampled_offset_y + k;
-                    auto ori_idx = 2 * i * offset_x + 2 * j + offset_y + 2 * k;
+                    auto ori_idx = 2 * i * offset_x + 2 * j * offset_y + 2 * k;
                     downsampled_data [downsampled_idx] = data [ori_idx]; 
 
                 }
