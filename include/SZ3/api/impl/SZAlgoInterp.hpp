@@ -88,6 +88,8 @@ void SZ_decompress_Interp(const Config &conf, const uchar *cmpData, size_t cmpSi
 
         const auto decData_downsampled = decompressor->release_decoded_data();
 
+        writefile("dec_downsampled.sz3.out",decData_downsampled.data(),decData_downsampled.size());
+
         for(size_t i = 0; i < downsampled_dims[0]; i++){
             for(size_t j = 0; j < downsampled_dims[1]; j++){
                 for(size_t k = 0; k < downsampled_dims[2]; k++){
@@ -107,7 +109,7 @@ void SZ_decompress_Interp(const Config &conf, const uchar *cmpData, size_t cmpSi
         //return outData;
     }
 
-    writefile("afterinvsperr.sz3.out",data,conf.num);
+   
 
    // std::cout<<"decomp started"<<std::endl; 
     auto sz = make_compressor_sz_generic<T, N>(
@@ -279,6 +281,9 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
 
         auto decData = compressor->release_decoded_data();
 
+        writefile("cmp_downsampled.sz3.out",decData.data(),decData.size());
+
+
 
         //double maxdiff = 0.0;
         //for(size_t i=0;i<decData.size();i++){
@@ -299,8 +304,10 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
         }
 
 
+
+
         compressor.reset();
-        writefile("aftersperr.sz3.out",data,conf.num);
+        //writefile("aftersperr.sz3.out",data,conf.num);
         //return outData;
     }
 
@@ -465,7 +472,7 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
         if(N==3)
             cmpSize += sizeof(size_t) + SPERR_cmpSize;
 
-        writefile("aftercmp.sz3.out",data,conf.num);
+        //writefile("aftercmp.sz3.out",data,conf.num);
 
 
     } else {
