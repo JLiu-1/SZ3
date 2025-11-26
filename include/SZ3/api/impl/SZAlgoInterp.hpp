@@ -58,6 +58,7 @@ void SZ_decompress_Interp(const Config &conf, const uchar *cmpData, size_t cmpSi
         decompressor->set_dims(sperr_dims);
         size_t SPERR_cmpSize;
         read(SPERR_cmpSize,cmpDataPos,cmpSize);
+        std::cout<<SPERR_cmpSize<<std::endl;
 
 
 
@@ -262,7 +263,8 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
         }*/
         compressor->compress();
         
-        sperr::vec8_type stream(128);
+        sperr::vec8_type stream;
+        stream.reserve(128);
         compressor->append_encoded_bitstream(stream);
         
             
