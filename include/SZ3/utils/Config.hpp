@@ -295,6 +295,7 @@ public:
         ss << "InterpolationAnchorStride = " << interpAnchorStride << "\n";
         ss << "InterpolationAlpha = " << interpAlpha << "\n";
         ss << "InterpolationBeta = " << interpBeta << "\n";
+        ss << "q_coeff = " << q_coeff << "\n";
         return ss.str();
     }
 
@@ -344,6 +345,7 @@ public:
         write(quantbinCnt, c);
         write(blockSize, c);
         write(predDim, c);
+        write(q_coeff, c);
 
         auto confSize = static_cast<uchar>(c - c0);
         write(confSize, c0); //write conf size at reserved space
@@ -409,6 +411,9 @@ public:
         if (c < c1) {
             read(predDim, c);
         }
+        if (c < c1) {
+            read(q_coeff, c);
+        }
     }
 
     /**
@@ -467,6 +472,8 @@ public:
     int interpAnchorStride = -1; // -1: using dynamic default setting
     double interpAlpha = 1.25;   // level-wise eb reduction rate
     double interpBeta = 2.0;     // maximum eb reduction rate
+     double q_coeff = 1.5;
+   
 };
 
 } // namespace SZ3

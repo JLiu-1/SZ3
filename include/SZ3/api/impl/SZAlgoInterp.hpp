@@ -56,6 +56,7 @@ void SZ_decompress_Interp(const Config &conf, const uchar *cmpData, size_t cmpSi
         //const auto chunks = sperr::dims_type{1024,1024,1024};//ori 256^3, to tell the truth this is not large enough for scale but I just keep it, maybe set it large later.
         const auto sperr_dims = sperr::dims_type{downsampled_dims[2],downsampled_dims[1],downsampled_dims[0]};
         decompressor->set_dims(sperr_dims);
+        decompressor->set_eb_coeff(conf.q_coeff);
         size_t SPERR_cmpSize;
         read(SPERR_cmpSize,cmpDataPos,cmpSize);
         //std::cout<<SPERR_cmpSize<<std::endl;
@@ -233,10 +234,10 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
 
        
 
-        double q_coeff = 1.5;
+        //double q_coeff = conf.q_coeff;
         auto compressor = std::make_unique<sperr::SPECK3D_FLT>();
         //compressor->set_num_threads(1);
-        compressor->set_eb_coeff(q_coeff);
+        compressor->set_eb_coeff(conf.q_coeff);
         compressor->take_data(std::move(downsampled_data));
         //auto rtn = sperr::RTNType::Good;
           
