@@ -641,7 +641,7 @@ auto sperr::SPECK_FLT::compress() -> RTNType
 
         double maxdiff = 0.0;
         for(size_t i=0;i<m_vals_orig.size();i++){
-          maxdiff = std::max(maxdiff,std::abs(m_vals_orig[i]-m_vals_d[i].err));
+          maxdiff = std::max(maxdiff,std::abs(m_vals_orig[i]-m_vals_d[i]));
         }
         std::cout<<maxdiff<<std::endl;
       }
