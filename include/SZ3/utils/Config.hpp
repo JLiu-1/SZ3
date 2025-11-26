@@ -262,6 +262,8 @@ public:
                     interpAlpha = std::stod(value);
                 else if (eq(key, "InterpolationBeta"))
                     interpBeta = std::stod(value);
+                else if (eq(key, "q_coeff"))
+                    q_coeff = std::stod(value);
             }
         }
     }
