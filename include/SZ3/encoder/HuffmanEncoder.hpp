@@ -717,7 +717,7 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
 
         // maxBitCount 直接用 maxLen 即可（和原始 build_code 的 maxBitCount 一致）
         huffmanTree->maxBitCount = maxLen;
-        canonReady = true;
+        //canonReady = true;
     }
 
 
