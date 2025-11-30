@@ -44,6 +44,19 @@ class HuffmanEncoder : public concepts::EncoderInterface<T> {
         unsigned char *cout;
         int n_inode;  // n_inode is for decompression
         int maxBitCount;
+
+
+        // === 新增：扁平化 decode 树 ===
+        struct decode_node_t {
+            int left;            // 左子节点索引，叶子为 -1
+            int right;           // 右子节点索引，叶子为 -1
+            T   c;               // 符号值（state）
+            unsigned char t;     // 1: 叶子; 0: 内部节点
+        } *decNodes = nullptr;
+        int decRoot = -1;        // 根节点索引（通常为 0）
+        int decNodeCount = 0;    // 已用节点数（<= n_nodes）
+
+
     } HuffmanTree;
 
     HuffmanEncoder() {
@@ -220,7 +233,6 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
     }*/
 
     std::vector<T> decode(const uchar *&bytes, size_t targetLength) override {
-        node root = treeRoot;
         std::vector<T> out(targetLength);
         size_t count = 0;
 
@@ -228,13 +240,21 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
         size_t encodedLength = 0;
         read(encodedLength, bytes);
 
-        node n = root;
-        if (n->t) {  // 常数树：根就是叶子
-            T val = n->c + offset;
+        auto *nodes   = huffmanTree->decNodes;
+        int   rootIdx = huffmanTree->decRoot;
+
+        if (rootIdx < 0 || nodes == nullptr) {
+            // 不太应该发生，防御一下
+            bytes += encodedLength;
+            return out;
+        }
+
+        // 常数树：根就是叶子
+        if (nodes[rootIdx].t) {
+            T val = nodes[rootIdx].c + offset;
             for (size_t i = 0; i < targetLength; ++i) {
                 out[i] = val;
             }
-            // 跳过 bitstream
             bytes += encodedLength;
             return out;
         }
@@ -242,19 +262,22 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
         const uchar *p     = bytes;
         const uchar *p_end = bytes + encodedLength;
 
+        int cur = rootIdx;
+
         while (p < p_end && count < targetLength) {
             unsigned char byte = *p++;   // 当前字节，LSB-first
 
-            // 这个字节里最多有 8 个 bit 可用
+            // 最多 8 个 bit
             for (int b = 0; b < 8 && count < targetLength; ++b) {
                 int bit = byte & 1u;
                 byte >>= 1;
 
-                n = bit ? n->right : n->left;
+                // 用索引走树，比指针更 cache-friendly
+                cur = bit ? nodes[cur].right : nodes[cur].left;
 
-                if (n->t) {
-                    out[count++] = n->c + offset;
-                    n = root;
+                if (nodes[cur].t) {
+                    out[count++] = nodes[cur].c + offset;
+                    cur = rootIdx;
                 }
             }
         }
@@ -284,6 +307,7 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
 
         huffmanTree = createHuffmanTree(stateNum);
         treeRoot = reconstruct_HuffTree_from_bytes_anyStates(c + sizeof(int) + sizeof(int), nodeCount);
+        build_decode_table();
         c += sizeof(int) + sizeof(int) + encodeStartIndex;
         loaded = true;
     }
@@ -304,6 +328,46 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
         x = (unsigned char)((x & 0xAAu) >> 1 | (x & 0x55u) << 1);
         return x;
     }
+
+
+    int build_dec_nodes(node n) {
+        // DFS，把指针树压成数组
+        int idx = huffmanTree->decNodeCount++;
+        auto &dn = huffmanTree->decNodes[idx];
+        dn.c = n->c;
+        dn.t = n->t ? 1 : 0;
+
+        if (n->t) {
+            dn.left  = -1;
+            dn.right = -1;
+        } else {
+            dn.left  = build_dec_nodes(n->left);
+            dn.right = build_dec_nodes(n->right);
+        }
+        return idx;
+    }
+
+    void build_decode_table() {
+        if (!huffmanTree || !treeRoot) return;
+
+        // 释放旧表（如果有）
+        if (huffmanTree->decNodes != nullptr) {
+            free(huffmanTree->decNodes);
+            huffmanTree->decNodes = nullptr;
+            huffmanTree->decNodeCount = 0;
+            huffmanTree->decRoot = -1;
+        }
+
+        // 分配足够多的节点空间（最多 n_nodes 个）
+        huffmanTree->decNodes = static_cast<typename HuffmanTree::decode_node_t *>(
+            malloc(huffmanTree->n_nodes * sizeof(typename HuffmanTree::decode_node_t)));
+        huffmanTree->decNodeCount = 0;
+
+        // 从 treeRoot 开始 DFS，返回根索引
+        huffmanTree->decRoot = build_dec_nodes(treeRoot);
+    }
+
+
 
 
     node reconstruct_HuffTree_from_bytes_anyStates(const unsigned char *bytes, uint nodeCount) {
@@ -596,6 +660,8 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
 
         build_code(huffmanTree->qq[1], 0ULL, 0);
         treeRoot = huffmanTree->qq[1];
+
+        build_decode_table();
     }
 
     template <class T1>
