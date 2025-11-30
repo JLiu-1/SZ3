@@ -141,8 +141,8 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
         c += sizeof(int);
 
         // 写最大码长（可选，但有用）
-        unsigned char maxLen = static_cast<unsigned char>(canonMaxLen);
-        *c++ = maxLen;
+        //unsigned char maxLen = static_cast<unsigned char>(canonMaxLen);
+        //*c++ = maxLen;
 
         // 写每个 state 的码长（0 表示该 state 未使用）
         for (int i = 0; i < stateNum; ++i) {
@@ -392,12 +392,14 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
         remaining_length -= sizeof(int);
 
         // 读 maxLen（其实可以不用，但我们存了就读回来）
+        /*
         if (remaining_length < 1) {
             throw std::runtime_error("Huffman load: insufficient data for maxLen");
         }
         unsigned char maxLen = *c++;
         remaining_length -= 1;
         (void)maxLen;  // 我们会重新计算一遍 maxLen，不过你也可以用它做 sanity check
+        */
 
         // 分配 HuffmanTree
         huffmanTree = createHuffmanTree(stateNum);
@@ -433,7 +435,7 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
   //  std::vector<int> canonFirstCode;     // firstCode[L]: first canonical code of length L (MSB-first)
   //  std::vector<int> canonFirstSymbol;   // firstSymbol[L]: index into canonSymbolOrder
   //  int canonMinLen = 0;
-   // int canonMaxLen = 0;
+    int canonMaxLen = 0;
    // bool canonReady = false;
 
 
@@ -717,6 +719,7 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
 
         // maxBitCount 直接用 maxLen 即可（和原始 build_code 的 maxBitCount 一致）
         huffmanTree->maxBitCount = maxLen;
+       // canonMaxLen = maxLen;
         //canonReady = true;
     }
 
