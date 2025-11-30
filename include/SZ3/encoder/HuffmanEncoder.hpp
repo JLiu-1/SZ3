@@ -243,7 +243,7 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
         bytes += encodedLength;
         return out;
     }*/
-    /*
+    
     std::vector<T> decode(const uchar *&bytes, size_t targetLength) override {
         node root = treeRoot;
         std::vector<T> out(targetLength);
@@ -287,74 +287,74 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
         // 消费掉整个 bitstream
         bytes = p_end;
         return out;
-    }*/
-
+    }
+    /*
     std::vector<T> decode(const uchar *&bytes, size_t targetLength) override {
-    if (!canonReady) {
-        throw std::runtime_error("Huffman decode: canonical tables not built");
-    }
+       // if (!canonReady) {
+       //     throw std::runtime_error("Huffman decode: canonical tables not built");
+       // }
 
-    std::vector<T> out(targetLength);
-    size_t count = 0;
+        std::vector<T> out(targetLength);
+        size_t count = 0;
 
-    // 先读出 bitstream 的长度（字节数）
-    size_t encodedLength = 0;
-    read(encodedLength, bytes);
+        // 先读出 bitstream 的长度（字节数）
+        size_t encodedLength = 0;
+        read(encodedLength, bytes);
 
-    const uchar *p     = bytes;
-    const uchar *p_end = bytes + encodedLength;
+        const uchar *p     = bytes;
+        const uchar *p_end = bytes + encodedLength;
 
-    uint32_t code   = 0;   // 这里的 code 是“MSB-first”的整数表示
-    int      length = 0;   // 当前已累积的 bit 数
+        uint32_t code   = 0;   // 这里的 code 是“MSB-first”的整数表示
+        int      length = 0;   // 当前已累积的 bit 数
 
-    while (p < p_end && count < targetLength) {
-        unsigned char byte = *p++;  // 一个字节里 8 个 bit，顺序是 b0,b1,...,b7
+        while (p < p_end && count < targetLength) {
+            unsigned char byte = *p++;  // 一个字节里 8 个 bit，顺序是 b0,b1,...,b7
 
-        // LSB-first：从 bit0 到 bit7 依次是整个 bitstream 的时间顺序
-        for (int b = 0; b < 8 && count < targetLength; ++b) {
-            int bit = (byte & 1u);   // 取最低位
-            byte >>= 1;              // 右移，准备下一个 bit
+            // LSB-first：从 bit0 到 bit7 依次是整个 bitstream 的时间顺序
+            for (int b = 0; b < 8 && count < targetLength; ++b) {
+                int bit = (byte & 1u);   // 取最低位
+                byte >>= 1;              // 右移，准备下一个 bit
 
-            // 按 canonical 的规则累积成 MSB-first 的整数码
-            code = (code << 1) | (uint32_t)bit;
-            ++length;
+                // 按 canonical 的规则累积成 MSB-first 的整数码
+                code = (code << 1) | (uint32_t)bit;
+                ++length;
 
-            if (length < canonMinLen) {
-                continue;  // 码长还不够，肯定无法匹配任何符号
+                if (length < canonMinLen) {
+                    continue;  // 码长还不够，肯定无法匹配任何符号
+                }
+                if (length > canonMaxLen) {
+                    // 理论上不该发生（bitstream 和长度分布必须一致）
+                    // 简单恢复一下，避免死循环
+                    code   = 0;
+                    length = 0;
+                    continue;
+                }
+
+                int L      = length;
+                int firstC = canonFirstCode[L];  // 该长度下的第一个 canonical code
+                int cnt    = canonBlCount[L];    // 该长度下 code 的个数
+                int diff   = (int)code - firstC;
+
+                if (diff >= 0 && diff < cnt) {
+                    // 命中：这个 code 对应某个符号
+                    int symbolIndex = canonFirstSymbol[L] + diff;
+                    int state       = canonSymbolOrder[symbolIndex];
+
+                    out[count++] = static_cast<T>(state + offset);
+
+                    // reset，准备解析下一个符号
+                    code   = 0;
+                    length = 0;
+                }
+                // 否则继续累积更多 bit
             }
-            if (length > canonMaxLen) {
-                // 理论上不该发生（bitstream 和长度分布必须一致）
-                // 简单恢复一下，避免死循环
-                code   = 0;
-                length = 0;
-                continue;
-            }
-
-            int L      = length;
-            int firstC = canonFirstCode[L];  // 该长度下的第一个 canonical code
-            int cnt    = canonBlCount[L];    // 该长度下 code 的个数
-            int diff   = (int)code - firstC;
-
-            if (diff >= 0 && diff < cnt) {
-                // 命中：这个 code 对应某个符号
-                int symbolIndex = canonFirstSymbol[L] + diff;
-                int state       = canonSymbolOrder[symbolIndex];
-
-                out[count++] = static_cast<T>(state + offset);
-
-                // reset，准备解析下一个符号
-                code   = 0;
-                length = 0;
-            }
-            // 否则继续累积更多 bit
         }
+
+        // 消费掉 bitstream
+        bytes = p_end;
+        return out;
     }
-
-    // 消费掉 bitstream
-    bytes = p_end;
-    return out;
-}
-
+    */
     // empty function
     void postprocess_decode() override { SZ_FreeHuffman(); }
     /*
@@ -412,7 +412,7 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
         remaining_length -= (size_t)stateNum;
 
         // 基于码长重建 canonical code + decode 表 + encode 用的 code[]
-        buildCanonicalFromLengths();
+          rebuildTreeFromCodeLengthsLSB();
 
         loaded = true;
     }
@@ -428,13 +428,13 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
     T offset;
 
      // === Canonical Huffman decode tables ===
-    std::vector<int> canonSymbolOrder;   // symbols sorted by (length, state)
-    std::vector<int> canonBlCount;       // bl_count[L]: #codes with length L
-    std::vector<int> canonFirstCode;     // firstCode[L]: first canonical code of length L (MSB-first)
-    std::vector<int> canonFirstSymbol;   // firstSymbol[L]: index into canonSymbolOrder
-    int canonMinLen = 0;
-    int canonMaxLen = 0;
-    bool canonReady = false;
+  //  std::vector<int> canonSymbolOrder;   // symbols sorted by (length, state)
+  //  std::vector<int> canonBlCount;       // bl_count[L]: #codes with length L
+  //  std::vector<int> canonFirstCode;     // firstCode[L]: first canonical code of length L (MSB-first)
+  //  std::vector<int> canonFirstSymbol;   // firstSymbol[L]: index into canonSymbolOrder
+  //  int canonMinLen = 0;
+   // int canonMaxLen = 0;
+   // bool canonReady = false;
 
 
 
@@ -846,7 +846,7 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
             }
         }
     }
-
+    /*
     void buildCanonicalFromLengths() {
         if (!huffmanTree) return;
 
@@ -940,6 +940,100 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
 
         huffmanTree->maxBitCount = maxLen;
         canonReady = true;
+    }*/
+
+      void rebuildTreeFromCodeLengthsLSB() {
+        if (!huffmanTree) return;
+
+        const int n = static_cast<int>(huffmanTree->stateNum);
+
+        // 1. 收集所有用到的 state（length > 0），并统计 min/maxLen
+        std::vector<int> symbols;
+        symbols.reserve(n);
+        int maxLen = 0;
+        for (int s = 0; s < n; ++s) {
+            unsigned char L = huffmanTree->cout[s];
+            if (L > 0) {
+                symbols.push_back(s);
+                if (L > maxLen) maxLen = static_cast<int>(L);
+            }
+        }
+        if (symbols.empty()) {
+            treeRoot = nullptr;
+            return;
+        }
+
+        // 2. canonical 排序：先按长度，再按 state index
+        std::sort(symbols.begin(), symbols.end(),
+                  [&](int a, int b) {
+                      unsigned char la = huffmanTree->cout[a];
+                      unsigned char lb = huffmanTree->cout[b];
+                      if (la != lb) return la < lb;
+                      return a < b;
+                  });
+
+        // 3. 统计每个长度的数量 bl_count[L]
+        std::vector<int> bl_count(maxLen + 1, 0);
+        for (int s : symbols) {
+            unsigned char L = huffmanTree->cout[s];
+            ++bl_count[static_cast<int>(L)];
+        }
+
+        // 4. 计算各长度的第一个 canonical code（MSB-first 整数）
+        std::vector<int> next_code(maxLen + 1, 0);
+        int code = 0;
+        bl_count[0] = 0;
+        for (int bits = 1; bits <= maxLen; ++bits) {
+            code = (code + bl_count[bits - 1]) << 1;
+            next_code[bits] = code;
+        }
+
+        // 5. 工具：把 MSB-first 的 canonical 整数码反转成 LSB-first
+        auto reverse_len_bits = [](uint32_t c, int len) -> uint32_t {
+            uint32_t r = 0;
+            for (int i = 0; i < len; ++i) {
+                if ((c >> (len - 1 - i)) & 1u) {
+                    r |= (1u << i);
+                }
+            }
+            return r;
+        };
+
+        // 6. 清空 node 池，构造根节点
+        huffmanTree->n_nodes = 0;
+        node root = new_node2(0, 0);  // t=0, c 暂时无意义
+        root->left  = nullptr;
+        root->right = nullptr;
+        treeRoot = root;
+
+        // 7. 对每个 symbol，根据 LSB 码字逐 bit 插入树
+        for (int s : symbols) {
+            int len = static_cast<int>(huffmanTree->cout[s]);
+
+            int msb_code = next_code[len]++;            // canonical MSB-first code
+            uint32_t lsb_code = reverse_len_bits(static_cast<uint32_t>(msb_code), len);
+
+            // 如果你希望 encode 端也用这套 canonical LSB 码字，可以顺便写回 code 数组：
+            huffmanTree->code[s] = static_cast<uint64_t>(lsb_code);
+
+            node cur = root;
+            for (int b = 0; b < len; ++b) {
+                int bit = (lsb_code >> b) & 1;
+                node &child = bit ? cur->right : cur->left;
+                if (!child) {
+                    child = new_node2(0, 0);
+                    child->left  = nullptr;
+                    child->right = nullptr;
+                }
+                cur = child;
+            }
+            // 走完 len 个 bit，cur 即为叶子节点
+            cur->t = 1;
+            cur->c = static_cast<T>(s);
+        }
+
+        // 至此 treeRoot 就是一棵完整的 Huffman 树，
+        // decode 可以按 LSB-first 从 bitstream 里取 bit，并沿着 0/1 走树。
     }
 
 
