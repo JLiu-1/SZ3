@@ -229,50 +229,37 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
         read(encodedLength, bytes);
 
         node n = root;
-        if (n->t) {  // root->t==1 表示只有一个符号（常数）
+        if (n->t) {  // 常数树：根就是叶子
             T val = n->c + offset;
             for (size_t i = 0; i < targetLength; ++i) {
                 out[i] = val;
             }
-            bytes += encodedLength;  // 跳过 bitstream
+            // 跳过 bitstream
+            bytes += encodedLength;
             return out;
         }
 
-        const uchar *p      = bytes;         // 指向 bitstream 起始位置
-        const uchar *p_end  = bytes + encodedLength;
+        const uchar *p     = bytes;
+        const uchar *p_end = bytes + encodedLength;
 
-        uint64_t bitbuf = 0;   // LSB-first bit buffer
-        unsigned nbits  = 0;   // 当前 buffer 中可用 bit 数
+        while (p < p_end && count < targetLength) {
+            unsigned char byte = *p++;   // 当前字节，LSB-first
 
-        // 主循环：一直解到 output 填满或 bit 用光
-        while (count < targetLength) {
-            // 如果 buffer 中 bit 不足，就从字节流里补充
-            while (nbits < 1) {
-                if (p >= p_end) {
-                    // bit 用光了，按道理不应该发生（除非 bitstream 被截断）
-                    bytes = p_end;
-                    return out;
+            // 这个字节里最多有 8 个 bit 可用
+            for (int b = 0; b < 8 && count < targetLength; ++b) {
+                int bit = byte & 1u;
+                byte >>= 1;
+
+                n = bit ? n->right : n->left;
+
+                if (n->t) {
+                    out[count++] = n->c + offset;
+                    n = root;
                 }
-                // 读一个字节，放到 bitbuf 的高位，buffer 里增加 8 bit
-                bitbuf |= (uint64_t)(*p++) << nbits;
-                nbits  += 8;
-            }
-
-            // 取一个 bit（LSB-first）
-            int bit = (bitbuf & 1u) != 0;
-            bitbuf >>= 1;
-            --nbits;
-
-            // 沿 Huffman 树走
-            n = bit ? n->right : n->left;
-
-            if (n->t) {
-                out[count++] = n->c + offset;
-                n = root;
             }
         }
 
-        // 消费掉 encodedLength 个字节
+        // 消费掉整个 bitstream
         bytes = p_end;
         return out;
     }
