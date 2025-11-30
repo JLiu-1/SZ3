@@ -142,48 +142,43 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
         return encode(bins.data(), bins.size(), bytes);
     }
 
-    // perform encoding
     size_t encode(const T *bins, size_t num_bin, uchar *&bytes) {
-        uchar *out_begin = bytes + sizeof(size_t);
+        uchar *out_begin = bytes + sizeof(size_t);  // 留出空间写长度
         uchar *p = out_begin;
 
-        uint64_t bitbuf = 0;   // LSB-first bit buffer
-        unsigned nbits = 0;    // 当前 buffer 中已有多少 bit（低位开始）
+        uint64_t bitbuf = 0;     // LSB-first bit buffer
+        unsigned nbits  = 0;     // 当前 buffer 中已有的 bit 数（低位开始）
 
-        uint64_t *code = huffmanTree->code;
-        unsigned char *len = huffmanTree->cout;
+        uint64_t      *code = huffmanTree->code;
+        unsigned char *len  = huffmanTree->cout;
 
         for (size_t i = 0; i < num_bin; ++i) {
             int state = bins[i] - offset;
-            assert(state >= 0 && static_cast<unsigned>(state) < huffmanTree->stateNum);
+            // debug 期可以留个保护
+            // assert(state >= 0 && static_cast<unsigned>(state) < huffmanTree->stateNum);
 
-            uint64_t c = code[state];        // 低 len[state] bits 有效
-            unsigned l = len[state];
+            uint64_t c = code[state];   // 低 len[state] bits 有效
+            unsigned  l = len[state];
 
-            // 把当前码字的 bits 追加到 bitbuf 的高位（但表示成 LSB-first）
-            // bitbuf = [低位是先来的 bit，逐渐往高位堆]
             bitbuf |= (c << nbits);
             nbits  += l;
 
-            // 每凑够 8 bit，输出一个字节
+            // 每有至少 8 个 bit，就吐出一个字节（LSB-first）
             while (nbits >= 8) {
-                unsigned char byte = static_cast<unsigned char>(bitbuf & 0xFFu);
-                // 反转 bit 顺序，让存入字节是 MSB-first
-                *p++ = reverse8(byte);
+                *p++ = static_cast<uchar>(bitbuf & 0xFFu);
                 bitbuf >>= 8;
                 nbits  -= 8;
             }
         }
 
-        // 剩余不到 8 bit 的部分，也输出一个字节
+        // 剩余不到 8 bit 的部分，也吐一个字节（高位填 0）
         if (nbits > 0) {
-            unsigned char byte = static_cast<unsigned char>(bitbuf & 0xFFu);
-            *p++ = reverse8(byte);
+            *p++ = static_cast<uchar>(bitbuf & 0xFFu);
         }
 
         size_t outSize = static_cast<size_t>(p - out_begin);
-        write(outSize, bytes);      // 保留原来的长度写入方式
-        bytes += outSize;           // 移动到 bitstream 末尾
+        write(outSize, bytes);   // 在 bytes 头部写出 bitstream 的字节数
+        bytes += outSize;        // 移到 bitstream 末尾
         return outSize;
     }
 
@@ -229,7 +224,7 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
         std::vector<T> out(targetLength);
         size_t count = 0;
 
-        // 先读出 bitstream 的字节长度
+        // 先读出 bitstream 的长度（字节数）
         size_t encodedLength = 0;
         read(encodedLength, bytes);
 
@@ -239,53 +234,46 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
             for (size_t i = 0; i < targetLength; ++i) {
                 out[i] = val;
             }
-            // 注意：这里仍需把 bytes 向前挪 encodedLength 个字节，
-            //       虽然其实不会用到这些 bit
-            bytes += encodedLength;
+            bytes += encodedLength;  // 跳过 bitstream
             return out;
         }
 
-        const uchar *bitptr = bytes;     // 指向 bitstream 起始位置
-        size_t bytePos = 0;
-        size_t byteLimit = encodedLength;
+        const uchar *p      = bytes;         // 指向 bitstream 起始位置
+        const uchar *p_end  = bytes + encodedLength;
 
-        if (byteLimit == 0) {
-            // 理论上不应该出现：有 targetLength>0 但 encodedLength=0
-            return out;
-        }
+        uint64_t bitbuf = 0;   // LSB-first bit buffer
+        unsigned nbits  = 0;   // 当前 buffer 中可用 bit 数
 
-        uchar curByte = bitptr[0];
-        int bitsLeft = 8;
+        // 主循环：一直解到 output 填满或 bit 用光
+        while (count < targetLength) {
+            // 如果 buffer 中 bit 不足，就从字节流里补充
+            while (nbits < 1) {
+                if (p >= p_end) {
+                    // bit 用光了，按道理不应该发生（除非 bitstream 被截断）
+                    bytes = p_end;
+                    return out;
+                }
+                // 读一个字节，放到 bitbuf 的高位，buffer 里增加 8 bit
+                bitbuf |= (uint64_t)(*p++) << nbits;
+                nbits  += 8;
+            }
 
-        // 遍历 bit，直到解出 targetLength 个符号或者没有更多 bit
-        while (count < targetLength && bytePos < byteLimit) {
-            // 取当前字节的最高 bit（MSB-first）
-            int bit = (curByte & 0x80u) != 0;
-            curByte <<= 1;
-            --bitsLeft;
+            // 取一个 bit（LSB-first）
+            int bit = (bitbuf & 1u) != 0;
+            bitbuf >>= 1;
+            --nbits;
 
-            // 走 Huffman 树
+            // 沿 Huffman 树走
             n = bit ? n->right : n->left;
 
             if (n->t) {
-                // 叶子：输出符号并回到根
                 out[count++] = n->c + offset;
                 n = root;
-            }
-
-            // 当前字节 bit 用完了，读取下一个字节
-            if (bitsLeft == 0) {
-                ++bytePos;
-                if (bytePos >= byteLimit) {
-                    break;  // 没有更多 bit 了
-                }
-                curByte = bitptr[bytePos];
-                bitsLeft = 8;
             }
         }
 
         // 消费掉 encodedLength 个字节
-        bytes += encodedLength;
+        bytes = p_end;
         return out;
     }
 
@@ -520,8 +508,9 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
      * */
     void build_code(node n, uint64_t code_val, int len) {
         if (n->t) {
+            // 叶子：记录码字和长度
             assert(len <= 64);
-            huffmanTree->code[n->c] = code_val;                  // 低 len bit 有效
+            huffmanTree->code[n->c] = code_val;  // 低 len bits 有效
             huffmanTree->cout[n->c] = static_cast<unsigned char>(len);
             if (len > huffmanTree->maxBitCount) {
                 huffmanTree->maxBitCount = len;
@@ -529,8 +518,10 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
             return;
         }
 
+        // 左子树：追加一个 0 bit（code_val 不变），长度+1
         build_code(n->left, code_val, len + 1);
 
+        // 右子树：在第 len 位上置 1，再长度+1
         uint64_t code_right = code_val | (uint64_t(1) << len);
         build_code(n->right, code_right, len + 1);
     }
