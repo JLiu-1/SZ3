@@ -655,32 +655,7 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
         build_code(n->right, code_right, len + 1);
     }
 
-    void build_code_lengths(node n, int len) {
-    if (!n) return;
-
-    if (n->t) {
-        // 叶子节点：n->c 是 state index，len 是码长
-        assert(len > 0);  // 至少一位
-        assert(n->c >= 0 && static_cast<unsigned>(n->c) < huffmanTree->stateNum);
-
-        huffmanTree->cout[n->c] = static_cast<unsigned char>(len);
-        if (len > huffmanTree->maxBitCount) {
-            huffmanTree->maxBitCount = len;
-        }
-        return;
-    }
-
-    // 左子树：len + 1
-    if (n->left) {
-        build_code_lengths(n->left, len + 1);
-    }
-    // 右子树：len + 1
-    if (n->right) {
-        build_code_lengths(n->right, len + 1);
-    }
-}
-
-
+    
 
 
     void buildCanonicalCode() {
@@ -832,22 +807,10 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
             qinsert(new_node(0, 0, left, right));
         }
 
-        /*
+
         build_code(huffmanTree->qq[1], 0ULL, 0);
         treeRoot = huffmanTree->qq[1];
-        buildCanonicalCode();*/
-
-        node rawRoot = huffmanTree->qq[1];
-
-        // 4) 只用这棵树计算每个 state 的码长
-        huffmanTree->maxBitCount = 0;
-        memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
-        build_code_lengths(rawRoot, 0);
-
-        // 5) 利用码长表 cout[]：
-        //    5.1 为 encode 生成 canonical LSB 码字并写入 huffmanTree->code[state]
-        //    5.2 用 canonical LSB 码字重建一棵树，存入 treeRoot，给 decode 走树用
-        rebuildTreeFromCodeLengthsLSB();
+        buildCanonicalCode();
 
     }
 
