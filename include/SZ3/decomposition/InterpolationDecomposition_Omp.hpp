@@ -17,7 +17,6 @@
 #include "SZ3/utils/MemoryUtil.hpp"
 #include "SZ3/utils/Timer.hpp"
 #include "SZ3/utils/BlockwiseIterator.hpp"
-#include "SZ3/utils/libdivide.hpp"
 
 
 namespace SZ3 {
@@ -455,8 +454,6 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
                 }
                 ++level;
             }  
-            fast_divs.div0 = libdivide::divider<uint64_t>(original_dim_offsets[0]);
-            fast_divs.div1 = libdivide::divider<uint64_t>(original_dim_offsets[1]);
         }
     }
 
@@ -464,14 +461,15 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
         if constexpr (N!=3){
             return idx;
         }
-        const auto &d0 = fast_divs.div0;
-        const auto &d1 = fast_divs.div1;
+        const size_t dim0 = original_dim_offsets[0];
+        const size_t dim1 = original_dim_offsets[1];
 
-        size_t x = d0.divide(idx);
-        size_t r = idx - x * original_dim_offsets[0];
+        // 拆 idx -> (x0, y0, z0)，每个 dim 只做一次除法
+        size_t x = idx / dim0;
+        size_t r  = idx - x * dim0;  // r = idx % dim0
 
-        size_t y = d1.divide(r);
-        size_t z = r - y * original_dim_offsets[1];
+        size_t y = r / dim1;
+        size_t z = r - y * dim1;    // z0 = r % dim1
 
        // size_t x = x0, y = y0, z = z0;
 
@@ -1380,13 +1378,6 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
 
     std::vector<size_t> level_prefix;
     std::vector<std::array<size_t,N> >reduced_dim_offsets;
-
-    struct FastDiv {
-    libdivide::divider<uint64_t> div0;
-    libdivide::divider<uint64_t> div1;
-    };
-
-    FastDiv fast_divs;
 
     
 };
