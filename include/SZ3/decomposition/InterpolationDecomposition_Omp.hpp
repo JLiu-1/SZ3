@@ -161,7 +161,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
                 }
                 interpolation(
                     dec_data, block.get_global_index(), end_idx, interpolators[interp_id],
-                    [&](const std::array<size_t,N>&idx_array,size_t idx, T &d, T pred, int level) { d += quantizer.recover(pred, quant_inds[index_mapping(idx_array,level)]);},// no need to use idx. the outliers will be unpacked separately (todo).
+                    [&](const std::array<size_t,N>&idx_array,size_t idx, T &d, T pred, int level) { d += quantizer.recover(pred, quant_inds[index_mapping(idx_array,idx,level)]);},// no need to use idx. the outliers will be unpacked separately (todo).
                     direction_sequence_id, stride);
             }
         }
@@ -277,7 +277,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
                     data, block.get_global_index(), end_idx, interpolators[interp_id],
                     [&](const std::array<size_t,N>&idx_array, size_t idx, T &d, T pred, int level) {
                         
-                        quant_inds[index_mapping(idx_array, level)] = (quantizer.quantize_and_overwrite(d, pred, idx));
+                        quant_inds[index_mapping(idx_array, idx,level)] = (quantizer.quantize_and_overwrite(d, pred, idx));
                        
                     },
                     direction_sequence_id, stride);
@@ -457,7 +457,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
         }
     }
 
-    ALWAYS_INLINE size_t index_mapping(const std::array<size_t,N>&idx_array, const int &level){
+    ALWAYS_INLINE size_t index_mapping(const std::array<size_t,N>&idx_array, const size_t &idx,const int &level){
         if constexpr (N!=3){
             return idx;
         }
@@ -694,8 +694,8 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
                 boundaries.push_back(n - 1);
             }
             for (auto boundary : boundaries) {
-                begins[direction] = math_begin_idx + boundary * math_strides;
-                ends[direction] = begins[direction] + math_strides;
+                begins[direction] = math_begin_idx + boundary * math_stride;
+                ends[direction] = begins[direction] + math_stride;
                 
                 foreach_omp //todo: this is infficient when direction = 0
                     <T, N>(data, 0, begins, ends, strides, dim_offsets, [&](T *d, const std::array<size_t,N> &idx) {
