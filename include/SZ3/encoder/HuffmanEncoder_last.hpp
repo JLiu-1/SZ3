@@ -114,28 +114,30 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
 
     // save the huffman Tree in the compressed data
     void save(uchar *&c) override {
-        // 写 offset
+        // auto cc = c;
         write(offset, c);
-
-        // 写 stateNum
-        int stateNum = static_cast<int>(huffmanTree->stateNum);
-        int32ToBytes_bigEndian(c, stateNum);
+        int32ToBytes_bigEndian(c, nodeCount);
         c += sizeof(int);
-
-        // 写最大码长（可选，但有用）
-        //unsigned char maxLen = static_cast<unsigned char>(canonMaxLen);
-        //*c++ = maxLen;
-
-        // 写每个 state 的码长（0 表示该 state 未使用）
-        for (int i = 0; i < stateNum; ++i) {
-            *c++ = huffmanTree->cout[i];
-        }
+        int32ToBytes_bigEndian(c, huffmanTree->stateNum / 2);
+        c += sizeof(int);
+        uint totalSize = 0;  // = convert_HuffTree_to_bytes_anyStates(nodeCount, c);
+        // std::cout << "nodeCount = " << nodeCount << std::endl;
+        if (nodeCount <= 256)
+            totalSize = convert_HuffTree_to_bytes_anyStates<unsigned char>(nodeCount, c);
+        else if (nodeCount <= 65536)
+            totalSize = convert_HuffTree_to_bytes_anyStates<unsigned short>(nodeCount, c);
+        else
+            totalSize = convert_HuffTree_to_bytes_anyStates<unsigned int>(nodeCount, c);
+        c += totalSize;
+        //            return c - cc;
     }
 
     size_t size_est() override {
-        // offset + stateNum(int) + maxLen(1 byte) + stateNum bytes of length
-        return sizeof(T) + sizeof(int) + 1 + huffmanTree->stateNum * sizeof(unsigned char);
-    }    
+        size_t b = (nodeCount <= 256) ? sizeof(unsigned char)
+                                      : ((nodeCount <= 65536) ? sizeof(unsigned short) : sizeof(unsigned int));
+        return 1 + 2 * nodeCount * b + nodeCount * sizeof(unsigned char) + nodeCount * sizeof(T) + sizeof(int) +
+               sizeof(int) + sizeof(T);
+    }
 
     // perform encoding
     size_t encode(const std::vector<T> &bins, uchar *&bytes) override {
@@ -144,42 +146,46 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
 
     // perform encoding
     size_t encode(const T *bins, size_t num_bin, uchar *&bytes) {
-        uchar *out_begin = bytes + sizeof(size_t);  // 留出空间写长度
+        uchar *out_begin = bytes + sizeof(size_t);
         uchar *p = out_begin;
 
-        uint64_t bitbuf = 0;     // LSB-first bit buffer
-        unsigned nbits  = 0;     // 当前 buffer 中已有的 bit 数（低位开始）
+        uint64_t bitbuf = 0;   // LSB-first bit buffer
+        unsigned nbits = 0;    // 当前 buffer 中已有多少 bit（低位开始）
 
-        uint64_t      *code = huffmanTree->code;
-        unsigned char *len  = huffmanTree->cout;
+        uint64_t *code = huffmanTree->code;
+        unsigned char *len = huffmanTree->cout;
 
         for (size_t i = 0; i < num_bin; ++i) {
             int state = bins[i] - offset;
-            // debug 期可以留个保护
-            // assert(state >= 0 && static_cast<unsigned>(state) < huffmanTree->stateNum);
+            assert(state >= 0 && static_cast<unsigned>(state) < huffmanTree->stateNum);
 
-            uint64_t c = code[state];   // 低 len[state] bits 有效
-            unsigned  l = len[state];
+            uint64_t c = code[state];        // 低 len[state] bits 有效
+            unsigned l = len[state];
 
+            // 把当前码字的 bits 追加到 bitbuf 的高位（但表示成 LSB-first）
+            // bitbuf = [低位是先来的 bit，逐渐往高位堆]
             bitbuf |= (c << nbits);
             nbits  += l;
 
-            // 每有至少 8 个 bit，就吐出一个字节（LSB-first）
+            // 每凑够 8 bit，输出一个字节
             while (nbits >= 8) {
-                *p++ = static_cast<uchar>(bitbuf & 0xFFu);
+                unsigned char byte = static_cast<unsigned char>(bitbuf & 0xFFu);
+                // 反转 bit 顺序，让存入字节是 MSB-first
+                *p++ = reverse8(byte);
                 bitbuf >>= 8;
                 nbits  -= 8;
             }
         }
 
-        // 剩余不到 8 bit 的部分，也吐一个字节（高位填 0）
+        // 剩余不到 8 bit 的部分，也输出一个字节
         if (nbits > 0) {
-            *p++ = static_cast<uchar>(bitbuf & 0xFFu);
+            unsigned char byte = static_cast<unsigned char>(bitbuf & 0xFFu);
+            *p++ = reverse8(byte);
         }
 
         size_t outSize = static_cast<size_t>(p - out_begin);
-        write(outSize, bytes);   // 在 bytes 头部写出 bitstream 的字节数
-        bytes += outSize;        // 移到 bitstream 末尾
+        write(outSize, bytes);      // 保留原来的长度写入方式
+        bytes += outSize;           // 移动到 bitstream 末尾
         return outSize;
     }
 
@@ -225,43 +231,63 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
         std::vector<T> out(targetLength);
         size_t count = 0;
 
-        // 先读出 bitstream 的长度（字节数）
+        // 先读出 bitstream 的字节长度
         size_t encodedLength = 0;
         read(encodedLength, bytes);
 
         node n = root;
-        if (n->t) {  // 常数树：根就是叶子
+        if (n->t) {  // root->t==1 表示只有一个符号（常数）
             T val = n->c + offset;
             for (size_t i = 0; i < targetLength; ++i) {
                 out[i] = val;
             }
-            // 跳过 bitstream
+            // 注意：这里仍需把 bytes 向前挪 encodedLength 个字节，
+            //       虽然其实不会用到这些 bit
             bytes += encodedLength;
             return out;
         }
 
-        const uchar *p     = bytes;
-        const uchar *p_end = bytes + encodedLength;
+        const uchar *bitptr = bytes;     // 指向 bitstream 起始位置
+        size_t bytePos = 0;
+        size_t byteLimit = encodedLength;
 
-        while (p < p_end && count < targetLength) {
-            unsigned char byte = *p++;   // 当前字节，LSB-first
+        if (byteLimit == 0) {
+            // 理论上不应该出现：有 targetLength>0 但 encodedLength=0
+            return out;
+        }
 
-            // 这个字节里最多有 8 个 bit 可用
-            for (int b = 0; b < 8 && count < targetLength; ++b) {
-                int bit = byte & 1u;
-                byte >>= 1;
+        uchar curByte = bitptr[0];
+        int bitsLeft = 8;
 
-                n = bit ? n->right : n->left;
+        // 遍历 bit，直到解出 targetLength 个符号或者没有更多 bit
+        while (count < targetLength && bytePos < byteLimit) {
+            // 取当前字节的最高 bit（MSB-first）
+            int bit = (curByte & 0x80u) != 0;
+            curByte <<= 1;
+            --bitsLeft;
 
-                if (n->t) {
-                    out[count++] = n->c + offset;
-                    n = root;
+            // 走 Huffman 树
+            n = bit ? n->right : n->left;
+
+            if (n->t) {
+                // 叶子：输出符号并回到根
+                out[count++] = n->c + offset;
+                n = root;
+            }
+
+            // 当前字节 bit 用完了，读取下一个字节
+            if (bitsLeft == 0) {
+                ++bytePos;
+                if (bytePos >= byteLimit) {
+                    break;  // 没有更多 bit 了
                 }
+                curByte = bitptr[bytePos];
+                bitsLeft = 8;
             }
         }
 
-        // 消费掉整个 bitstream
-        bytes = p_end;
+        // 消费掉 encodedLength 个字节
+        bytes += encodedLength;
         return out;
     }
 
@@ -270,42 +296,22 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
 
     // load Huffman tree
     void load(const uchar *&c, size_t &remaining_length) override {
-        // 读 offset
         read(offset, c, remaining_length);
+        nodeCount = bytesToInt32_bigEndian(c);
+        int stateNum = bytesToInt32_bigEndian(c + sizeof(int)) * 2;
+        size_t encodeStartIndex;
+        if (nodeCount <= 256)
+            encodeStartIndex = 1 + 3 * nodeCount * sizeof(unsigned char) + nodeCount * sizeof(T);
+        else if (nodeCount <= 65536)
+            encodeStartIndex =
+                1 + 2 * nodeCount * sizeof(unsigned short) + nodeCount * sizeof(unsigned char) + nodeCount * sizeof(T);
+        else
+            encodeStartIndex =
+                1 + 2 * nodeCount * sizeof(unsigned int) + nodeCount * sizeof(unsigned char) + nodeCount * sizeof(T);
 
-        // 读 stateNum
-        if (remaining_length < sizeof(int)) {
-            throw std::runtime_error("Huffman load: insufficient data for stateNum");
-        }
-        int stateNum = bytesToInt32_bigEndian(c);
-        c += sizeof(int);
-        remaining_length -= sizeof(int);
-
-        // 读 maxLen（其实可以不用，但我们存了就读回来）
-        /*
-        if (remaining_length < 1) {
-            throw std::runtime_error("Huffman load: insufficient data for maxLen");
-        }
-        unsigned char maxLen = *c++;
-        remaining_length -= 1;
-        (void)maxLen;  // 我们会重新计算一遍 maxLen，不过你也可以用它做 sanity check
-        */
-
-        // 分配 HuffmanTree
         huffmanTree = createHuffmanTree(stateNum);
-
-        // 读每个 state 的码长到 cout
-        if (remaining_length < (size_t)stateNum) {
-            throw std::runtime_error("Huffman load: insufficient data for code lengths");
-        }
-        for (int i = 0; i < stateNum; ++i) {
-            huffmanTree->cout[i] = *c++;
-        }
-        remaining_length -= (size_t)stateNum;
-
-        // 基于码长重建 canonical code + decode 表 + encode 用的 code[]
-          rebuildTreeFromCodeLengthsLSB();
-
+        treeRoot = reconstruct_HuffTree_from_bytes_anyStates(c + sizeof(int) + sizeof(int), nodeCount);
+        c += sizeof(int) + sizeof(int) + encodeStartIndex;
         loaded = true;
     }
 
@@ -530,75 +536,6 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
         uint64_t code_right = code_val | (uint64_t(1) << len);
         build_code(n->right, code_right, len + 1);
     }
-
-     void buildCanonicalCode() {
-        if (!huffmanTree) return;
-
-        const int n = static_cast<int>(huffmanTree->stateNum);
-
-        // 1. 收集所有出现过的 state（cout[state] > 0）
-        std::vector<int> symbols;
-        symbols.reserve(n);
-        int maxLen = 0;
-        for (int s = 0; s < n; ++s) {
-            unsigned char L = huffmanTree->cout[s];
-            if (L > 0) {
-                symbols.push_back(s);
-                if (L > maxLen) maxLen = static_cast<int>(L);
-            }
-        }
-        if (symbols.empty()) return;  // safety
-
-        // 2. 按 (len, symbol) 排序
-        std::sort(symbols.begin(), symbols.end(),
-                  [&](int a, int b) {
-                      unsigned char la = huffmanTree->cout[a];
-                      unsigned char lb = huffmanTree->cout[b];
-                      if (la != lb) return la < lb;
-                      return a < b;
-                  });
-
-        // 3. 统计每个长度的数量 bl_count[L]
-        std::vector<int> bl_count(maxLen + 1, 0);
-        for (int s : symbols) {
-            unsigned char L = huffmanTree->cout[s];
-            ++bl_count[L];
-        }
-
-        // 4. 计算各长度的第一个 canonical code（MSB-first）
-        std::vector<uint32_t> next_code(maxLen + 1, 0);
-        uint32_t code = 0;
-        bl_count[0] = 0;
-        for (int bits = 1; bits <= maxLen; ++bits) {
-            code = (code + bl_count[bits - 1]) << 1;
-            next_code[bits] = code;
-        }
-
-        // 5. 为每个 symbol 分配 canonical 码字，并转为 LSB-first 存储
-        auto reverse_len_bits = [](uint32_t c, int len) -> uint32_t {
-            uint32_t r = 0;
-            for (int i = 0; i < len; ++i) {
-                if ((c >> (len - 1 - i)) & 1u) {
-                    r |= (1u << i);
-                }
-            }
-            return r;
-        };
-
-        for (int s : symbols) {
-            int len = static_cast<int>(huffmanTree->cout[s]);
-            uint32_t msb_code = next_code[len]++;
-            uint32_t lsb_code = reverse_len_bits(msb_code, len);
-            huffmanTree->code[s] = static_cast<uint64_t>(lsb_code);
-        }
-
-        // maxBitCount 直接用 maxLen 即可（和原始 build_code 的 maxBitCount 一致）
-        huffmanTree->maxBitCount = maxLen;
-       // canonMaxLen = maxLen;
-        //canonReady = true;
-    }
-
-
     /**
      * Compute the frequency of the data and build the Huffman tree
      * @param HuffmanTree* huffmanTree (output)
@@ -724,7 +661,6 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
 
         build_code(huffmanTree->qq[1], 0ULL, 0);
         treeRoot = huffmanTree->qq[1];
-        buildCanonicalCode();
     }
 
     template <class T1>
@@ -765,102 +701,6 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
         }
     }
 
-     void rebuildTreeFromCodeLengthsLSB() {
-        if (!huffmanTree) return;
-
-        const int n = static_cast<int>(huffmanTree->stateNum);
-
-        // 1. 收集所有用到的 state（length > 0），并统计 min/maxLen
-        std::vector<int> symbols;
-        symbols.reserve(n);
-        int maxLen = 0;
-        for (int s = 0; s < n; ++s) {
-            unsigned char L = huffmanTree->cout[s];
-            if (L > 0) {
-                symbols.push_back(s);
-                if (L > maxLen) maxLen = static_cast<int>(L);
-            }
-        }
-        if (symbols.empty()) {
-            treeRoot = nullptr;
-            return;
-        }
-
-        // 2. canonical 排序：先按长度，再按 state index
-        std::sort(symbols.begin(), symbols.end(),
-                  [&](int a, int b) {
-                      unsigned char la = huffmanTree->cout[a];
-                      unsigned char lb = huffmanTree->cout[b];
-                      if (la != lb) return la < lb;
-                      return a < b;
-                  });
-
-        // 3. 统计每个长度的数量 bl_count[L]
-        std::vector<int> bl_count(maxLen + 1, 0);
-        for (int s : symbols) {
-            unsigned char L = huffmanTree->cout[s];
-            ++bl_count[static_cast<int>(L)];
-        }
-
-        // 4. 计算各长度的第一个 canonical code（MSB-first 整数）
-        std::vector<int> next_code(maxLen + 1, 0);
-        int code = 0;
-        bl_count[0] = 0;
-        for (int bits = 1; bits <= maxLen; ++bits) {
-            code = (code + bl_count[bits - 1]) << 1;
-            next_code[bits] = code;
-        }
-
-        // 5. 工具：把 MSB-first 的 canonical 整数码反转成 LSB-first
-        auto reverse_len_bits = [](uint32_t c, int len) -> uint32_t {
-            uint32_t r = 0;
-            for (int i = 0; i < len; ++i) {
-                if ((c >> (len - 1 - i)) & 1u) {
-                    r |= (1u << i);
-                }
-            }
-            return r;
-        };
-
-        // 6. 清空 node 池，构造根节点
-        huffmanTree->n_nodes = 0;
-        node root = new_node2(0, 0);  // t=0, c 暂时无意义
-        root->left  = nullptr;
-        root->right = nullptr;
-        treeRoot = root;
-
-        // 7. 对每个 symbol，根据 LSB 码字逐 bit 插入树
-        for (int s : symbols) {
-            int len = static_cast<int>(huffmanTree->cout[s]);
-
-            int msb_code = next_code[len]++;            // canonical MSB-first code
-            uint32_t lsb_code = reverse_len_bits(static_cast<uint32_t>(msb_code), len);
-
-            // 如果你希望 encode 端也用这套 canonical LSB 码字，可以顺便写回 code 数组：
-            huffmanTree->code[s] = static_cast<uint64_t>(lsb_code);
-
-            node cur = root;
-            for (int b = 0; b < len; ++b) {
-                int bit = (lsb_code >> b) & 1;
-                node &child = bit ? cur->right : cur->left;
-                if (!child) {
-                    child = new_node2(0, 0);
-                    child->left  = nullptr;
-                    child->right = nullptr;
-                }
-                cur = child;
-            }
-            // 走完 len 个 bit，cur 即为叶子节点
-            cur->t = 1;
-            cur->c = static_cast<T>(s);
-        }
-
-        // 至此 treeRoot 就是一棵完整的 Huffman 树，
-        // decode 可以按 LSB-first 从 bitstream 里取 bit，并沿着 0/1 走树。
-    }
-
-    
-
     template <class T1>
     unsigned int convert_HuffTree_to_bytes_anyStates(unsigned int nodeCount, unsigned char *out) {
         T1 *L = static_cast<T1 *>(malloc(nodeCount * sizeof(T1)));
@@ -891,26 +731,26 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
     }
 
     void SZ_FreeHuffman() {
-        if (huffmanTree != nullptr) {
-            free(huffmanTree->pool);
-            huffmanTree->pool = nullptr;
+    if (huffmanTree != nullptr) {
+        free(huffmanTree->pool);
+        huffmanTree->pool = nullptr;
 
-            free(huffmanTree->qqq);
-            huffmanTree->qqq = nullptr;
+        free(huffmanTree->qqq);
+        huffmanTree->qqq = nullptr;
 
-            if (huffmanTree->code != nullptr) {
-                free(huffmanTree->code);
-                huffmanTree->code = nullptr;
-            }
-            if (huffmanTree->cout != nullptr) {
-                free(huffmanTree->cout);
-                huffmanTree->cout = nullptr;
-            }
-
-            free(huffmanTree);
-            huffmanTree = nullptr;
+        if (huffmanTree->code != nullptr) {
+            free(huffmanTree->code);
+            huffmanTree->code = nullptr;
         }
+        if (huffmanTree->cout != nullptr) {
+            free(huffmanTree->cout);
+            huffmanTree->cout = nullptr;
+        }
+
+        free(huffmanTree);
+        huffmanTree = nullptr;
     }
+}
 };
 }  // namespace SZ3
 
