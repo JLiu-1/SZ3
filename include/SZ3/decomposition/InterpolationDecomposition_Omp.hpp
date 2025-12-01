@@ -485,14 +485,12 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
             x >>= level;
             y >>= level;
             z >>= level;
-        }
+        }*/
 
         size_t reordered_idx =
             x * reduced_dim_offsets[level][0] +
             y * reduced_dim_offsets[level][1] +
             z;
-            */
-        size_t reordered_idx = 0;
             
         if (level < (unsigned)max_level) {
 
