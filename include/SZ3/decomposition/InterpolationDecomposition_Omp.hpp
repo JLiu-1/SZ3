@@ -664,7 +664,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
                 begins[direction] = ends[direction];
                 ends[direction] += math_stride;
                 foreach_omp //todo: this is infficient when direction = 0
-                    <T, N>(data, offset, begins, ends, strides, original_dim_offsets, [&](T *d, const std::array<size_t,N> &idx) {
+                    <T, N>(data, 0, begins, ends, strides, original_dim_offsets, [&](T *d, const std::array<size_t,N> &idx) {
                         if (n < 3)
                             quantize_func(idx, d-data, *d, *(d - stride),level);
                         else
@@ -698,7 +698,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
                 ends[direction] = begins[direction] + math_stride;
                 
                 foreach_omp //todo: this is infficient when direction = 0
-                    <T, N>(data, 0, begins, ends, strides, dim_offsets, [&](T *d, const std::array<size_t,N> &idx) {
+                    <T, N>(data, 0, begins, ends, strides, original_dim_offsets, [&](T *d, const std::array<size_t,N> &idx) {
                         if (boundary >= 3) {
                             if (boundary + 3 < n)
                                 quantize_func(
