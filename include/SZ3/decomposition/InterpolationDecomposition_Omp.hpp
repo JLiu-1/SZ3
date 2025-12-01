@@ -475,17 +475,24 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
 
         const int max_level = interp_level - 1;
         unsigned level = 0;
-        /*
         if (max_level > 0) {
-            unsigned tzx = x ? __builtin_ctzll(x) : 32;
-            unsigned tzy = y ? __builtin_ctzll(y) : 32;
-            unsigned tzz = z ? __builtin_ctzll(z) : 32;
-            level = std::min<unsigned>(max_level,
-                                            std::min(tzx, std::min(tzy, tzz)));
+            size_t v = x | y | z;
+
+            unsigned tz;
+            if (v != 0) {
+                // 注意：__builtin_ctzll 参数不能为 0
+                tz = static_cast<unsigned>(__builtin_ctzll(static_cast<unsigned long long>(v)));
+            } else {
+                return 0;
+            }
+
+            // level = min(max_level, tz)
+            level = (tz < max_level) ? tz : max_level;
+
             x >>= level;
             y >>= level;
             z >>= level;
-        }*/
+        }
 
         size_t reordered_idx =
             x * reduced_dim_offsets[level][0] +
