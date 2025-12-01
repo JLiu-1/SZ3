@@ -429,8 +429,8 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
         do {
             dim_sequences.push_back(sequence);
         } while (std::next_permutation(sequence.begin(), sequence.end()));
-
-        if(N==3){
+        /*
+        if constexpr (N==3){
        
             auto d_size = original_dimensions;
             reduced_dim_offsets.resize(interp_level );
@@ -454,7 +454,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
                 }
                 ++level;
             }  
-        }
+        }*/
          
 
 
@@ -1322,8 +1322,8 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
     T *interp_buffer_1,*interp_buffer_2,*interp_buffer_3,*interp_buffer_4,*pred_buffer;
     //std::vector<int> visited;
 
-    std::vector<size_t> level_prefix;
-    std::vector<std::array<size_t,N> >reduced_dim_offsets;
+    //std::vector<size_t> level_prefix;
+    //std::vector<std::array<size_t,N> >reduced_dim_offsets;
 
     
 };
