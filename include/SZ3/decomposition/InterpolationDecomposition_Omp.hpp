@@ -467,10 +467,10 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
         const auto &d0 = fast_divs.div0;
         const auto &d1 = fast_divs.div1;
 
-        size_t x = libdivide::divide(idx, d0);
+        size_t x = d0.divide(idx);
         size_t r = idx - x * original_dim_offsets[0];
 
-        size_t y = libdivide::divide(r, d1);
+        size_t y = d1.divide(r);
         size_t z = r - y * original_dim_offsets[1];
 
        // size_t x = x0, y = y0, z = z0;
