@@ -461,9 +461,15 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
         if constexpr (N!=3){
             return idx;
         }
-        size_t x0 = idx / original_dim_offsets[0];
-        idx = idx % original_dim_offsets[0];
-        size_t y0 = idx / original_dim_offsets[1], z0 = idx % original_dim_offsets[1];
+        const size_t dim0 = original_dim_offsets[0];
+        const size_t dim1 = original_dim_offsets[1];
+
+        // 拆 idx -> (x0, y0, z0)，每个 dim 只做一次除法
+        size_t x0 = idx / dim0;
+        size_t r  = idx - x0 * dim0;  // r = idx % dim0
+
+        size_t y0 = r / dim1;
+        size_t z0 = r - y0 * dim1;    // z0 = r % dim1
 
         size_t x = x0, y = y0, z = z0;
 
@@ -473,12 +479,11 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
             unsigned tzx = x ? __builtin_ctzll(x) : 32;
             unsigned tzy = y ? __builtin_ctzll(y) : 32;
             unsigned tzz = z ? __builtin_ctzll(z) : 32;
-            unsigned l = std::min<unsigned>(max_level,
+            level = std::min<unsigned>(max_level,
                                             std::min(tzx, std::min(tzy, tzz)));
-            level = l;
-            x >>= l;
-            y >>= l;
-            z >>= l;
+            x >>= level;
+            y >>= level;
+            z >>= level;
         }
 
         size_t reordered_idx =
@@ -490,8 +495,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
 
             size_t t0 = ((x + 1) >> 1) * reduced_dim_offsets[level + 1][0];
 
-            reordered_idx += level_prefix[level]
-                           - t0;
+            reordered_idx += level_prefix[level]- t0;
 
             if( (x & 1) == 0 ){
                 reordered_idx -= ((y + 1) >> 1) * reduced_dim_offsets[level + 1][1];
