@@ -162,6 +162,11 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
         return sizeof(T) + sizeof(int) + 1 + huffmanTree->stateNum * sizeof(unsigned char);
     }    
 
+    size_t size_est_without_init() override {
+        // offset + stateNum(int) + maxLen(1 byte) + stateNum bytes of length
+        return sizeof(T) + sizeof(int) + 1 + 65536 * sizeof(unsigned char);
+    }   
+
     // perform encoding
     size_t encode(const std::vector<T> &bins, uchar *&bytes) override {
         return encode(bins.data(), bins.size(), bytes);

@@ -41,19 +41,36 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
         if (decomposition.get_out_range().first != 0) {
             throw std::runtime_error("The output range of the decomposition must start from 0 for this compressor");
         }
-        encoder.preprocess_encode(quant_inds, decomposition.get_out_range().second);
+       
         size_t bufferSize = std::max<size_t>(
-            1000, 1.2 * (decomposition.size_est() + encoder.size_est() + sizeof(T) * quant_inds.size()));
+            1000, 1.2 * (decomposition.size_est() + encoder.size_est_without_init() + sizeof(T) * quant_inds.size()));
 
         auto buffer = static_cast<uchar *>(malloc(bufferSize));
         uchar *buffer_pos = buffer;
 
         decomposition.save(buffer_pos);
-        encoder.save(buffer_pos);
+        
 
         //store the size of quant_inds is necessary as it is not always equal to conf.num
-        write<size_t>(quant_inds.size(), buffer_pos);
-        encoder.encode(quant_inds, buffer_pos);
+        size_t quant_inds_size = quant_inds.size();
+
+
+        write<size_t>(quant_inds_size, buffer_pos);
+
+        size_t quant_inds_size_one_eighth = quant_inds_size / 8;
+
+        //auto buffer_pos_start = buffer_pos;
+        //buffer_pos += sizeof(size_t);
+        auto quant_inds_pos = quant_inds.data(); 
+
+
+        encoder.preprocess_encode(quant_inds_pos,quant_inds_size_one_eighth, decomposition.get_out_range().second);
+        encoder.save(buffer_pos);
+        encoder.encode(quant_inds_pos,quant_inds_size_one_eighth, buffer_pos);
+        encoder.postprocess_encode();
+        encoder.preprocess_encode(quant_inds_pos+quant_inds_size_one_eighth, quant_inds_size-quant_inds_size_one_eighth, decomposition.get_out_range().second);
+        encoder.save(buffer_pos);
+        encoder.encode(quant_inds_pos+quant_inds_size_one_eighth, quant_inds_size-quant_inds_size_one_eighth, buffer_pos);
         encoder.postprocess_encode();
         
         auto cmpSize = lossless.compress(buffer, buffer_pos - buffer, cmpData, cmpCap);
@@ -70,14 +87,28 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
         uchar const *bufferPos = buffer;
 
         decomposition.load(bufferPos, bufferSize);
-        encoder.load(bufferPos, bufferSize);
+      
 
         size_t quant_inds_size = 0;
         read(quant_inds_size, bufferPos);
-        auto quant_inds = encoder.decode(bufferPos, quant_inds_size);
+        size_t quant_inds_size_one_eighth = quant_inds_size / 8;
+
+        encoder.load(bufferPos, bufferSize);
+
+        auto quant_inds = encoder.decode(bufferPos, quant_inds_size_one_eighth);
         encoder.postprocess_decode();
 
+        encoder.load(bufferPos, bufferSize);
+
+        auto quant_inds_2 = encoder.decode(bufferPos, quant_inds_size - quant_inds_size_one_eighth);
+        encoder.postprocess_decode();
+
+
         free(buffer);
+        quant_inds.reserve(quant_inds_size);
+        quant_inds.insert(quant_inds.end(),std::make_move_iterator(quant_inds_2.begin()),std::make_move_iterator(quant_inds_2.end()));
+
+
 
         decomposition.decompress(conf, quant_inds, decData);
         return decData;
