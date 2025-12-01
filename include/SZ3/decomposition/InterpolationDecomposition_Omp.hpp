@@ -643,7 +643,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
         double predict_error = 0.0;
         size_t offset = 0;
         size_t stride = math_stride * original_dim_offsets[direction];
-        std::array<size_t, N> begins = begin_idx, ends = end_idx, dim_offsets;
+        std::array<size_t, N> begins = begin_idx, ends = end_idx;
         /*
         for (size_t i = 0; i < N; ++i) {
             begins[i] = 0;

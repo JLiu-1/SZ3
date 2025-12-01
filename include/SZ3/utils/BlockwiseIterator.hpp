@@ -327,21 +327,18 @@ template <class T, uint N, typename Func>
 ALWAYS_INLINE void foreach_omp (T *data, size_t offset, const std::array<size_t, N> &begins,
                             const std::array<size_t, N> &ends, const std::array<size_t, N> &strides,
                             const std::array<size_t, N> &dim_offsets, Func && func) {
-    
     if constexpr (N == 1) {
         #pragma omp parallel for
         for (size_t i = begins[0]; i < ends[0]; i += strides[0]) {
-            std::array<size_t,N> idx = {i};
             T *d = data + offset + i * dim_offsets[0];
-            func(d,idx);
+            func(d);
         }
     } else if constexpr (N == 2) {
         #pragma omp parallel for collapse(2)
         for (size_t i = begins[0]; i < ends[0]; i += strides[0]) {
             for (size_t j = begins[1]; j < ends[1]; j += strides[1]) {
-                std::array<size_t,N> idx = {i,j};
                 T *d = data + offset + i * dim_offsets[0] + j * dim_offsets[1];
-                func(d,idx);
+                func(d);
             }
         }
     } else if constexpr (N == 3) {
@@ -349,10 +346,8 @@ ALWAYS_INLINE void foreach_omp (T *data, size_t offset, const std::array<size_t,
         for (size_t i = begins[0]; i < ends[0]; i += strides[0]) {
             for (size_t j = begins[1]; j < ends[1]; j += strides[1]) {
                 for (size_t k = begins[2]; k < ends[2]; k += strides[2]) {
-                    std::array<size_t,N> idx = {i,j,k};
-
                     T *d = data + offset + i * dim_offsets[0] + j * dim_offsets[1] + k * dim_offsets[2];
-                    func(d,idx);
+                    func(d);
                 }
             }
         }
@@ -362,11 +357,9 @@ ALWAYS_INLINE void foreach_omp (T *data, size_t offset, const std::array<size_t,
             for (size_t j = begins[1]; j < ends[1]; j += strides[1]) {
                 for (size_t k = begins[2]; k < ends[2]; k += strides[2]) {
                     for (size_t l = begins[3]; l < ends[3]; l += strides[3]) {
-                        std::array<size_t,N> idx = {i,j,k,l};
-
                         T *d = data + offset + i * dim_offsets[0] + j * dim_offsets[1] + k * dim_offsets[2] +
                                l * dim_offsets[3];
-                        func(d,idx);
+                        func(d);
                     }
                 }
             }
