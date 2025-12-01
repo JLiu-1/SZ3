@@ -470,7 +470,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
 
         size_t y = r / dim1;
         size_t z = r - y * dim1;    // z0 = r % dim1
-        return x * reduced_dim_offsets[0][0] + y * reduced_dim_offsets[0][1] + z; 
+       // return x * original_dim_offsets[0] + y * original_dim_offsets[1] + z; 
        // size_t x = x0, y = y0, z = z0;
 
         const int max_level = interp_level - 1;
@@ -490,7 +490,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
             x * reduced_dim_offsets[level][0] +
             y * reduced_dim_offsets[level][1] +
             z;
-
+            /*
         if (level < (unsigned)max_level) {
 
             size_t t0 = ((x + 1) >> 1) * reduced_dim_offsets[level + 1][0];
@@ -505,12 +505,14 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
             }
 
             
-          /*
+         
+        }*/
+
+         /*
             reordered_idx += level_prefix[level]
                            - t0
                            - ((x % 2 == 0) ? t1 : 0)
                            - ((x % 2 == 0 && y % 2 == 0) ? t2 : 0);*/
-        }
         return reordered_idx;
     }
 
