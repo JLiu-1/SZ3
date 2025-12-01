@@ -470,7 +470,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
 
         size_t y = r / dim1;
         size_t z = r - y * dim1;    // z0 = r % dim1
-
+        return x * original_dim_offsets[0] + y * original_dim_offsets[1] + z; 
        // size_t x = x0, y = y0, z = z0;
 
         const int max_level = interp_level - 1;
