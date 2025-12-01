@@ -475,6 +475,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
 
         const int max_level = interp_level - 1;
         unsigned level = 0;
+        /*
         if (max_level > 0) {
             unsigned tzx = x ? __builtin_ctzll(x) : 32;
             unsigned tzy = y ? __builtin_ctzll(y) : 32;
@@ -490,7 +491,9 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
             x * reduced_dim_offsets[level][0] +
             y * reduced_dim_offsets[level][1] +
             z;
-            /*
+            */
+        size_t reordered_idx = 0;
+            
         if (level < (unsigned)max_level) {
 
             size_t t0 = ((x + 1) >> 1) * reduced_dim_offsets[level + 1][0];
@@ -506,7 +509,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
 
             
          
-        }*/
+        }
 
          /*
             reordered_idx += level_prefix[level]
