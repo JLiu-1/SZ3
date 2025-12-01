@@ -534,7 +534,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
         std::fill(strides.begin(), strides.end(), anchor_stride);
         foreach_omp
             <T, N>(data, 0, begins, original_dimensions, strides, original_dim_offsets,
-                   [&](T *d) { auto idx = d - data; quant_inds[idx] = quantizer.save_unpred( *d, idx);});
+                   [&](T *d,const std::array<size_t, N> idx_array) { auto idx = d - data; quant_inds[idx] = quantizer.save_unpred( *d, idx);});
     }
 
     void recover_anchor_grid(T *data) {  // recover anchor points. steplength: anchor_stride on each dimension
@@ -542,7 +542,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
         std::array<size_t, N> begins{0};
         std::fill(strides.begin(), strides.end(), anchor_stride);
         foreach_omp
-            <T, N>(data, 0, begins, original_dimensions, strides, original_dim_offsets, [&](T *d) {
+            <T, N>(data, 0, begins, original_dimensions, strides, original_dim_offsets, [&](T *d,const std::array<size_t, N> idx_array) {
                 *d = quantizer.recover_unpred(d - data);
                 //quant_index++;
             });
