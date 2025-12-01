@@ -40,27 +40,22 @@ class LinearQuantizerOMP : public concepts::QuantizerOMPInterface<T, int> {
     ALWAYS_INLINE int quantize_and_overwrite(T &data, T pred, size_t data_idx) override {
 
         T diff = data - pred;
-        int quant_index = std::llrint(diff * this->double_error_bound_reciprocal);
-        if (std::abs(quant_index) < this->radius ) {
+        int quant_index = static_cast<int>(std::nearbyint(diff * this->double_error_bound_reciprocal));
+        if (quant_index > -this->radius && quant_index < this->radius ) {
             //if (diff < 0) 
             //    quant_index = -quant_index;
+            //auto quant_index_shifted = this->radius + quant_index;
             T decompressed_data = pred + quant_index * this->double_error_bound;
-
-   
             // if data is NaN, the error is NaN, and NaN <= error_bound is false
-            if (fabs(decompressed_data - data) <= this->error_bound) {
+            T err = decompressed_data - data;
+            if (err >= -this->error_bound && err <= this->error_bound) {
                 data = decompressed_data;
-                
-               // auto quant_index_shifted = ;
-                
                 return this->radius + quant_index;
             } else {
-              
                 save_unpred(data, data_idx);
                 return 0;
             }
         } else {
-          
             save_unpred(data, data_idx);
             return 0;
         }
