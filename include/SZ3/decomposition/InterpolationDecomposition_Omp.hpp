@@ -479,12 +479,12 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
             size_t v = x | y | z;
 
             unsigned tz;
-            if (v != 0) {
+            //if (v != 0) {
                 // 注意：__builtin_ctzll 参数不能为 0
-                tz = static_cast<unsigned>(__builtin_ctzll(static_cast<unsigned long long>(v)));
-            } else {
-                return 0;
-            }
+                tz = static_cast<unsigned>(__builtin_ctzll(v));
+           // } else {
+            //    return 0;
+            //}
 
             // level = min(max_level, tz)
             level = (tz < max_level) ? tz : max_level;
