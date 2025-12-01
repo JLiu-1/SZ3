@@ -161,7 +161,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
                 }
                 interpolation(
                     dec_data, block.get_global_index(), end_idx, interpolators[interp_id],
-                    [&](size_t idx, T &d, T pred) { d += quantizer.recover(pred, quant_inds[index_mapping(idx)]);},// no need to use idx. the outliers will be unpacked separately (todo).
+                    [&](size_t idx, T &d, T pred, int level) { d += quantizer.recover(pred, quant_inds[index_mapping(idx,level)]);},// no need to use idx. the outliers will be unpacked separately (todo).
                     direction_sequence_id, stride);
             }
         }
@@ -275,9 +275,9 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
 
                 interpolation(
                     data, block.get_global_index(), end_idx, interpolators[interp_id],
-                    [&](size_t idx, T &d, T pred) {
+                    [&](size_t idx, T &d, T pred, int level) {
                         
-                        quant_inds[index_mapping(idx)] = (quantizer.quantize_and_overwrite(d, pred, idx));
+                        quant_inds[index_mapping(idx, level)] = (quantizer.quantize_and_overwrite(d, pred, idx));
                        
                     },
                     direction_sequence_id, stride);
@@ -457,7 +457,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
         }
     }
 
-    ALWAYS_INLINE size_t index_mapping(size_t idx){
+    ALWAYS_INLINE size_t index_mapping(size_t idx, const int &level){
         if constexpr (N!=3){
             return idx;
         }
@@ -473,14 +473,20 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
        // return x * original_dim_offsets[0] + y * original_dim_offsets[1] + z; 
        // size_t x = x0, y = y0, z = z0;
 
+
         const int max_level = interp_level - 1;
+
+        x >>= level;
+        y >>= level;
+        z >>= level;
+        /*
         unsigned level = 0;
         if (max_level > 0) {
             size_t v = x | y | z;
 
             unsigned tz;
             //if (v != 0) {
-                // 注意：__builtin_ctzll 参数不能为 0
+                // 注意：__builtin_ctzll 参数不能为 0, but we will not process idx in this function when it is 0 
                 tz = static_cast<unsigned>(__builtin_ctzll(v));
            // } else {
             //    return 0;
@@ -489,10 +495,8 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
             // level = min(max_level, tz)
             level = (tz < max_level) ? tz : max_level;
 
-            x >>= level;
-            y >>= level;
-            z >>= level;
-        }
+           
+        }*/
 
         size_t reordered_idx =
             x * reduced_dim_offsets[level][0] +
@@ -572,14 +576,14 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
             #pragma omp parallel for
             for (size_t i = 1; i < n - 1; i += 2) {
                 T *d = data + begin + i * stride;
-                quantize_func(d - data, *d, interp_linear(*(d - stride), *(d + stride)));
+                quantize_func(d - data, *d, interp_linear(*(d - stride), *(d + stride)),0);
             }
             if (n % 2 == 0) {
                 T *d = data + begin + (n - 1) * stride;
                 if (n < 4) {
-                    quantize_func(d - data, *d, *(d - stride));
+                    quantize_func(d - data, *d, *(d - stride),0);
                 } else {
-                    quantize_func(d - data, *d, interp_linear1(*(d - stride3x), *(d - stride)));
+                    quantize_func(d - data, *d, interp_linear1(*(d - stride3x), *(d - stride)),0);
                 }
             }
             // }
@@ -590,16 +594,16 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
             for (i = 3; i < n - 3; i += 2) {
                 d = data + begin + i * stride;
                 quantize_func(d - data, *d,
-                              interp_cubic(*(d - stride3x), *(d - stride), *(d + stride), *(d + stride3x)));
+                              interp_cubic(*(d - stride3x), *(d - stride), *(d + stride), *(d + stride3x)),0);
             }
             d = data + begin + stride;
-            quantize_func(d - data, *d, interp_quad_1(*(d - stride), *(d + stride), *(d + stride3x)));
+            quantize_func(d - data, *d, interp_quad_1(*(d - stride), *(d + stride), *(d + stride3x)),0);
 
             d = data + begin + i * stride;
-            quantize_func(d - data, *d, interp_quad_2(*(d - stride3x), *(d - stride), *(d + stride)));
+            quantize_func(d - data, *d, interp_quad_2(*(d - stride3x), *(d - stride), *(d + stride)),0);
             if (n % 2 == 0) {
                 d = data + begin + (n - 1) * stride;
-                quantize_func(d - data, *d, interp_quad_3(*(d - stride5x), *(d - stride3x), *(d - stride)));
+                quantize_func(d - data, *d, interp_quad_3(*(d - stride5x), *(d - stride3x), *(d - stride)),0);
             }
         }
 
@@ -630,6 +634,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
         }
         size_t math_begin_idx = begin_idx[direction], math_end_idx = end_idx[direction];
         size_t n = (math_end_idx - math_begin_idx) / math_stride + 1;
+        int level = __builtin_ctzll(math_stride);
         if (n <= 1) {
             return 0;
         }
@@ -651,16 +656,16 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
             strides[direction] = 2;
             foreach_omp
                 <T, N>(data, offset, begins, ends, strides, dim_offsets,
-                       [&](T *d) { quantize_func(d - data, *d, interp_linear(*(d - stride), *(d + stride))); });
+                       [&](T *d) { quantize_func(d - data, *d, interp_linear(*(d - stride), *(d + stride)),level); });
             if (n % 2 == 0) {
                 begins[direction] = n - 1;
                 ends[direction] = n;
                 foreach_omp //todo: this is infficient when direction = 0
                     <T, N>(data, offset, begins, ends, strides, dim_offsets, [&](T *d) {
                         if (n < 3)
-                            quantize_func(d - data, *d, *(d - stride));
+                            quantize_func(d - data, *d, *(d - stride),level);
                         else
-                            quantize_func(d - data, *d, interp_linear1(*(d - stride2x), *(d - stride)));
+                            quantize_func(d - data, *d, interp_linear1(*(d - stride2x), *(d - stride)),level);
                     });
             }
         } else {
@@ -672,7 +677,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
             foreach_omp 
                 <T, N>(data, offset, begins, ends, strides, dim_offsets, [&](T *d) {
                     quantize_func(d - data, *d,
-                                  interp_cubic(*(d - stride3x), *(d - stride), *(d + stride), *(d + stride3x)));
+                                  interp_cubic(*(d - stride3x), *(d - stride), *(d + stride), *(d + stride3x)),level);
             });
             std::vector<size_t> boundaries;
             boundaries.push_back(1);
@@ -695,23 +700,23 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
                             if (boundary + 3 < n)
                                 quantize_func(
                                     d - data, *d,
-                                    interp_cubic(*(d - stride3x), *(d - stride), *(d + stride), *(d + stride3x)));
+                                    interp_cubic(*(d - stride3x), *(d - stride), *(d + stride), *(d + stride3x)),level);
                             else if (boundary + 1 < n)
                                 quantize_func(d - data, *d,
-                                              interp_quad_2(*(d - stride3x), *(d - stride), *(d + stride)));
+                                              interp_quad_2(*(d - stride3x), *(d - stride), *(d + stride)),level);
                             else
-                                quantize_func(d - data, *d, interp_linear1(*(d - stride3x), *(d - stride)));
+                                quantize_func(d - data, *d, interp_linear1(*(d - stride3x), *(d - stride)),level);
                         } else {
                             if (boundary + 3 < n)
                                 quantize_func(d - data, *d,
-                                              interp_quad_1(*(d - stride), *(d + stride), *(d + stride3x)));
+                                              interp_quad_1(*(d - stride), *(d + stride), *(d + stride3x)),level);
                             
                             else if (boundary + 1 < n)
                                
-                                quantize_func(d - data, *d, interp_linear(*(d - stride), *(d + stride)));
+                                quantize_func(d - data, *d, interp_linear(*(d - stride), *(d + stride)),level);
                             
                             else
-                                quantize_func(d - data, *d, *(d - stride));
+                                quantize_func(d - data, *d, *(d - stride),level);
                             
                         }
                     });
@@ -873,6 +878,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
         for (size_t i = 0; i < N; ++i) {
             if (end_idx[i] < begin_idx[i]) return 0;
         }
+        int level = __builtin_ctzll(math_stride);
         size_t math_begin_idx = begin_idx[direction], math_end_idx = end_idx[direction];
         size_t n = (math_end_idx - math_begin_idx) / math_stride + 1;
         if (n <= 1) {
@@ -896,16 +902,16 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
             strides[direction] = 2;
             foreach_omp
                 <T, N>(data, offset, begins, ends, strides, dim_offsets,
-                       [&](T *d) { quantize_func(d - data, *d, interp_linear(*(d - stride), *(d + stride))); });
+                       [&](T *d) { quantize_func(d - data, *d, interp_linear(*(d - stride), *(d + stride)),level); });
             if (n % 2 == 0) {
                 begins[direction] = n - 1;
                 ends[direction] = n;
                 foreach_omp //todo: this is infficient when direction = 0
                     <T, N>(data, offset, begins, ends, strides, dim_offsets, [&](T *d) {
                         if (n < 3)
-                            quantize_func(d - data, *d, *(d - stride));
+                            quantize_func(d - data, *d, *(d - stride),level);
                         else
-                            quantize_func(d - data, *d, interp_linear1(*(d - stride2x), *(d - stride)));
+                            quantize_func(d - data, *d, interp_linear1(*(d - stride2x), *(d - stride)),level);
                     });
             }
         } else {
@@ -978,7 +984,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
                         auto d = data + cur_ij_offset + k;
                       // if (d-data < 0 || d-data>=num_elements)
                       //      std::cout<<i<<" "<<j<<" "<<k<<std::endl;
-                        quantize_func(d - data, *d,pred);
+                        quantize_func(d - data, *d,pred,level);
 
                     }
                     
@@ -1004,20 +1010,20 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
                             if (boundary + 3 < n)
                                 quantize_func(
                                     d - data, *d,
-                                    interp_cubic(*(d - stride3x), *(d - stride), *(d + stride), *(d + stride3x)));
+                                    interp_cubic(*(d - stride3x), *(d - stride), *(d + stride), *(d + stride3x)),level);
                             else if (boundary + 1 < n)
                                 quantize_func(d - data, *d,
-                                              interp_quad_2(*(d - stride3x), *(d - stride), *(d + stride)));
+                                              interp_quad_2(*(d - stride3x), *(d - stride), *(d + stride)),level);
                             else
-                                quantize_func(d - data, *d, interp_linear1(*(d - stride3x), *(d - stride)));
+                                quantize_func(d - data, *d, interp_linear1(*(d - stride3x), *(d - stride)),level);
                         } else {
                             if (boundary + 3 < n)
                                 quantize_func(d - data, *d,
-                                              interp_quad_1(*(d - stride), *(d + stride), *(d + stride3x)));
+                                              interp_quad_1(*(d - stride), *(d + stride), *(d + stride3x)),level);
                             else if (boundary + 1 < n)
-                                quantize_func(d - data, *d, interp_linear(*(d - stride), *(d + stride)));
+                                quantize_func(d - data, *d, interp_linear(*(d - stride), *(d + stride)),level);
                             else
-                                quantize_func(d - data, *d, *(d - stride));
+                                quantize_func(d - data, *d, *(d - stride),level);
                         }
                     });
             }
@@ -1031,6 +1037,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
                                               std::array<size_t, N> &strides, const size_t &math_stride,
                                               const std::string &interp_func, QuantizeFunc &&quantize_func) {
         assert(direction==1  && N==3);
+        int level = __builtin_ctzll(math_stride);
         for (size_t i = 0; i < N; ++i) {
             if (end_idx[i] < begin_idx[i]) return 0;
         }
@@ -1057,16 +1064,16 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
             strides[direction] = 2;
             foreach_omp
                 <T, N>(data, offset, begins, ends, strides, dim_offsets,
-                       [&](T *d) { quantize_func(d - data, *d, interp_linear(*(d - stride), *(d + stride))); });
+                       [&](T *d) { quantize_func(d - data, *d, interp_linear(*(d - stride), *(d + stride)),level); });
             if (n % 2 == 0) {
                 begins[direction] = n - 1;
                 ends[direction] = n;
                 foreach_omp
                     <T, N>(data, offset, begins, ends, strides, dim_offsets, [&](T *d) {
                         if (n < 3)
-                            quantize_func(d - data, *d, *(d - stride));
+                            quantize_func(d - data, *d, *(d - stride),level);
                         else
-                            quantize_func(d - data, *d, interp_linear1(*(d - stride2x), *(d - stride)));
+                            quantize_func(d - data, *d, interp_linear1(*(d - stride2x), *(d - stride)),level);
                     });
             }
         } else {
@@ -1139,7 +1146,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
                         auto d = data + cur_ij_offset + k;
                       // if (d-data < 0 || d-data>=num_elements)
                       //      std::cout<<i<<" "<<j<<" "<<k<<std::endl;
-                        quantize_func(d - data, *d, pred);
+                        quantize_func(d - data, *d, pred,level);
 
                     }
                     
@@ -1165,20 +1172,20 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
                             if (boundary + 3 < n)
                                 quantize_func(
                                     d - data, *d,
-                                    interp_cubic(*(d - stride3x), *(d - stride), *(d + stride), *(d + stride3x)));
+                                    interp_cubic(*(d - stride3x), *(d - stride), *(d + stride), *(d + stride3x)),level);
                             else if (boundary + 1 < n)
                                 quantize_func(d - data, *d,
-                                              interp_quad_2(*(d - stride3x), *(d - stride), *(d + stride)));
+                                              interp_quad_2(*(d - stride3x), *(d - stride), *(d + stride)),level);
                             else
-                                quantize_func(d - data, *d, interp_linear1(*(d - stride3x), *(d - stride)));
+                                quantize_func(d - data, *d, interp_linear1(*(d - stride3x), *(d - stride)),level);
                         } else {
                             if (boundary + 3 < n)
                                 quantize_func(d - data, *d,
-                                              interp_quad_1(*(d - stride), *(d + stride), *(d + stride3x)));
+                                              interp_quad_1(*(d - stride), *(d + stride), *(d + stride3x)),level);
                             else if (boundary + 1 < n)
-                                quantize_func(d - data, *d, interp_linear(*(d - stride), *(d + stride)));
+                                quantize_func(d - data, *d, interp_linear(*(d - stride), *(d + stride)),level);
                             else
-                                quantize_func(d - data, *d, *(d - stride));
+                                quantize_func(d - data, *d, *(d - stride),level);
                         }
                     });
             }
@@ -1193,6 +1200,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
                                               std::array<size_t, N> &strides, const size_t &math_stride,
                                               const std::string &interp_func, QuantizeFunc &&quantize_func) {
         assert(direction==2 && N==3);
+        int level = __builtin_ctzll(math_stride);
         for (size_t i = 0; i < N; ++i) {
             if (end_idx[i] < begin_idx[i]) return 0;
         }
@@ -1219,16 +1227,16 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
             strides[direction] = 2;
             foreach_omp
                 <T, N>(data, offset, begins, ends, strides, dim_offsets,
-                       [&](T *d) { quantize_func(d - data, *d, interp_linear(*(d - stride), *(d + stride))); });
+                       [&](T *d) { quantize_func(d - data, *d, interp_linear(*(d - stride), *(d + stride)),level); });
             if (n % 2 == 0) {
                 begins[direction] = n - 1;
                 ends[direction] = n;
                 foreach_omp
                     <T, N>(data, offset, begins, ends, strides, dim_offsets, [&](T *d) {
                         if (n < 3)
-                            quantize_func(d - data, *d, *(d - stride));
+                            quantize_func(d - data, *d, *(d - stride),level);
                         else
-                            quantize_func(d - data, *d, interp_linear1(*(d - stride2x), *(d - stride)));
+                            quantize_func(d - data, *d, interp_linear1(*(d - stride2x), *(d - stride)),level);
                     });
             }
         } else {
@@ -1261,7 +1269,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
                         auto d = data + cur_ij_offset + (2 * k + 1) * dim_offsets[2];
                       // if (d-data < 0 || d-data>=num_elements)
                       //      std::cout<<i<<" "<<j<<" "<<k<<std::endl;
-                        quantize_func(d - data, *d,pred);
+                        quantize_func(d - data, *d,pred,level);
 
                     }
                     
