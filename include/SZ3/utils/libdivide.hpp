@@ -679,7 +679,7 @@ static LIBDIVIDE_INLINE uint64_t libdivide_128_div_128_to_64(
     vfull = (vfull << 64) | v_lo;
     uint64_t res =  static_cast<uint64_t>(ufull / vfull);
     __uint128_t remainder = ufull - (vfull * res);
-    *r_lo =  static_cast<uint64_t>remainder;
+    *r_lo =  static_cast<uint64_t>(remainder);
     *r_hi =  static_cast<uint64_t>(remainder >> 64);
     return res;
 #else
@@ -961,7 +961,7 @@ static LIBDIVIDE_INLINE struct libdivide_u32_t libdivide_internal_u32_gen(
         // This power works if e < 2**floor_log_2_d.
         if (!branchfree && (e < (static_cast<uint32_t>(1) << floor_log_2_d))) {
             // This power works
-            more = static_cast<uint8_t>floor_log_2_d;
+            more = static_cast<uint8_t>(floor_log_2_d);
         } else {
             // We have to use the general 33-bit algorithm.  We need to compute
             // (2**power) / d. However, we already have (2**(power-1))/d and
@@ -1123,7 +1123,7 @@ static LIBDIVIDE_INLINE struct libdivide_u64_t libdivide_internal_u64_gen(
         // This power works if e < 2**floor_log_2_d.
         if (!branchfree && e < (static_cast<uint64_t>(1)  << floor_log_2_d)) {
             // This power works
-            more = static_cast<uint8_t>floor_log_2_d;
+            more = static_cast<uint8_t>(floor_log_2_d);
         } else {
             // We have to use the general 65-bit algorithm.  We need to compute
             // (2**power) / d. However, we already have (2**(power-1))/d and
@@ -1360,7 +1360,7 @@ static LIBDIVIDE_INLINE int16_t libdivide_s16_do_raw(int16_t numer, int16_t magi
         q = (q ^ sign) - sign;
         return q;
     } else {
-        uint16_t uq = (uint16_t)libdivide_mullhi_s16(numer, magic);
+        uint16_t uq = static_cast<uint16_t>(libdivide_mullhi_s16(numer, magic));
         if (more & LIBDIVIDE_ADD_MARKER) {
             // must be arithmetic shift and then sign extend
             int16_t sign = static_cast<int8_t>(more) >> 7;
@@ -1494,7 +1494,7 @@ static LIBDIVIDE_INLINE struct libdivide_s32_t libdivide_internal_s32_gen(
         }
 
         proposed_m += 1;
-        int32_t magic = static_cast<int32_t>proposed_m;
+        int32_t magic = static_cast<int32_t>(proposed_m);
 
         // Mark if we are negative. Note we only negate the magic number in the
         // branchfull case.
@@ -1533,7 +1533,7 @@ static LIBDIVIDE_INLINE int32_t libdivide_s32_do_raw(int32_t numer, int32_t magi
         q = (q ^ sign) - sign;
         return q;
     } else {
-        uint32_t uq = (uint32_t)libdivide_mullhi_s32(numer, magic);
+        uint32_t uq = static_cast<uint32_t>(libdivide_mullhi_s32(numer, magic));
         if (more & LIBDIVIDE_ADD_MARKER) {
             // must be arithmetic shift and then sign extend
             int32_t sign = static_cast<int8_t>(more)>> 7;
