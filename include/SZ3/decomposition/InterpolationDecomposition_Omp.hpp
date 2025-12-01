@@ -161,7 +161,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
                 }
                 interpolation(
                     dec_data, block.get_global_index(), end_idx, interpolators[interp_id],
-                    [&](size_t idx, T &d, T pred) { d += quantizer.recover(pred, quant_inds[idx]);},// no need to use idx. the outliers will be unpacked separately (todo).
+                    [&](size_t idx, T &d, T pred) { d += quantizer.recover(pred, quant_inds[index_mapping(idx)]);},// no need to use idx. the outliers will be unpacked separately (todo).
                     direction_sequence_id, stride);
             }
         }
@@ -277,7 +277,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
                     data, block.get_global_index(), end_idx, interpolators[interp_id],
                     [&](size_t idx, T &d, T pred) {
                         
-                        quant_inds[idx] = (quantizer.quantize_and_overwrite(d, pred, idx));
+                        quant_inds[index_mapping(idx)] = (quantizer.quantize_and_overwrite(d, pred, idx));
                        
                     },
                     direction_sequence_id, stride);
@@ -430,7 +430,7 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
             dim_sequences.push_back(sequence);
         } while (std::next_permutation(sequence.begin(), sequence.end()));
 
-        if(N==3){
+        if constexpr (N==3){
        
             auto d_size = original_dimensions;
             reduced_dim_offsets.resize(interp_level );
@@ -455,9 +455,59 @@ class InterpolationDecomposition_OMP : public concepts::DecompositionInterface<T
                 ++level;
             }  
         }
-         
+    }
 
+    ALWAYS_INLINE size_t index_mapping(size_t idx){
+        if constexpr (N!=3){
+            return idx;
+        }
+        size_t x0 = idx / original_dim_offsets[0];
+        idx = idx % original_dim_offsets[0];
+        size_t y0 = idx / original_dim_offsets[1], z0 = idx % original_dim_offsets[1];
 
+        size_t x = x0, y = y0, z = z0;
+
+        const int max_level = interp_level - 1;
+        unsigned level = 0;
+        if (max_level > 0) {
+            unsigned tzx = x ? __builtin_ctzll(x) : 32;
+            unsigned tzy = y ? __builtin_ctzll(y) : 32;
+            unsigned tzz = z ? __builtin_ctzll(z) : 32;
+            unsigned l = std::min<unsigned>(max_level,
+                                            std::min(tzx, std::min(tzy, tzz)));
+            level = l;
+            x >>= l;
+            y >>= l;
+            z >>= l;
+        }
+
+        size_t reordered_idx =
+            x * reduced_dim_offsets[level][0] +
+            y * reduced_dim_offsets[level][1] +
+            z;
+
+        if (level < (unsigned)max_level) {
+
+            size_t t0 = ((x + 1) >> 1) * reduced_dim_offsets[level + 1][0];
+
+            reordered_idx += level_prefix[level]
+                           - t0;
+
+            if( (x & 1) == 0 ){
+                reordered_idx -= ((y + 1) >> 1) * reduced_dim_offsets[level + 1][1];
+                if( (y & 1) == 0){
+                    reordered_idx -= ((z + 1) >> 1);
+                }
+            }
+
+            
+          /*
+            reordered_idx += level_prefix[level]
+                           - t0
+                           - ((x % 2 == 0) ? t1 : 0)
+                           - ((x % 2 == 0 && y % 2 == 0) ? t2 : 0);*/
+        }
+        return reordered_idx;
     }
 
     void build_anchor_grid(T *data) {  // store anchor points. steplength: anchor_stride on each dimension 
