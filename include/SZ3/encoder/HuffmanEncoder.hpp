@@ -139,9 +139,9 @@ class HuffmanEncoder : public concepts::EncoderInterface<T> {
         write(offset, c);
 
         // 写 stateNum
-        std::cout<<offset<<std::endl;
+       // std::cout<<offset<<std::endl;
         int stateNum = static_cast<int>(huffmanTree->stateNum);
-         std::cout<<stateNum<<std::endl;
+        // std::cout<<stateNum<<std::endl;
         int32ToBytes_bigEndian(c, stateNum);
         c += sizeof(int);
 
@@ -151,11 +151,8 @@ class HuffmanEncoder : public concepts::EncoderInterface<T> {
 
         // 写每个 state 的码长（0 表示该 state 未使用）
         for (int i = 0; i < stateNum; ++i) {
-            if(i%10000==0)
-                std::cout<<(int)huffmanTree->cout[i]<<std::endl;
             *c++ = huffmanTree->cout[i];
         }
-          std::cout<<(int)huffmanTree->cout[stateNum-1]<<std::endl;
     }
 
     /*
@@ -399,7 +396,7 @@ class HuffmanEncoder : public concepts::EncoderInterface<T> {
         // 读 offset
         read(offset, c, remaining_length);
 
-        std::cout<<offset<<std::endl;
+       // std::cout<<offset<<std::endl;
 
         // 读 stateNum
         if (remaining_length < sizeof(int)) {
@@ -407,7 +404,7 @@ class HuffmanEncoder : public concepts::EncoderInterface<T> {
         }
         int stateNum = bytesToInt32_bigEndian(c);
 
-        std::cout<<stateNum<<std::endl;
+       // std::cout<<stateNum<<std::endl;
         c += sizeof(int);
         remaining_length -= sizeof(int);
 
@@ -430,10 +427,7 @@ class HuffmanEncoder : public concepts::EncoderInterface<T> {
         }
         for (int i = 0; i < stateNum; ++i) {
             huffmanTree->cout[i] = *c++;
-              if(i%10000==0)
-                std::cout<<(int)huffmanTree->cout[i]<<std::endl;
         }
-         std::cout<<(int)huffmanTree->cout[stateNum-1]<<std::endl;
         remaining_length -= (size_t)stateNum;
 
         // ====== 新增：检查有多少个 state 的长度 > 0 ======
