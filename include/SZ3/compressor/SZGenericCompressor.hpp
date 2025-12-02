@@ -230,7 +230,7 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
              uchar *buffer = nullptr;
             size_t bufferSize = 0;
             cmpSize -= cmpDataPos - cmpData;
-             std::cout<<cmpData_pos - cmpData<<std::endl;
+             std::cout<<cmpDataPos - cmpData<<std::endl;
             std::cout<<cmpSize<<std::endl;
             writefile("zstdtest.dec",cmpDataPos, cmpSize);
 
