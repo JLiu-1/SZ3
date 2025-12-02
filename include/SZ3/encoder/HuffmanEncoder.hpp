@@ -804,10 +804,10 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
        // std::cout<<offset<<" "<<max<<std::endl;
 
 
-        int stateNum = (max == offset) ? max - offset + 2 : 1;
+        int stateNum = max - offset + 2;
         auto tid = omp_get_thread_num();
          #pragma omp critical
-        std::cout<<stateNum<<std::endl;
+        std::cout<<tid<<" statenum "<< stateNum<<std::endl;
         //timer.stop("count");
         huffmanTree = createHuffmanTree(stateNum);
         // to produce the same huffman three on linux & win, we need to iterate through ordered_map in a fixed order
