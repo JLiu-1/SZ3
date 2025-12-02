@@ -22,9 +22,9 @@
 #include <unordered_set>
 
 
-#ifdef _OPENMP
-#include <omp.h>
-#endif
+//#ifdef _OPENMP
+//#include <omp.h>
+//#endif
 
 
 namespace SZ3 {
@@ -430,6 +430,46 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
         }
         remaining_length -= (size_t)stateNum;
 
+        // ====== 新增：检查有多少个 state 的长度 > 0 ======
+        /*
+       */
+
+        if (stateNum == 2) {
+            // 只有 0 或 1 个有效码长：
+            // 视为“所有数据都是同一个符号”的退化情况
+            // 对老的 bitstream（全部为 0）我们默认 state = 0；
+
+            int nonZeroStates = 0;
+            int lastState     = -1;
+            for (int i = 0; i < stateNum; ++i) {
+                if (huffmanTree->cout[i] > 0) {
+                    ++nonZeroStates;
+                    lastState = i;
+                }
+            }
+            int stateIndex = (nonZeroStates == 1) ? lastState : 0;
+
+            // 重置节点池，只建一个叶子节点作为根
+            huffmanTree->n_nodes = 0;
+            node leaf = new_node2(static_cast<T>(stateIndex), /*t=*/1);
+            leaf->left  = nullptr;
+            leaf->right = nullptr;
+            treeRoot    = leaf;
+
+            // code/cout 对 decode-by-tree 不重要，但可以给 encode 端一个合理的值
+            // （这里随便设一个 1-bit 的 0 码）
+            std::memset(huffmanTree->code, 0, huffmanTree->stateNum * sizeof(uint64_t));
+            std::memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
+            huffmanTree->cout[stateIndex] = 1;
+            huffmanTree->code[stateIndex] = 0;
+            huffmanTree->maxBitCount      = 1;
+
+            loaded = true;
+            return;
+        }
+
+
+
         // 基于码长重建 canonical code + decode 表 + encode 用的 code[]
           rebuildTreeFromCodeLengthsLSB();
 
@@ -805,9 +845,9 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
 
 
         int stateNum = max - offset + 2;
-        auto tid = omp_get_thread_num();
-         #pragma omp critical
-        std::cout<<tid<<" statenum "<< stateNum<<std::endl;
+       // auto tid = omp_get_thread_num();
+       //  #pragma omp critical
+       // std::cout<<tid<<" statenum "<< stateNum<<std::endl;
         //timer.stop("count");
         huffmanTree = createHuffmanTree(stateNum);
         // to produce the same huffman three on linux & win, we need to iterate through ordered_map in a fixed order
