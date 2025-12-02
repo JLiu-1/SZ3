@@ -174,7 +174,7 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
         size_t bufferSize = 0;
         Timer timer(true);
         lossless.decompress(cmpData, cmpSize, buffer, bufferSize);
-        timer.stop("decmp interp");
+        timer.stop("decmp zstd");
         uchar const *bufferPos = buffer;
 
         decomposition.load(bufferPos, bufferSize);
