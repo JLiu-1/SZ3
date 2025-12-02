@@ -145,7 +145,7 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
             encoder.encode(quant_inds, buffer_pos);
 
         #endif
-        encoder.postprocess_decode();
+        encoder.postprocess_encode();
         timer.stop("huff");
          timer.start();
         auto cmpSize = lossless.compress(buffer, buffer_pos - buffer, cmpData, cmpCap);
