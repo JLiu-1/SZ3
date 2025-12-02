@@ -64,7 +64,7 @@ void SZ_decompress_Interp(const Config &conf, const uchar *cmpData, size_t cmpSi
 
 template <class T, uint N>
 double interp_compress_test(
-    const std::vector<std::vector<T>> sampled_blocks, const Config conf, int block_size, uchar *cmpData,
+    const std::vector<std::vector<T>> &sampled_blocks, const Config conf, int block_size, uchar *cmpData,
     size_t cmpCap) {  // test interp cmp on a set of sampled data blocks and return the compression ratio
 
     Timer timer(true);
