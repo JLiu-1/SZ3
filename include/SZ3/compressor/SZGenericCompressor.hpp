@@ -213,13 +213,15 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
                 auto temp = bufferSize;
                 cur_encoder.load(temp_buffer_pos,temp);
                 std::cout<<"tid: "<<tid<<", loaded."<<std::endl;
-                auto cur_quant_inds = encoder.decode(temp_buffer_pos, cur_len);
-                std::cout<<"tid: "<<tid<<", ended at: "<<temp_buffer_pos - bufferPos<<" ,"<<cur_quant_inds.size()<<" bins extracted."<<std::endl;
-                cur_encoder.postprocess_decode();
-                 //#pragma omp critical
-                std::cout<<"tid: "<<tid<<" postprocessed."<<std::endl;
-                std::copy(cur_quant_inds.begin(), cur_quant_inds.end(), quant_inds.begin() + start_idx);
-                cur_quant_inds.clear();
+                if(tid==0){
+                    auto cur_quant_inds = encoder.decode(temp_buffer_pos, cur_len);
+                    std::cout<<"tid: "<<tid<<", ended at: "<<temp_buffer_pos - bufferPos<<" ,"<<cur_quant_inds.size()<<" bins extracted."<<std::endl;
+                    cur_encoder.postprocess_decode();
+                     //#pragma omp critical
+                    std::cout<<"tid: "<<tid<<" postprocessed."<<std::endl;
+                    std::copy(cur_quant_inds.begin(), cur_quant_inds.end(), quant_inds.begin() + start_idx);
+                    cur_quant_inds.clear();
+                }
 
 
             }
