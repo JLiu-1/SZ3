@@ -77,7 +77,7 @@ class HuffmanEncoder : public concepts::EncoderInterface<T> {
 
         memset(huffmanTree->pool, 0, huffmanTree->allNodes * 2 * sizeof(struct node_t));
         memset(huffmanTree->qqq, 0, huffmanTree->allNodes * 2 * sizeof(node));
-        memset(huffmanTree->code, 0, huffmanTree->stateNum * sizeof(uint64_t *));
+        memset(huffmanTree->code, 0, huffmanTree->stateNum * sizeof(uint64_t));
         memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
         huffmanTree->qq = huffmanTree->qqq - 1;
         huffmanTree->n_nodes = 0;
