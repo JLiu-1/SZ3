@@ -102,7 +102,7 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
 
                 //cur_outSize += sizeof(size_t); //the original outsize doesn't contain the size header. Actually, since we already have the offset chunk, write the size in each block is a waste.
                                                //However, remove it will need to modify the huffman encoding api, which may bring compatability issue. So keep it now. 
-                cur_outSize = cur_buffer_pos - cur_buffer;
+                auto cur_outSize = cur_buffer_pos - cur_buffer;
 
                 block_byte_offsets[tid] = cur_outSize;
                 // #pragma omp critical
