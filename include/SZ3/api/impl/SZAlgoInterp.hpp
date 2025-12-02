@@ -66,6 +66,8 @@ template <class T, uint N>
 double interp_compress_test(
     const std::vector<std::vector<T>> sampled_blocks, const Config conf, int block_size, uchar *cmpData,
     size_t cmpCap) {  // test interp cmp on a set of sampled data blocks and return the compression ratio
+
+    Timer timer(true);
     #ifdef _OPENMP
      auto sz =
         make_decomposition_interpolation_omp<T, N>(conf, LinearQuantizerOMP<T>(conf.absErrorBound, conf.quantbinCnt / 2));
@@ -83,7 +85,8 @@ double interp_compress_test(
         quant_inds.insert(quant_inds.end(), cur_quant_inds.begin(),
                                 cur_quant_inds.end());  // merge the quant bins. Lossless them together
     }
-
+    timer.stop("att interp");
+    timer.start();
     auto encoder = HuffmanEncoder<int>();
     auto lossless = Lossless_zstd();
     encoder.preprocess_encode(quant_inds, conf.quantbinCnt);
@@ -181,7 +184,10 @@ double interp_compress_test(
         encoder.encode(quant_inds, buffer_pos);
 
     #endif
+    timer.stop("att huff");
+    timer.start();
     auto cmpSize = lossless.compress(buffer, buffer_pos - buffer, cmpData, cmpCap);
+    timer.stop("att zstd");
     free(buffer);
 
     auto compression_ratio = conf.num * sampled_blocks.size() * sizeof(T) * 1.0 / cmpSize;
