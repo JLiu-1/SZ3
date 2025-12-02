@@ -244,7 +244,7 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
                 lossless.decompress(cur_cmpDataPos, block_byte_length, cur_buffer, cur_bufferSize);
                // #pragma omp critical
                 //std::cout<<"tid: "<<tid<<", prefix: "<<block_byte_offset<<std::endl;
-                auto cur_buffer_pos = cur_buffer;
+                uchar const *cur_buffer_pos = cur_buffer;
                 Encoder cur_encoder;
                 cur_encoder.load(cur_buffer_pos,cur_bufferSize);
 
