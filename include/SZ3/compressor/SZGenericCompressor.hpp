@@ -272,6 +272,8 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
         Timer timer(true);
 
         auto cmpDataPos = cmpData;
+        int compression_thread_num = 0;
+
 
         //lossless.decompress(cmpData, cmpSize, buffer, bufferSize);
         read(huffSize, cmpDataPos);
@@ -336,7 +338,6 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
 
         size_t quant_inds_size = 0;
         read(quant_inds_size, bufferPos);
-        int compression_thread_num = 0;
         read(compression_thread_num, bufferPos);
         std::vector<int> quant_inds; // todo: it should better match the encoder output type,
         if(compression_thread_num <=1){
