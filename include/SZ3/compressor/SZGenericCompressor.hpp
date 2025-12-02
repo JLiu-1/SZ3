@@ -52,7 +52,8 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
         auto * cmpData_pos = cmpData;
 
         decomposition.save(cmpData_pos);
-        auto cmpSize = cmpData_pos - cmpData;
+        std::cout<<cmpData_pos - cmpData<<std::endl;
+        //auto cmpSize = cmpData_pos - cmpData;
         //encoder.save(buffer_pos);
 
         //store the size of quant_inds is necessary as it is not always equal to conf.num
@@ -60,7 +61,8 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
 
         auto quant_inds_size =  quant_inds.size();
         write<size_t>(quant_inds_size, cmpData_pos);
-        cmpSize += sizeof(size_t);
+        std::cout<<cmpData_pos - cmpData<<std::endl;
+        //cmpSize += sizeof(size_t);
 
         #ifdef _OPENMP
         auto default_nthreads = omp_get_max_threads();
@@ -146,13 +148,15 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
             }
             omp_set_num_threads(default_nthreads);
             //buffer_pos += offset_chunk_size + total_huffman_size;
-            cmpSize += sizeof(int) + offset_chunk_size + total_hz_size;
+            //cmpSize += sizeof(int) + offset_chunk_size + total_hz_size;
+            cmpSize = cmpData_pos - cmpData + total_hz_size;
         }
             
         else{
             
             write<int>(1, cmpData_pos); //1 thread
             write<size_t>(0, cmpData_pos); //offset = 0;
+            std::cout<<cmpData_pos - cmpData<<std::endl;
             size_t bufferSize = std::max<size_t>(
                 1000, 1.2 * (decomposition.size_est() + encoder.size_est_without_init() + sizeof(T) * quant_inds.size()));
           //  std::cout<<bufferSize<<std::endl;
