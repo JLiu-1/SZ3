@@ -393,6 +393,7 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
             throw std::runtime_error("Huffman load: insufficient data for stateNum");
         }
         int stateNum = bytesToInt32_bigEndian(c);
+        std::cout<<stateNum<<std::endl;
         c += sizeof(int);
         remaining_length -= sizeof(int);
 
