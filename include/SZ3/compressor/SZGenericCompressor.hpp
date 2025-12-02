@@ -155,19 +155,19 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
             write<size_t>(0, cmpData_pos); //offset = 0;
             size_t bufferSize = std::max<size_t>(
                 1000, 1.2 * (decomposition.size_est() + encoder.size_est_without_init() + sizeof(T) * quant_inds.size()));
-            std::cout<<bufferSize<<std::endl;
+          //  std::cout<<bufferSize<<std::endl;
             auto buffer = static_cast<uchar *>(malloc(bufferSize));
             uchar *buffer_pos = buffer;
             encoder.preprocess_encode(quant_inds, decomposition.get_out_range().second);
             encoder.save(buffer_pos);
             encoder.encode(quant_inds, buffer_pos);
-             std::cout<<buffer_pos-buffer<<std::endl;
+          //   std::cout<<buffer_pos-buffer<<std::endl;
             encoder.postprocess_encode();
             cmpCap -= cmpData_pos - cmpData;
-            std::cout<<cmpCap<<std::endl;
+            //std::cout<<cmpCap<<std::endl;
            // std::cout<<buffer_pos - buffer<<std::endl;
             auto zstdSize = lossless.compress(buffer, buffer_pos - buffer, cmpData_pos, cmpCap);
-            std::cout<<zstdSize<<std::endl;
+           // std::cout<<zstdSize<<std::endl;
             cmpSize = cmpData_pos - cmpData + zstdSize;
             free(buffer);
         }
@@ -185,6 +185,7 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
             encoder.encode(quant_inds, buffer_pos);
             encoder.postprocess_encode();
             cmpCap -= cmpData_pos - cmpData;
+            writefile("hufftest.cmp",buffer, buffer_pos - buffer);
             auto zstdSize = lossless.compress(buffer, buffer_pos - buffer, cmpData_pos, cmpCap);
             cmpSize = cmpData_pos - cmpData + zstdSize;
             free(buffer);
@@ -226,6 +227,8 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
             lossless.decompress(cmpDataPos, cmpSize, buffer, bufferSize);
              //std::cout<<bufferSize<<std::endl;
                uchar const *bufferPos = buffer;
+            writefile("hufftest.dec",buffer, bufferSize);
+
             encoder.load(bufferPos, bufferSize);
             quant_inds = encoder.decode(bufferPos, quant_inds_size);
              encoder.postprocess_decode();
