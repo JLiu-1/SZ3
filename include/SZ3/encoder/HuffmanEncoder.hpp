@@ -155,6 +155,7 @@ class HuffmanEncoder : public concepts::EncoderInterface<T> {
                 std::cout<<(int)huffmanTree->cout[i]<<std::endl;
             *c++ = huffmanTree->cout[i];
         }
+          std::cout<<(int)huffmanTree->cout[stateNum-1]<<std::endl;
     }
 
     /*
@@ -432,6 +433,7 @@ class HuffmanEncoder : public concepts::EncoderInterface<T> {
               if(i%10000==0)
                 std::cout<<(int)huffmanTree->cout[i]<<std::endl;
         }
+         std::cout<<(int)huffmanTree->cout[stateNum-1]<<std::endl;
         remaining_length -= (size_t)stateNum;
 
         // ====== 新增：检查有多少个 state 的长度 > 0 ======
