@@ -48,7 +48,7 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
        // encoder.preprocess_encode(quant_inds, decomposition.get_out_range().second);
        // timer.stop("prehuff");
       
-
+        size_t cmpSize;
         auto * cmpData_pos = cmpData;
 
         decomposition.save(cmpData_pos);
