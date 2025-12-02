@@ -75,9 +75,6 @@ class HuffmanEncoder : public concepts::EncoderInterface<T> {
         huffmanTree->code = static_cast<uint64_t *>(malloc(huffmanTree->stateNum * sizeof(uint64_t)));
         huffmanTree->cout = static_cast<unsigned char *>(malloc(huffmanTree->stateNum * sizeof(unsigned char)));
 
-memset(huffmanTree->code, 0, huffmanTree->stateNum * sizeof(uint64_t));
-memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
-
         memset(huffmanTree->pool, 0, huffmanTree->allNodes * 2 * sizeof(struct node_t));
         memset(huffmanTree->qqq, 0, huffmanTree->allNodes * 2 * sizeof(node));
         memset(huffmanTree->code, 0, huffmanTree->stateNum * sizeof(uint64_t *));
@@ -216,7 +213,7 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
 
         size_t outSize = static_cast<size_t>(p - out_begin);
         write(outSize, bytes);   // 在 bytes 头部写出 bitstream 的字节数
-        std::cout<<outSize<<std::endl;
+        //std::cout<<outSize<<std::endl;
         bytes += outSize;        // 移到 bitstream 末尾
         return outSize;
     }
@@ -266,7 +263,7 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
         // 先读出 bitstream 的长度（字节数）
         size_t encodedLength = 0;
         read(encodedLength, bytes);
-        std::cout<<encodedLength<<std::endl;
+        //std::cout<<encodedLength<<std::endl;
 
         node n = root;
         if (n->t) {  // 常数树：根就是叶子
