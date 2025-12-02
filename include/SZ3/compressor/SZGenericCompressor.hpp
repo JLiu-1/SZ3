@@ -163,6 +163,7 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
             encoder.encode(quant_inds, buffer_pos);
           //   std::cout<<buffer_pos-buffer<<std::endl;
             encoder.postprocess_encode();
+             writefile("hufftest.cmp",buffer, buffer_pos - buffer);
             cmpCap -= cmpData_pos - cmpData;
             //std::cout<<cmpCap<<std::endl;
            // std::cout<<buffer_pos - buffer<<std::endl;
@@ -185,7 +186,7 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
             encoder.encode(quant_inds, buffer_pos);
             encoder.postprocess_encode();
             cmpCap -= cmpData_pos - cmpData;
-            writefile("hufftest.cmp",buffer, buffer_pos - buffer);
+           
             auto zstdSize = lossless.compress(buffer, buffer_pos - buffer, cmpData_pos, cmpCap);
             cmpSize = cmpData_pos - cmpData + zstdSize;
             free(buffer);
