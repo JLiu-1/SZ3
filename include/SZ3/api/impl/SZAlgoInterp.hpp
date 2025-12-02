@@ -68,6 +68,7 @@ double interp_compress_test(
     size_t cmpCap) {  // test interp cmp on a set of sampled data blocks and return the compression ratio
 
     Timer timer(true);
+    /*
     #ifdef _OPENMP
      auto sz =
         make_decomposition_interpolation_omp<T, N>(conf, LinearQuantizerOMP<T>(conf.absErrorBound, conf.quantbinCnt / 2));
@@ -76,15 +77,24 @@ double interp_compress_test(
         make_decomposition_interpolation<T, N>(conf, LinearQuantizer<T>(conf.absErrorBound, conf.quantbinCnt / 2));
      #endif
    
-
+    */
 
     std::vector<int> quant_inds;
+    std::vector<std::vector<int> > quant_inds_vec(sampled_blocks.size());
+
+    #ifdef _OPENMP
+    #pragma omp parallel for
+    #endif
     for (size_t k = 0; k < sampled_blocks.size(); k++) {
+        auto sz =
+            make_decomposition_interpolation<T, N>(conf, LinearQuantizer<T>(conf.absErrorBound, conf.quantbinCnt / 2));
         auto cur_block = sampled_blocks[k];
-        auto cur_quant_inds = sz.compress(conf, cur_block.data());
-        quant_inds.insert(quant_inds.end(), cur_quant_inds.begin(),
-                                cur_quant_inds.end());  // merge the quant bins. Lossless them together
+        quant_inds_vec[k] = sz.compress(conf, cur_block.data());
+        
     }
+    for (size_t k = 0; k < sampled_blocks.size(); k++)
+        quant_inds.insert(quant_inds.end(), std::make_move_iterator(quant_inds_vec[k].begin()),
+                                 std::make_move_iterator(quant_inds_vec[k].end()));  // merge the quant bins. Lossless them together
     timer.stop("att interp");
     timer.start();
     auto encoder = HuffmanEncoder<int>();
