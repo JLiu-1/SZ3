@@ -66,6 +66,8 @@ class EncoderInterface {
 
     // return the size of the encoder itself (such as the tree size of the huffman encoder)
     virtual size_t size_est() { return 0; }
+
+    virtual size_t size_est_without_init() { return 0; }
 };
 }  // namespace concepts
 }  // namespace SZ3

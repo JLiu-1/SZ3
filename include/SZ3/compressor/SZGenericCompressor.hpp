@@ -44,17 +44,17 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
         if (decomposition.get_out_range().first != 0) {
             throw std::runtime_error("The output range of the decomposition must start from 0 for this compressor");
         }
-        timer.start();
-        encoder.preprocess_encode(quant_inds, decomposition.get_out_range().second);
-        timer.stop("prehuff");
+        //timer.start();
+       // encoder.preprocess_encode(quant_inds, decomposition.get_out_range().second);
+       // timer.stop("prehuff");
         size_t bufferSize = std::max<size_t>(
-            1000, 1.2 * (decomposition.size_est() + encoder.size_est() + sizeof(T) * quant_inds.size()));
+            1000, 1.2 * (decomposition.size_est() + encoder.size_est_without_init() + sizeof(T) * quant_inds.size()));
 
         auto buffer = static_cast<uchar *>(malloc(bufferSize));
         uchar *buffer_pos = buffer;
 
         decomposition.save(buffer_pos);
-        encoder.save(buffer_pos);
+        //encoder.save(buffer_pos);
 
         //store the size of quant_inds is necessary as it is not always equal to conf.num
          timer.start();
@@ -87,7 +87,7 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
                     write<int>(nthreads, buffer_pos);
                     offset_chunk_size = nthreads * sizeof (size_t);
                 }
-
+                Encoder cur_encoder;
                 auto tid = omp_get_thread_num();
                 size_t start_idx = ((size_t)tid * quant_inds_size) / (size_t)nthreads, cur_len = ((size_t)(tid+1) * quant_inds_size) / (size_t)nthreads - start_idx;
                 //#pragma omp critical
@@ -95,10 +95,14 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
                 size_t cur_bufferSize = std::max<size_t>(1000, 1.2 * sizeof(T) * cur_len);
                 auto cur_buffer = static_cast<uchar *>(malloc(cur_bufferSize)); 
                 auto cur_buffer_pos = cur_buffer;
-                auto cur_outSize = encoder.encode(quant_inds_data + start_idx, cur_len, cur_buffer_pos);
+                cur_encoder.preprocess_encode(quant_inds_data + start_idx, cur_len, decomposition.get_out_range().second);
+                cur_encoder.save(cur_buffer_pos);
+                cur_encoder.encode(quant_inds_data + start_idx, cur_len, cur_buffer_pos);
+                cur_encoder.postprocess_encode();
 
-                cur_outSize += sizeof(size_t); //the original outsize doesn't contain the size header. Actually, since we already have the offset chunk, write the size in each block is a waste.
+                //cur_outSize += sizeof(size_t); //the original outsize doesn't contain the size header. Actually, since we already have the offset chunk, write the size in each block is a waste.
                                                //However, remove it will need to modify the huffman encoding api, which may bring compatability issue. So keep it now. 
+                cur_outSize = cur_buffer_pos - cur_buffer;
 
                 block_byte_offsets[tid] = cur_outSize;
                 // #pragma omp critical
@@ -135,14 +139,20 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
         else{
             write<int>(1, buffer_pos); //1 thread
             write<size_t>(0, buffer_pos); //offset = 0;
+            encoder.preprocess_encode(quant_inds, decomposition.get_out_range().second);
+            encoder.save(buffer_pos);
             encoder.encode(quant_inds, buffer_pos);
+            encoder.postprocess_encode();
         }
 
 
         #else
             write<int>(1, buffer_pos); //1 thread
             write<size_t>(0, buffer_pos); //offset = 0;
+            encoder.preprocess_encode(quant_inds, decomposition.get_out_range().second);
+            encoder.save(buffer_pos);
             encoder.encode(quant_inds, buffer_pos);
+            encoder.postprocess_encode();
 
         #endif
         timer.stop("huff");
@@ -163,7 +173,7 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
         uchar const *bufferPos = buffer;
 
         decomposition.load(bufferPos, bufferSize);
-        encoder.load(bufferPos, bufferSize);
+        
 
         size_t quant_inds_size = 0;
         read(quant_inds_size, bufferPos);
@@ -173,7 +183,9 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
         if(compression_thread_num <=1){
             size_t offset;
             read(offset, bufferPos);
+            encoder.load(bufferPos, bufferSize);
             quant_inds = encoder.decode(bufferPos, quant_inds_size);
+             encoder.postprocess_decode();
         }
         else{
             quant_inds.resize(quant_inds_size);
@@ -191,7 +203,11 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
                //  #pragma omp critical
                // std::cout<<"tid: "<<tid<<", prefix: "<<block_byte_offset<<std::endl;
                 auto temp_buffer_pos = bufferPos + block_byte_offset;
+                Encoder cur_encoder;
+                auto temp = bufferSize;
+                cur_encoder.load(temp_buffer_pos,temp);
                 auto cur_quant_inds = encoder.decode(temp_buffer_pos, cur_len);
+                cur_encoder.postprocess_decode();
                //  #pragma omp critical
                // std::cout<<"tid: "<<tid<<", ended at: "<<temp_buffer_pos - bufferPos<<" ,"<<cur_quant_inds.size()<<" bins extracted."<<std::endl;
                 std::copy(cur_quant_inds.begin(), cur_quant_inds.end(), quant_inds.begin() + start_idx);
@@ -205,7 +221,7 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
         }
 
         //auto quant_inds = encoder.decode(bufferPos, quant_inds_size);
-        encoder.postprocess_decode();
+       
 
         free(buffer);
 
