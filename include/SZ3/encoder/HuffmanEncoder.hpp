@@ -799,6 +799,7 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
 
 
         int stateNum = max - offset + 2;
+        std::cout<<stateNum<<std::endl;
         //timer.stop("count");
         huffmanTree = createHuffmanTree(stateNum);
         // to produce the same huffman three on linux & win, we need to iterate through ordered_map in a fixed order
