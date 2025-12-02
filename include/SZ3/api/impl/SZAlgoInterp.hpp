@@ -326,7 +326,7 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
         auto testConfig = conf;
         std::vector<size_t> dims(N, sampleBlockSize + 1);
         testConfig.setDims(dims.begin(), dims.end());
-        for (auto &interp_op : {INTERP_ALGO_LINEAR,INTERP_ALGO_CUBIC}) {//removed linear
+        for (auto &interp_op : {INTERP_ALGO_LINEAR,INTERP_ALGO_CUBIC}) {
             testConfig.interpAlgo = interp_op;
             ratio = interp_compress_test<T, N>(sampled_blocks, testConfig, sampleBlockSize, buffer, bufferCap);
             if (ratio > best_interp_ratio) {
@@ -344,14 +344,24 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
         }
         testConfig.interpDirection = conf.interpDirection;
         // test more alpha-beta pairs for best compression ratio,
-       auto alphalist = std::vector<double>{1.0, 1.5, 2.0};
-        auto betalist = std::vector<double>{1.0, 2.5, 3.0};
-        for (size_t i = 0; i < alphalist.size(); i++) {
+        const int ablist_size = 3;
+       auto alphalist = std::array<double,ablist_size>{1.0, 1.5, 2.0};
+        auto betalist = std::array<double,ablist_size>{1.0, 2.5, 3.0};
+        std::array<double,ablist_size> ratios;
+        #ifdef _OPENMP
+        #pragma omp parallel for schedule(static)
+        #endif
+        for (size_t i = 0; i < ablist_size; i++) {
+            auto tempConfig = testConfig;
             auto alpha = alphalist[i];
             auto beta = betalist[i];
-            testConfig.interpAlpha = alpha;
-            testConfig.interpBeta = beta;
-            ratio = interp_compress_test<T, N>(sampled_blocks, testConfig, sampleBlockSize, buffer, bufferCap);
+            tempConfig.interpAlpha = alpha;
+            tempConfig.interpBeta = beta;
+            ratios[i] = interp_compress_test<T, N>(sampled_blocks, tempConfig, sampleBlockSize, buffer, bufferCap);
+            
+        }
+        for (size_t i = 0; i < ablist_size; i++) {
+            auto ratio = ratios[i];
             if (ratio > best_interp_ratio * 1.02) {
                 best_interp_ratio = ratio;
                 conf.interpAlpha = alpha;
