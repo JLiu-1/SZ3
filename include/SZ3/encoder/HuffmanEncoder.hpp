@@ -136,7 +136,9 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
         write(offset, c);
 
         // 写 stateNum
+        std::cout<<offset<<std::endl;
         int stateNum = static_cast<int>(huffmanTree->stateNum);
+         std::cout<<stateNum<<std::endl;
         int32ToBytes_bigEndian(c, stateNum);
         c += sizeof(int);
 
@@ -388,11 +390,14 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
         // 读 offset
         read(offset, c, remaining_length);
 
+        std::cout<<offset<<std::endl;
+
         // 读 stateNum
         if (remaining_length < sizeof(int)) {
             throw std::runtime_error("Huffman load: insufficient data for stateNum");
         }
         int stateNum = bytesToInt32_bigEndian(c);
+
         std::cout<<stateNum<<std::endl;
         c += sizeof(int);
         remaining_length -= sizeof(int);
