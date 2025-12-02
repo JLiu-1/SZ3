@@ -97,7 +97,8 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
                 auto cur_buffer_pos = cur_buffer;
                 cur_encoder.preprocess_encode(quant_inds_data + start_idx, cur_len, decomposition.get_out_range().second);
                 cur_encoder.save(cur_buffer_pos);
-               // std::cout<<tid<<" "<<cur_buffer_pos-cur_buffer <<std::endl;
+                #pragma omp critical
+                std::cout<<tid<<" "<<cur_buffer_pos-cur_buffer <<std::endl;
                 cur_encoder.encode(quant_inds_data + start_idx, cur_len, cur_buffer_pos);
                 //std::cout<<tid<<" "<<encode_length<<std::endl;
                 cur_encoder.postprocess_encode();
@@ -209,21 +210,24 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
                 #pragma omp critical
                 std::cout<<"tid: "<<tid<<", prefix: "<<block_byte_offset<<std::endl;
                 auto temp_buffer_pos = bufferPos + block_byte_offset;
+                auto temp_start = temp_buffer_pos;
                 Encoder cur_encoder;
                 auto temp = bufferSize;
                 cur_encoder.load(temp_buffer_pos,temp);
                 #pragma omp critical
                 std::cout<<"tid: "<<tid<<", loaded."<<std::endl;
-                if(tid==0){
-                    auto cur_quant_inds = encoder.decode(temp_buffer_pos, cur_len);
-                    #pragma omp critical
-                    std::cout<<"tid: "<<tid<<", ended at: "<<temp_buffer_pos - bufferPos<<" ,"<<cur_quant_inds.size()<<" bins extracted."<<std::endl;
-                    cur_encoder.postprocess_decode();
-                     #pragma omp critical
-                    std::cout<<"tid: "<<tid<<" postprocessed."<<std::endl;
-                    std::copy(cur_quant_inds.begin(), cur_quant_inds.end(), quant_inds.begin() + start_idx);
-                    cur_quant_inds.clear();
-                }
+                #pragma omp critical
+                std::cout<<"tid: "<<tid<<", moved: "<<temp_buffer_pos - temp_start <<std::endl;
+             
+                auto cur_quant_inds = encoder.decode(temp_buffer_pos, cur_len);
+                #pragma omp critical
+                std::cout<<"tid: "<<tid<<", ended at: "<<temp_buffer_pos - bufferPos<<" ,"<<cur_quant_inds.size()<<" bins extracted."<<std::endl;
+                cur_encoder.postprocess_decode();
+                 #pragma omp critical
+                std::cout<<"tid: "<<tid<<" postprocessed."<<std::endl;
+                std::copy(cur_quant_inds.begin(), cur_quant_inds.end(), quant_inds.begin() + start_idx);
+                cur_quant_inds.clear();
+                
 
 
             }
