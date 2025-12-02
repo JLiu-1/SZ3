@@ -98,13 +98,13 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
                 cur_encoder.preprocess_encode(quant_inds_data + start_idx, cur_len, decomposition.get_out_range().second);
                 cur_encoder.save(cur_buffer_pos);
                 //std::cout<<tid<<" "<<cur_buffer_pos-cur_buffer <<std::endl;
-                auto encode_length = cur_encoder.encode(quant_inds_data + start_idx, cur_len, cur_buffer_pos);
+                cur_encoder.encode(quant_inds_data + start_idx, cur_len, cur_buffer_pos);
                 //std::cout<<tid<<" "<<encode_length<<std::endl;
                 cur_encoder.postprocess_encode();
 
-                cur_outSize += sizeof(size_t); //the original outsize doesn't contain the size header. Actually, since we already have the offset chunk, write the size in each block is a waste.
+                auto cur_outSize = cur_buffer_pos - cur_buffer + sizeof(size_t); //the original outsize doesn't contain the size header. Actually, since we already have the offset chunk, write the size in each block is a waste.
                                                //However, remove it will need to modify the huffman encoding api, which may bring compatability issue. So keep it now. 
-                auto cur_outSize = cur_buffer_pos - cur_buffer;
+                
                 //std::cout<<tid<<" "<<cur_outSize<<std::endl;
 
                 block_byte_offsets[tid] = cur_outSize;
