@@ -197,7 +197,6 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
         uchar const *cmpDataPos = cmpData;
          decomposition.load(cmpDataPos, cmpSize);
         //timer.stop("decmp zstd");
-        uchar const *bufferPos = buffer;
 
        
         
