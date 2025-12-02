@@ -90,6 +90,8 @@ double interp_compress_test(
     auto encoder = HuffmanEncoder<int>();
     auto lossless = Lossless_zstd();
     encoder.preprocess_encode(quant_inds, conf.quantbinCnt);
+    timer.stop("att prehuff");
+    timer.start();
     size_t bufferSize = std::max<size_t>(
         1000, 1.2 * (encoder.size_est() + sizeof(T) * quant_inds.size()));
 
