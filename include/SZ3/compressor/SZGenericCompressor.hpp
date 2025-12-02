@@ -169,7 +169,7 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
            // std::cout<<buffer_pos - buffer<<std::endl;
             auto zstdSize = lossless.compress(buffer, buffer_pos - buffer, cmpData_pos, cmpCap);
               writefile("zstdtest.cmp",cmpData_pos, zstdSize);
-           // std::cout<<zstdSize<<std::endl;
+           std::cout<<zstdSize<<std::endl;
             cmpSize = cmpData_pos - cmpData + zstdSize;
             free(buffer);
         }
@@ -189,7 +189,7 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
             cmpCap -= cmpData_pos - cmpData;
            
             auto zstdSize = lossless.compress(buffer, buffer_pos - buffer, cmpData_pos, cmpCap);
-              std::cout<<zstdSize<<std::endl;
+
             cmpSize = cmpData_pos - cmpData + zstdSize;
             free(buffer);
 
