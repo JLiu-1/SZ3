@@ -163,18 +163,171 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
         #endif
         timer.stop("huff");
          timer.start();
-        auto cmpSize = lossless.compress(buffer, buffer_pos - buffer, cmpData, cmpCap);
+        auto cmpDataPos = cmpData;
+        size_t huffSize = buffer_pos - buffer;
+        write<size_t>(huffSize, cmpDataPos);
+        #ifdef _OPENMP
+        default_nthreads = omp_get_max_threads();
+        //std::cout<<default_nthreads<<" "<<quant_inds_size<<std::endl;
+        best_num_threads = std::min(default_nthreads, (int)(huffSize / (1u<<16)));
+        //std::cout<<best_num_threads<<std::endl;
+        if (best_num_threads > 1) {
+            omp_set_num_threads(best_num_threads);
+            //uchar * offset_block_pos = buffer_pos + sizeof(int);
+            //size_t bins_per_thread;
+            auto quant_inds_data = quant_inds.data();
+            std::vector<size_t>block_byte_offsets;
+            size_t offset_chunk_size;
+            size_t total_zstd_size = 0;
+            size_t nthreads;
+            #pragma omp parallel
+            {   
+
+                #pragma omp single
+                {
+                    nthreads = omp_get_num_threads();
+                    //std::cout<<nthreads<<std::endl;
+                    block_byte_offsets.resize(nthreads);
+                    write<int>(nthreads, cmpDataPos);
+                    offset_chunk_size = nthreads * sizeof (size_t);
+                }
+                auto tid = omp_get_thread_num();
+                size_t start_idx = ((size_t)tid * huffSize) / (size_t)nthreads, cur_len = ((size_t)(tid+1) * huffSize) / (size_t)nthreads - start_idx;
+                //#pragma omp critical
+                //std::cout<<tid<<" "<<start_idx<<" "<<cur_len<<std::endl;
+                size_t cur_bufferSize = std::max<size_t>(1000, 1.2 * sizeof(uchar) * cur_len);
+                auto cur_buffer = static_cast<uchar *>(malloc(cur_bufferSize)); 
+                auto cur_buffer_pos = cur_buffer;
+
+                auto cur_outSize = lossless.compress(buffer + start_idx, cur_len, cur_buffer_pos, cur_bufferSize);
+        
+
+                //+ sizeof(size_t); //the original outsize doesn't contain the size header. Actually, since we already have the offset chunk, write the size in each block is a waste.
+                                               //However, remove it will need to modify the huffman encoding api, which may bring compatability issue. So keep it now. 
+                //#pragma omp critical
+               // std::cout<<tid<<" "<<cur_outSize<<std::endl;
+
+                block_byte_offsets[tid] = cur_outSize;
+                // #pragma omp critical
+                //std::cout<<"tid: "<<tid<<" outsize: "<<cur_outSize<<std::endl;
+                #pragma omp barrier
+                #pragma omp single
+                {
+                    size_t prefix_sum = 0;
+                    for (size_t i = 0; i < nthreads; i++){
+                        //std::cout<<"prefix, tid: "<<i<<", outsize: "<<block_byte_offsets[i]<<std::endl;
+                        auto next_prefix_sum = prefix_sum + block_byte_offsets[i];
+                        block_byte_offsets[i] = prefix_sum;
+                        prefix_sum = next_prefix_sum;
+                        //#pragma omp critical
+                        //std::cout<<" offset: "<<block_byte_offsets[i]<<std::endl;
+
+                    }
+                }
+
+                if(tid == nthreads - 1)
+                    total_zstd_size = block_byte_offsets[tid] + cur_outSize;
+                auto temp_cmpData_pos = cmpDataPos + tid * sizeof(size_t);
+                write<size_t>(block_byte_offsets[tid],temp_cmpData_pos);
+                temp_cmpData_pos = cmpDataPos + offset_chunk_size + block_byte_offsets[tid];
+                write<uchar>(cur_buffer, cur_outSize,  temp_cmpData_pos);
+
+                free(cur_buffer);
+
+
+            }
+            omp_set_num_threads(default_nthreads);
+            cmpDataPos += offset_chunk_size + total_zstd_size;
+        }
+            
+        else{
+            write<int>(1, cmpDataPos); //1 thread
+            write<size_t>(0, cmpDataPos); //offset = 0;
+            cmpCap-=cmpDataPos-cmpData;
+            auto zstdSize = lossless.compress(buffer, huffSize, cmpDataPos, cmpCap);
+            cmpDataPos+=zstdSize;
+        }
+
+
+        #else
+            write<int>(1, cmpDataPos); //1 thread
+            write<size_t>(0, cmpDataPos); //offset = 0;
+            cmpCap-=cmpDataPos-cmpData;
+            auto zstdSize = lossless.compress(buffer, huffSize, cmpDataPos, cmpCap);
+            cmpDataPos+=zstdSize;
+
+        #endif
+
+
         free(buffer);
          timer.stop("zstd");
 
-        return cmpSize;
+        return cmpDataPos-cmpData;
     }
 
     T *decompress(const Config &conf, uchar const *cmpData, size_t cmpSize, T *decData) override {
         uchar *buffer = nullptr;
         size_t bufferSize = 0;
+        size_t huffSize;
         Timer timer(true);
-        lossless.decompress(cmpData, cmpSize, buffer, bufferSize);
+
+        auto cmpDataPos = cmpData;
+
+        //lossless.decompress(cmpData, cmpSize, buffer, bufferSize);
+        read(huffSize, cmpDataPos);
+        read(compression_thread_num, cmpDataPos);
+        if(compression_thread_num <=1){
+            size_t offset;
+            read(offset, cmpDataPos);
+            cmpSize -= cmpDataPos - cmpData; 
+            lossless.decompress(cmpDataPos, cmpSize, buffer, bufferSize);
+        }
+        else{
+
+            buffer = static_cast<uchar *>(malloc(huffSize));
+            std::vector<size_t>block_byte_offsets(compression_thread_num);
+
+            std::vector<size_t>output_block_byte_offsets(compression_thread_num);
+
+            read(block_byte_offsets.data(),compression_thread_num,cmpDataPos);
+            cmpSize -= cmpDataPos - cmpData; 
+            #ifdef _OPENMP
+            #pragma omp parallel for 
+            #endif
+            for(int tid=0; tid < compression_thread_num;tid++){
+                
+                size_t start_idx = ((size_t)tid * huffSize) / (size_t)compression_thread_num, cur_len = ((size_t)(tid+1) * huffSize) / (size_t)compression_thread_num - start_idx;
+                size_t block_byte_offset = block_byte_offsets[tid];
+                //std::cout<<tid<<" "<<block_byte_offset<<std::endl;
+
+                size_t block_byte_length = (tid != compression_thread_num-1)? block_byte_offsets[tid + 1] - block_byte_offset : cmpSize - block_byte_offset;
+               // #pragma omp critical
+                //std::cout<<"tid: "<<tid<<", prefix: "<<block_byte_offset<<std::endl;
+                auto temp_cmp_pos = cmpDataPos + block_byte_offset;
+                uchar *cur_buffer = nullptr;
+                size_t cur_bufferSize = 0;
+               lossless.decompress(temp_cmp_pos, block_byte_length, cur_buffer, cur_bufferSize);
+               write(cur_buffer, cur_len, buffer + start_idx);
+               free(cur_buffer);
+               //#pragma omp critical
+               // std::cout<<"tid: "<<tid<<", loaded."<<std::endl;
+               // #pragma omp critical
+              // std::cout<<"tid: "<<tid<<", moved: "<<temp_buffer_pos - temp_start <<std::endl;
+             
+                
+               
+
+
+            }
+
+
+
+        }
+
+
+
+
+
         timer.stop("decmp zstd");
         uchar const *bufferPos = buffer;
 
