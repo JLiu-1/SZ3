@@ -67,7 +67,7 @@ double interp_compress_test(
     const std::vector<std::vector<T>> &sampled_blocks, const Config &conf, int block_size, uchar *cmpData,
     size_t cmpCap) {  // test interp cmp on a set of sampled data blocks and return the compression ratio
 
-    Timer timer(true);
+   // Timer timer(true);
     /*
     #ifdef _OPENMP
      auto sz =
@@ -95,13 +95,13 @@ double interp_compress_test(
     for (size_t k = 0; k < sampled_blocks.size(); ++k)
         quant_inds.insert(quant_inds.end(), std::make_move_iterator(quant_inds_vec[k].begin()),
                                  std::make_move_iterator(quant_inds_vec[k].end()));  // merge the quant bins. Lossless them together
-    timer.stop("att interp");
-    timer.start();
+    //timer.stop("att interp");
+    //timer.start();
     auto encoder = HuffmanEncoder<int>();
     auto lossless = Lossless_zstd();
     encoder.preprocess_encode(quant_inds, conf.quantbinCnt);
-    timer.stop("att prehuff");
-    timer.start();
+    //timer.stop("att prehuff");
+   // timer.start();
     size_t bufferSize = std::max<size_t>(
         1000, 1.2 * (encoder.size_est() + sizeof(T) * quant_inds.size()));
 
@@ -196,10 +196,10 @@ double interp_compress_test(
         encoder.encode(quant_inds, buffer_pos);
 
     #endif
-    timer.stop("att huff");
-    timer.start();
+    //timer.stop("att huff");
+   // timer.start();
     auto cmpSize = lossless.compress(buffer, buffer_pos - buffer, cmpData, cmpCap);
-    timer.stop("att zstd");
+   // timer.stop("att zstd");
     free(buffer);
 
     auto compression_ratio = conf.num * sampled_blocks.size() * sizeof(T) * 1.0 / cmpSize;
