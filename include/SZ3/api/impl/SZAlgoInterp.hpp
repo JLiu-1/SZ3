@@ -85,14 +85,14 @@ double interp_compress_test(
     #ifdef _OPENMP
     #pragma omp parallel for
     #endif
-    for (size_t k = 0; k < sampled_blocks.size(); k++) {
+    for (size_t k = 0; k < sampled_blocks.size(); ++k) {
         auto sz =
             make_decomposition_interpolation<T, N>(conf, LinearQuantizer<T>(conf.absErrorBound, conf.quantbinCnt / 2));
         auto cur_block = sampled_blocks[k];
         quant_inds_vec[k] = sz.compress(conf, cur_block.data());
         
     }
-    for (size_t k = 0; k < sampled_blocks.size(); k++)
+    for (size_t k = 0; k < sampled_blocks.size(); ++k)
         quant_inds.insert(quant_inds.end(), std::make_move_iterator(quant_inds_vec[k].begin()),
                                  std::make_move_iterator(quant_inds_vec[k].end()));  // merge the quant bins. Lossless them together
     timer.stop("att interp");
@@ -326,7 +326,7 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
         auto testConfig = conf;
         std::vector<size_t> dims(N, sampleBlockSize + 1);
         testConfig.setDims(dims.begin(), dims.end());
-        for (auto &interp_op : {INTERP_ALGO_CUBIC}) {//removed linear
+        for (auto &interp_op : {INTERP_ALGO_LINEAR,INTERP_ALGO_CUBIC}) {//removed linear
             testConfig.interpAlgo = interp_op;
             ratio = interp_compress_test<T, N>(sampled_blocks, testConfig, sampleBlockSize, buffer, bufferCap);
             if (ratio > best_interp_ratio) {
@@ -344,8 +344,8 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
         }
         testConfig.interpDirection = conf.interpDirection;
         // test more alpha-beta pairs for best compression ratio,
-        auto alphalist = std::vector<double>{1.25,  2.0};//fixed, to discuss: add removed back
-        auto betalist = std::vector<double>{1.5, 3.0};//fixed
+       auto alphalist = std::vector<double>{1.0, 1.5, 2.0};
+        auto betalist = std::vector<double>{1.0, 2.5, 3.0};
         for (size_t i = 0; i < alphalist.size(); i++) {
             auto alpha = alphalist[i];
             auto beta = betalist[i];
