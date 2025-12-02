@@ -145,6 +145,7 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
             encoder.encode(quant_inds, buffer_pos);
 
         #endif
+        encoder.postprocess_decode();
         timer.stop("huff");
          timer.start();
         auto cmpSize = lossless.compress(buffer, buffer_pos - buffer, cmpData, cmpCap);
@@ -157,9 +158,9 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
     T *decompress(const Config &conf, uchar const *cmpData, size_t cmpSize, T *decData) override {
         uchar *buffer = nullptr;
         size_t bufferSize = 0;
-        Timer timer(true);
+        //Timer timer(true);
         lossless.decompress(cmpData, cmpSize, buffer, bufferSize);
-        timer.stop("decmp interp");
+        //timer.stop("decmp interp");
         uchar const *bufferPos = buffer;
 
         decomposition.load(bufferPos, bufferSize);
