@@ -162,6 +162,7 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
             encoder.save(buffer_pos);
             encoder.encode(quant_inds, buffer_pos);
             encoder.postprocess_encode();
+            cmpCap -= cmpData_pos - cmpData;
             cmpSize += lossless.compress(buffer, buffer_pos - buffer, cmpData_pos, cmpCap) + sizeof(int) + sizeof(size_t);
             free(buffer);
         }
@@ -178,6 +179,7 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
             encoder.save(buffer_pos);
             encoder.encode(quant_inds, buffer_pos);
             encoder.postprocess_encode();
+            cmpCap -= cmpData_pos - cmpData;
             cmpSize += lossless.compress(buffer, buffer_pos - buffer, cmpData_pos, cmpCap)  + sizeof(int) + sizeof(size_t);
             free(buffer);
 
@@ -203,12 +205,15 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
 
         size_t quant_inds_size = 0;
         read(quant_inds_size, cmpDataPos);
+        std::cout<<quant_inds_size<<std::endl;
         int compression_thread_num = 0;
         read(compression_thread_num, cmpDataPos);
+        std::cout<<compression_thread_num<<std::endl;
         std::vector<int> quant_inds; // todo: it should better match the encoder output type,
         if(compression_thread_num <=1){
             size_t offset;
             read(offset, cmpDataPos);
+            std::cout<<offset<<std::endl;
              uchar *buffer = nullptr;
             size_t bufferSize = 0;
             cmpSize -= cmpDataPos - cmpData;
