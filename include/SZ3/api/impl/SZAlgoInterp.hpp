@@ -352,11 +352,8 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
         #pragma omp parallel for schedule(static)
         #endif
         for (size_t i = 0; i < ablist_size; i++) {
-            auto tempConfig = testConfig;
-            auto alpha = alphalist[i];
-            auto beta = betalist[i];
-            tempConfig.interpAlpha = alpha;
-            tempConfig.interpBeta = beta;
+            tempConfig.interpAlpha = alphalist[i];
+            tempConfig.interpBeta = betalist[i];
             ratios[i] = interp_compress_test<T, N>(sampled_blocks, tempConfig, sampleBlockSize, buffer, bufferCap);
             
         }
@@ -364,8 +361,8 @@ size_t SZ_compress_Interp_lorenzo(Config &conf, T *data, uchar *cmpData, size_t 
             auto ratio = ratios[i];
             if (ratio > best_interp_ratio * 1.02) {
                 best_interp_ratio = ratio;
-                conf.interpAlpha = alpha;
-                conf.interpBeta = beta;
+                conf.interpAlpha = alphalist[i];
+                conf.interpBeta = betalist[i];
             }
         }
     }
