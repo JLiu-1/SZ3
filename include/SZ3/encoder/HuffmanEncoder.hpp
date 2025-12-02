@@ -296,6 +296,7 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
                 }
             }
         }
+        std::cout<<count<<std::endl;
 
         // 消费掉整个 bitstream
         bytes = p_end;
