@@ -21,6 +21,12 @@
 #include <unordered_map>
 #include <unordered_set>
 
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
+
 namespace SZ3 {
 
 template <class T>
@@ -798,7 +804,9 @@ memset(huffmanTree->cout, 0, huffmanTree->stateNum * sizeof(unsigned char));
        // std::cout<<offset<<" "<<max<<std::endl;
 
 
-        int stateNum = max - offset + 2;
+        int stateNum = (max == offset) ? max - offset + 2 : 1;
+        auto tid = omp_get_thread_num();
+         #pragma omp critical
         std::cout<<stateNum<<std::endl;
         //timer.stop("count");
         huffmanTree = createHuffmanTree(stateNum);
