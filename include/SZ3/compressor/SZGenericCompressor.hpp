@@ -110,8 +110,8 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
                // std::cout<<tid<<" "<<cur_outSize<<std::endl;
 
                 block_byte_offsets[tid] = cur_outSize;
-                // #pragma omp critical
-                //std::cout<<"tid: "<<tid<<" outsize: "<<cur_outSize<<std::endl;
+                 #pragma omp critical
+                std::cout<<"tid: "<<tid<<" outsize: "<<cur_outSize<<std::endl;
                 #pragma omp barrier
                 #pragma omp single
                 {
@@ -121,7 +121,8 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
                         auto next_prefix_sum = prefix_sum + block_byte_offsets[i];
                         block_byte_offsets[i] = prefix_sum;
                         prefix_sum = next_prefix_sum;
-                       // std::cout<<" offset: "<<block_byte_offsets[i]<<std::endl;
+                        #pragma omp critical
+                        std::cout<<" offset: "<<block_byte_offsets[i]<<std::endl;
 
                     }
                 }
@@ -207,24 +208,24 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
                 //std::cout<<tid<<" "<<block_byte_offset<<std::endl;
 
                 //size_t block_byte_length = block_byte_offsets[tid + 1];
-               // #pragma omp critical
-               // std::cout<<"tid: "<<tid<<", prefix: "<<block_byte_offset<<std::endl;
+                #pragma omp critical
+                std::cout<<"tid: "<<tid<<", prefix: "<<block_byte_offset<<std::endl;
                 auto temp_buffer_pos = bufferPos + block_byte_offset;
                 auto temp_start = temp_buffer_pos;
                 Encoder cur_encoder;
                 auto temp = bufferSize;
                 cur_encoder.load(temp_buffer_pos,temp);
-               // #pragma omp critical
-                //std::cout<<"tid: "<<tid<<", loaded."<<std::endl;
-                //#pragma omp critical
-               // std::cout<<"tid: "<<tid<<", moved: "<<temp_buffer_pos - temp_start <<std::endl;
+               #pragma omp critical
+                std::cout<<"tid: "<<tid<<", loaded."<<std::endl;
+                #pragma omp critical
+               std::cout<<"tid: "<<tid<<", moved: "<<temp_buffer_pos - temp_start <<std::endl;
              
                 auto cur_quant_inds = cur_encoder.decode(temp_buffer_pos, cur_len);
-                //#pragma omp critical
-                //std::cout<<"tid: "<<tid<<", ended at: "<<temp_buffer_pos - bufferPos<<" ,"<<cur_quant_inds.size()<<" bins extracted."<<std::endl;
+                #pragma omp critical
+                std::cout<<"tid: "<<tid<<", ended at: "<<temp_buffer_pos - bufferPos<<" ,"<<cur_quant_inds.size()<<" bins extracted."<<std::endl;
                 cur_encoder.postprocess_decode();
-                 //#pragma omp critical
-                //std::cout<<"tid: "<<tid<<" postprocessed."<<std::endl;
+                 #pragma omp critical
+                std::cout<<"tid: "<<tid<<" postprocessed."<<std::endl;
                 std::copy(cur_quant_inds.begin(), cur_quant_inds.end(), quant_inds.begin() + start_idx);
                 cur_quant_inds.clear();
                 
