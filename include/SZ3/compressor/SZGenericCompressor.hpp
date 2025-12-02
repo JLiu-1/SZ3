@@ -206,7 +206,7 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
                 //std::cout<<tid<<" "<<block_byte_offset<<std::endl;
 
                 //size_t block_byte_length = block_byte_offsets[tid + 1];
-                /#pragma omp critical
+                #pragma omp critical
                 std::cout<<"tid: "<<tid<<", prefix: "<<block_byte_offset<<std::endl;
                 auto temp_buffer_pos = bufferPos + block_byte_offset;
                 Encoder cur_encoder;
