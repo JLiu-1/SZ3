@@ -163,7 +163,7 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
             encoder.encode(quant_inds, buffer_pos);
             encoder.postprocess_encode();
             cmpCap -= cmpData_pos - cmpData;
-            std::cout<<buffer_pos - buffer<<std::endl;
+           // std::cout<<buffer_pos - buffer<<std::endl;
             auto zstdSize = lossless.compress(buffer, buffer_pos - buffer, cmpData_pos, cmpCap);
 
             cmpSize = cmpData_pos - cmpData + zstdSize;
@@ -222,7 +222,7 @@ class SZGenericCompressor : public concepts::CompressorInterface<T> {
             size_t bufferSize = 0;
             cmpSize -= cmpDataPos - cmpData;
             lossless.decompress(cmpDataPos, cmpSize, buffer, bufferSize);
-             std::cout<<bufferSize<<std::endl;
+             //std::cout<<bufferSize<<std::endl;
                uchar const *bufferPos = buffer;
             encoder.load(bufferPos, bufferSize);
             quant_inds = encoder.decode(bufferPos, quant_inds_size);
